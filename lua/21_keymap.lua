@@ -138,7 +138,6 @@ keymap('n', '<F8>c', ':PackerCompile<CR>', noremap)
 keymap('n', '<F8>m', ':Mason<CR>', noremap)
 keymap('n', '<F8>t', ':TSUpdate<CR>', noremap)
 keymap('n', '<F8>r', '<cmd>lua RandomScheme()<CR>', noremap)
-keymap('n', '<F4>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
 keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
 
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', noremap)
@@ -164,9 +163,17 @@ keymap('', '<LocalLeader>r', ':RooterToggle<CR>', noremap)
 
 -- keymap('n', '<Leader>9', [[ddx -name=search%`bufnr('%')`<CR>']], noremap)
 --- expand region ---
-keymap('', 'L', '<Plug>(expand_region_expand)', noremap)
-keymap('', 'H', '<Plug>(expand_region_shrink)', noremap)
-
+-- keymap('', '<LocalLeader>j', '<Plug>(expand_region_expand)', noremap)
+-- keymap('', '<LocalLeader>k', '<Plug>(expand_region_shrink)', noremap)
+minor_mode.create('ModeExpandRegion', '<Leader>').set_multi(
+    {
+        { 'j', '<Plug>(expand_region_expand)' },
+        { 'J', '<Plug>(expand_region_shrink)' },
+        -- { 'j', '<Plug>(expand_region_expand)' , 'x'},
+        -- { 'J', '<Plug>(expand_region_shrink)' , 'x'},
+    }
+)
+minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
 --- translate ---
 keymap('x', '<LocalLeader>t', ':Translate<CR>', noremap)
 keymap('n', '<LocalLeader>t', ':Translate<CR>', noremap)
@@ -248,10 +255,10 @@ keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', noremap)
 minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true)<CR>")
 
 -- keymap('n', '<LocalLeader>`', '<cmd>lua ToggleDiagDisp(true)<CR>', noremap)
-keymap('x', '<LocalLeader>01', ':SyntaxInfoCR>', noremap)
+keymap('x', '<LocalLeader>1', ':SyntaxInfoCR>', noremap)
 -- keymap("", "<LocalLeaper>`", '<cmd>lua require("lsp_lines").toggle()<CR>', noremap)
-keymap('n', '<LocalLeader>06', ':set paste!<CR>', noremap)
-keymap('n', '<LocalLeader>05', ':QuickScopeToggle<CR>', noremap)
+keymap('n', '<LocalLeader>6', ':set paste!<CR>', noremap)
+keymap('n', '<LocalLeader>5', ':QuickScopeToggle<CR>', noremap)
 keymap('n', '<Leader><Space>', '<C-W>p', noremap) -- 前にアクセスしたウィンドウに移動
 
 

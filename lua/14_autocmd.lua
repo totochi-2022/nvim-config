@@ -1,5 +1,6 @@
 -- local augroup = vim.api.nvim_create_augroup -- Create/get autocommand group
 local autocmd = vim.api.nvim_create_autocmd -- Create autocommand
+
 local hl = vim.api.nvim_set_hl
 
 autocmd('BufRead', {
@@ -50,6 +51,7 @@ autocmd({ "CursorHold", "CursorHoldI" }, {
         end
     end
 })
+
 autocmd({ "CursorMoved", "CursorMovedI" }, {
     pattern = "*",
     callback = function()

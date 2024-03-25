@@ -261,12 +261,10 @@ require 'packer'.startup({
             --{{{
             requires = { 'haya14busa/incsearch.vim' },
         } --}}}
-        -- use { 'kevinhwang91/nvim-hlslens'}
-        use { 'kevinhwang91/nvim-hlslens',
+        use { 'kevinhwang91/nvim-hlslens',-- {{{
            config = require('hlslens').setup()
         } -- }}}
-        -- use { 'rhysd/clever-f.vim',
-        --     --{{{
+        -- use { 'rhysd/clever-f.vim',{{{
         --     config = function()
         --         vim.g.clever_f_smart_case = 0
         --         vim.g.clever_f_use_migemo = 1
@@ -274,7 +272,7 @@ require 'packer'.startup({
         --         vim.g.clever_f_fix_key_direction = 1
         --         vim.g.clever_f_chars_match_any_signs = ';'
         --     end,
-        -- } --}}}
+        -- } }}}
         -- }}}
         --- brackets ---{{{
         use { 'andymass/vim-matchup' }
@@ -343,6 +341,12 @@ require 'packer'.startup({
                     open_mapping = [[<F5>]], -- This is the default mapping.
                     start_in_insert = true,
                     direction = 'float',
+                    winbar = {
+                        enabled = false,
+                        name_formatter = function(term) --  term: Terminal
+                            return term.name
+                        end
+                    },
                 })
             end
         } --}}}
@@ -478,8 +482,8 @@ require 'packer'.startup({
         use { 'osyo-manga/vim-textobj-from_regexp' }
         use { 'rhysd/vim-textobj-anyblock' }        -- ib  ar
         use { 'sgur/vim-textobj-parameter' }        -- i, a,
-        use { 'glts/vim-textobj-comment' }          -- ic ac aC
-
+        use { 'glts/vim-textobj-comment' }          -- ic ac aCc-v
+        -- use { 'osyo- manga/vim-textobj-blockwise' } -- I A
         use { 'terryma/vim-expand-region',
             -- {{{
             config = function()
@@ -489,8 +493,8 @@ require 'packer'.startup({
                         ['i"'] = 1,
                         ['i\''] = 1,
                         ['i]'] = 1,
-                    -- ['iss'] = 1,
-                    -- ['ass'] = 1,
+                        -- ['iss'] = 1,
+                        -- ['ass'] = 1,
                         ['ib'] = 1,
                         ['iB'] = 1,
                         ['il'] = 1,
@@ -505,7 +509,6 @@ require 'packer'.startup({
                 require("tsht").config.hint_keys = { "h", "j", "f", "d", "n", "v", "s", "l", "a" }
             end,
         } --}}}
-        -- use { 'osyo-manga/vim-textobj-blockwise' } -- I A
         --}}}
         --- undo ---{{{
         use { 'simnalamburt/vim-mundo',
@@ -717,7 +720,7 @@ require 'packer'.startup({
             -- requires = 'vim-denops/denops.vim',
         }
         use { 'tyru/open-browser.vim' }
-        use { 'vim-jp/vimdoc-ja', opt = true }
+        use { 'vim-jp/nvimdoc-ja', opt = true }
         --}}}
         -- vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
         -- use {

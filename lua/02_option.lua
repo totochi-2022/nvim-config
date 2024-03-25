@@ -137,7 +137,8 @@ vim.opt.mousehide = false
 
 --- フォント ---
 -- GUI用のフォント設定(CUIでは無効)
-vim.opt.guifont = [[Cica\ 12]]
+vim.opt.guifont = [[Cica\ 11]]
+vim.g.WebDevIconsUnicodeDecorateFolderNodes = 1
 
 -- 行間隔の設定
 vim.opt.linespace = 1

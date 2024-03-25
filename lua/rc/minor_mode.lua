@@ -38,23 +38,6 @@ function M.create(namespace, prefix, mode, beforehook, afterhook)
         set_multi = function (params)
             for _, param in pairs(params) do
                 local repeater = param[1]
-    -- use({ 'JoosepAlviste/nvim-ts-context-commentstring',
-    --     --{{{
-    --     requires = "nvim-treesitter/nvim-treesitter",
-    --     config = function()
-    --         require("nvim-treesitter.configs").setup {
-    --         }
-    --     end,
-    -- }) --}}}
-    -- use({ "yioneko/nvim-yati",
-    --     --{{{
-    --     requires = "nvim-treesitter/nvim-treesitter",
-    --     config = function()
-    --         require("nvim-treesitter.configs").setup {
-    --             yati = { enable = true },
-    --         }
-    --     end,
-    -- }) --}}}
                 local action = param[2]
                 vim.keymap.set(mode, prefix .. repeater, plug_before_hook .. action .. plug_pending)
                 vim.keymap.set(mode, plug_pending .. repeater, action .. plug_pending)
