@@ -153,6 +153,9 @@ keymap('', [[<LocalLeader>']], '%', noremap)
 keymap("t", "<Esc>", [[<C-\><C-n>]], {})
 -- other leader
 
+-- 改行コード強制変更
+vim.keymap.set('n', 'ml', ':%s/\r//g<CR>', noremap)
+vim.keymap.set('v', 'ml', ':s/\r//g', noremap)
 
 --- 行ごと移動(VisualModeでは複数行まとめて)
 keymap('n', '<C-Down>', [["zdd"zp]], noremap)
