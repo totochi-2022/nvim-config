@@ -36,9 +36,9 @@ require('mason-lspconfig').setup_handlers {
 }
 
 require('mason-null-ls').setup({
-    ensure_installed = {
-        "black"
-    },
+    -- ensure_installed = {
+    --     "black"
+    -- },
     automatic_installation = false,
     handlers = {},
 })

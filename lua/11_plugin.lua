@@ -6,9 +6,9 @@ end
 vim.opt.timeoutlen = 300 --すぐ出るように
 require 'packer'.startup({
     function()
-        --- plugin manager ---{{{
         use { 'wbthomason/packer.nvim', opt = true }
         --}}}
+
         --- libraray ---{{{
         use { 'tpope/vim-repeat', opt = false }
         use { 'nvim-lua/popup.nvim', opt = false }
@@ -18,6 +18,7 @@ require 'packer'.startup({
         use { 'kana/vim-textobj-user', opt = false }
         use { 'kana/vim-operator-user', opt = false }
         --}}}
+
         --- color scheme ---{{{
         use { 'EdenEast/nightfox.nvim' }
         use { 'glepnir/zephyr-nvim' }
@@ -28,6 +29,7 @@ require 'packer'.startup({
         }
 
         --}}}
+
         --- fuzzy finder ---{{{
         use { 'nvim-telescope/telescope.nvim',
             --{{{
@@ -103,6 +105,7 @@ require 'packer'.startup({
                 require('telescope').load_extension('command_palette')
             end,
         } --}}}}}}
+
         --- status line ---{{{
         use { 'nvim-lualine/lualine.nvim',
             --{{{
@@ -140,7 +143,7 @@ require 'packer'.startup({
                         lualine_x = { 'location' },
                         lualine_y = {},
                         lualine_z = {}
-                    },
+                   },
                 }
             end,
         } --}}}
@@ -160,6 +163,7 @@ require 'packer'.startup({
         --     end,
         -- } -- }}}
         --}}}
+
         --- treesitter ---{{{
         use({
             'nvim-treesitter/nvim-treesitter',
@@ -180,6 +184,7 @@ require 'packer'.startup({
             end,
         }) --}}}
         --}}}
+
         --- lsp ---{{{
         use { 'williamboman/mason.nvim' }
         use { 'williamboman/mason-lspconfig.nvim' }
@@ -200,6 +205,7 @@ require 'packer'.startup({
         --}}}
         use { 'hrsh7th/cmp-nvim-lsp' }
         --}}}
+
         --- cmp --- {{{
         use { 'hrsh7th/nvim-cmp' }
         use { 'hrsh7th/vim-vsnip' }
@@ -218,6 +224,7 @@ require 'packer'.startup({
         -- use { 'uga-rosa/cmp-dictionary' }
         use { 'tzachar/cmp-tabnine', run = "./install.sh" }
         --}}}
+
         --- moving ---{{{
         use { 'rainbowhxch/accelerated-jk.nvim',
             --{{{
@@ -243,6 +250,7 @@ require 'packer'.startup({
 
         use { 'haya14busa/vim-edgemotion' }
         --}}}
+
         --- search ---{{{
         use { 'haya14busa/vim-asterisk' }
 
@@ -274,11 +282,13 @@ require 'packer'.startup({
         --     end,
         -- } }}}
         -- }}}
+
         --- brackets ---{{{
         use { 'andymass/vim-matchup' }
 
         use { 'windwp/nvim-autopairs',
             -- {{{
+            event = "InsertEnter",
             config = function()
                 require("nvim-autopairs").setup {}
             end,
@@ -311,9 +321,9 @@ require 'packer'.startup({
         --    delete(functi*on calls)     dsf             function calls
         --    }}}
         --}}}
+
         --- fold ---{{{
-        use { 'LeafCage/foldCC.vim',
-            -- {{{
+        use { 'LeafCage/foldCC.vim', -- {{{
             setup = function() -- setupで指定しないと動作しない
                 vim.g.foldCCtext_enable_autofdc_adjuster = 1
                 vim.g.foldCCtext_maxchars = 78
@@ -322,6 +332,22 @@ require 'packer'.startup({
                 vim.opt.foldtext = 'FoldCCtext()'
             end,
         } -- }}}
+
+        -- use {'anuvyklack/pretty-fold.nvim',
+        --     config = function()
+        --         require('pretty-fold').setup()
+        --     end
+        -- }
+        -- use {'anuvyklack/fold-preview.nvim',
+        --     requires = 'anuvyklack/keymap-amend.nvim',
+        --     config = function()
+        --         require('fold-preview').setup({
+        --             auto = 1000,
+        --             auto_close = true,
+        --             border = 'rounded',
+        --         })
+        --     end
+        -- }
         --}}}
         --- mark bookmark -{{{
         use { 'chentoast/marks.nvim',
@@ -576,8 +602,18 @@ require 'packer'.startup({
                 require("bufresize").setup()
             end,
         }                                    -- }}},
-        use { 'vim-scripts/indentLine.vim' } -- インデントライン表示
+        -- use { 'vim-scripts/indentLine.vim' } -- インデントライン表示
 
+        use  { "lukas-reineke/indent-blankline.nvim",
+            require("ibl").setup {
+                indent = { highlight = {"CursorColumn", "Whitespace",}, char = "" },
+                whitespace = {
+                    highlight = {"CursorColumn", "Whitespace",},
+                    remove_blankline_trail = true,
+                },
+                scope = { enabled = true },
+            }
+        }
         use { 'junegunn/vim-easy-align' }    -- 整列
 
         use { 't9md/vim-quickhl' }           -- 選択ワードハイライト
@@ -714,13 +750,17 @@ require 'packer'.startup({
             end,
         } --}}}
         --}}}
+
         --- translate ---{{{
         use { 'skanehira/denops-translate.vim',
             opt = true,
             -- requires = 'vim-denops/denops.vim',
         }
         use { 'tyru/open-browser.vim' }
-        use { 'vim-jp/nvimdoc-ja', opt = true }
+        use {'mfussenegger/nvim-dap'}
+        use { 'rcarriga/nvim-dap-ui' }
+        use { 'https://github.com/mfussenegger/nvim-dap-python' }
+        use { 'vim-jp/vimdoc-ja', opt = true }
         --}}}
         -- vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
         -- use {
@@ -739,6 +779,7 @@ require 'packer'.startup({
                 vim.fn["mkdp#util#install"]()
             end,
         } -- }}}
+
         use { 'rbtnn/vim-jumptoline' }
         use { 'khaveesh/vim-fish-syntax', ft = { 'fish' } }
 
@@ -746,12 +787,17 @@ require 'packer'.startup({
         use { 'osyo-manga/vim-precious',
             requires = { 'Shougo/context_filetype.vim' }
         }
+        use {'vim-scripts/visual-basic.vim'}
     end,
     config = {
         display = {
-            open_fn = function()
-                return require('packer.util').float({ border = 'rounded' })
-            end
+            open_fn = function(a)
+                return require('packer.util').float({ border = 'rounded' }) end
         }
     }
-})
+})---
+
+
+
+
+

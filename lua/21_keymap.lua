@@ -138,6 +138,7 @@ keymap('n', '<F8>c', ':PackerCompile<CR>', noremap)
 keymap('n', '<F8>m', ':Mason<CR>', noremap)
 keymap('n', '<F8>t', ':TSUpdate<CR>', noremap)
 keymap('n', '<F8>r', '<cmd>lua RandomScheme()<CR>', noremap)
+
 keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
 
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', noremap)
@@ -152,12 +153,13 @@ keymap('', [[<LocalLeader>']], '%', noremap)
 keymap("t", "<Esc>", [[<C-\><C-n>]], {})
 -- other leader
 
+
 --- 行ごと移動(VisualModeでは複数行まとめて)
 keymap('n', '<C-Down>', [["zdd"zp]], noremap)
 keymap('n', '<C-Up>', [["zdd<Up>"zP]], noremap)
 keymap('x', '<C-Up>', '"zx<Up>"zP`[V`]', noremap)
 keymap('x', '<C-Down>', '"zx"zp`[V`]', noremap)
-
+keymap('n', '<LocalLeader>d', ':lua require("dapui").toggle()<CR>', noremap)
 
 keymap('', '<LocalLeader>r', ':RooterToggle<CR>', noremap)
 
@@ -165,12 +167,12 @@ keymap('', '<LocalLeader>r', ':RooterToggle<CR>', noremap)
 --- expand region ---
 -- keymap('', '<LocalLeader>j', '<Plug>(expand_region_expand)', noremap)
 -- keymap('', '<LocalLeader>k', '<Plug>(expand_region_shrink)', noremap)
-minor_mode.create('ModeExpandRegion', '<Leader>').set_multi(
+minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
+minor_mode.create('ModeExpandRegion', '<LocalLeader>').set('j', '<plug>(expand_region_expand)' , 'x')
+minor_mode.create('ModeExpandRegion', '<LocalLeader>','x').set_multi(
     {
-        { 'j', '<Plug>(expand_region_expand)' },
-        { 'J', '<Plug>(expand_region_shrink)' },
-        -- { 'j', '<Plug>(expand_region_expand)' , 'x'},
-        -- { 'J', '<Plug>(expand_region_shrink)' , 'x'},
+        { 'j', '<plug>(expand_region_expand)' , 'x'},
+        { 'J', '<Plug>(expand_region_shrink)' , 'x'},
     }
 )
 minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
@@ -301,6 +303,7 @@ keymap('n', 'ciy', 'ciw<C-R>0<ESC><Right>', noremap)
 keymap('n', 'ciY', 'ciW<C-R>0<ESC><Right>', noremap)
 
 keymap('i', 'jj', '<ESC>', noremap)
+keymap('i', 'ｊｊ', '<ESC>', noremap)
 keymap('n', 'あ', 'a', noremap)
 keymap('n', 'い', 'i', noremap)
 -- " -- タイポ修正<Insert> --21
