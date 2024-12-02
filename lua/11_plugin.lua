@@ -604,16 +604,31 @@ require 'packer'.startup({
         }                                    -- }}},
         -- use { 'vim-scripts/indentLine.vim' } -- インデントライン表示
 
-        use  { "lukas-reineke/indent-blankline.nvim",
-            require("ibl").setup {
-                indent = { highlight = {"CursorColumn", "Whitespace",}, char = "" },
-                whitespace = {
-                    highlight = {"CursorColumn", "Whitespace",},
-                    remove_blankline_trail = true,
+        -- use  { "lukas-reineke/indent-blankline.nvim",
+        --     require("ibl").setup {
+        --         indent = { highlight = {"CursorColumn", "Whitespace",}, char = "" },
+        --         whitespace = {
+        --             highlight = {"CursorColumn", "Whitespace",},
+        --             remove_blankline_trail = true,
+        --         },
+        --         scope = { enabled = true },
+        --     }
+        -- }
+        use {
+          'shellRaining/hlchunk.nvim',
+          event = { 'BufReadPre', 'BufNewFile' },
+          config = function()
+            require('hlchunk').setup({
+                chunk = {
+                    enable = true
                 },
-                scope = { enabled = true },
-            }
+                indent = {
+                    enable = true
+                }
+            })
+          end
         }
+
         use { 'junegunn/vim-easy-align' }    -- 整列
 
         use { 't9md/vim-quickhl' }           -- 選択ワードハイライト
@@ -788,6 +803,93 @@ require 'packer'.startup({
             requires = { 'Shougo/context_filetype.vim' }
         }
         use {'vim-scripts/visual-basic.vim'}
+
+        use {
+          "nvim-neo-tree/neo-tree.nvim",
+            branch = "v3.x",
+            requires = {
+              "nvim-lua/plenary.nvim",
+              "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+              "MunifTanjim/nui.nvim",
+              -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+            }
+          }
+        -- use {
+        --   'yetone/avante.nvim',
+        --   requires = {
+        --     'nvim-treesitter/nvim-treesitter',
+        --     'stevearc/dressing.nvim',
+        --     'nvim-lua/plenary.nvim',
+        --     'MunifTanjim/nui.nvim',
+        --     -- Optional dependencies
+        --     'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+        --     'zbirenbaum/copilot.lua',      -- for providers='copilot'
+        --     {
+        --       'HakonHarnes/img-clip.nvim',
+        --       config = function()
+        --         require('img-clip').setup({
+        --           default = {
+        --             embed_image_as_base64 = false,
+        --             prompt_for_file_name = false,
+        --             drag_and_drop = {
+        --               insert_mode = true,
+        --             },
+        --             use_absolute_path = true,
+        --           },
+        --         })
+        --       end
+        --     },
+        --     {
+        --       'MeanderingProgrammer/render-markdown.nvim',
+        --       config = function()
+        --         require('render-markdown').setup({
+        --           file_types = { "markdown", "Avante" },
+        --         })
+        --       end,
+        --       ft = { "markdown", "Avante" }
+        --     }
+        --   },
+        --   run = 'make', -- build commandをrunに変更
+        --   config = function()
+        --     require('avante').setup({
+        --         provider = "claude",
+        --           auto_suggestions_provider = "claude",
+        --           behaviour = {
+        --             auto_suggestions = true,
+        --             auto_set_highlight_group = true,
+        --             auto_set_keymaps = true,
+        --             auto_apply_diff_after_generation = true,
+        --             support_paste_from_clipboard = true,
+        --           },
+        --           windows = {
+        --             position = "right",
+        --             width = 30,
+        --             sidebar_header = {
+        --               align = "center",
+        --               rounded = false,
+        --             },
+        --             ask = {
+        --               floating = true,
+        --               start_insert = true,
+        --               border = "rounded"
+        --             }
+        --           },
+        --           copilot = {
+        --             model = "gpt-4o-2024-05-13",
+        --             max_tokens = 4096,
+        --           },
+        --           openai = {
+        --             model = "gpt-4o",
+        --             max_tokens = 4096,
+        --           },
+        --           claude = {
+        --             model = "claude-3-5-sonnet-20240620",
+        --             max_tokens = 8000,
+        --           },
+        --         })
+        --   end
+        -- }
+
     end,
     config = {
         display = {
@@ -800,4 +902,4 @@ require 'packer'.startup({
 
 
 
-
+-- ***REMOVED***

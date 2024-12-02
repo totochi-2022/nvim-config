@@ -7,6 +7,19 @@ local minor_mode = require('rc/minor_mode')
 -- }}}
 --- initialize{{{
 keymap('', 's', '', noremap)
+
+-- 1. mのデフォルトマッピングを解除
+keymap('n', 'm', '', noremap)
+
+-- 2. 特定のマークのみを許可
+-- よく使うマークのみを設定
+keymap('n', 'mz', 'mz', noremap)
+keymap('n', 'mx', 'mx', noremap)
+keymap('n', 'mc', 'mc', noremap)
+-- マークへのジャンプも設定
+keymap('n', "'z", "'z", noremap)
+keymap('n', "'x", "'x", noremap)
+keymap('n', "'c", "'c", noremap)
 -- keymap('', ',', '', noremap)
 -- keymap('', '#', '', noremap)
 -- }}}
@@ -55,6 +68,7 @@ minor_mode.create('Disp', '<Leader>s').set_multi(
         { 's', ':Telescope buffers<CR>' }, -- 左のウィンドウへ移動
     }
 )
+
 -- }}}
 --- buffer{{{
 minor_mode.create('Buf', '<LocalLeader>').set_multi(
@@ -104,7 +118,7 @@ keymap('', '<Leader>k', ':Telescope keymaps<CR>', noremap)
 keymap('', '<Leader><F1>', ':Telescope help_tags<CR>', noremap)
 keymap('', '<Leader><F2>', ':Telescope man_pages<CR>', noremap)
 keymap('', '<Leader>m', ':Telescope marks', noremap)
-keymap('', '<Leader>a', ':Telescope <CR>', noremap)
+-- keymap('', '<Leader>a', ':Telescope <CR>', noremap)
 keymap('', '<Leader>A', ':Telescope lsp_<Tab>', noremap)
 keymap('', '<Leader>g', ':Telescope live_grep<CR>', noremap)
 keymap('', '<Leader>q', ':Telescope quickfix<CR>', noremap)
@@ -129,9 +143,22 @@ keymap('', '<LocalLeader>Q', ':q!<CR>', noremap)
 keymap('', '<LocalLeader>e', ':e!<CR>', noremap)
 keymap('', '<LocalLeader>E', ':e .<CR>', noremap) -- }}}
 
+
+-- 21_keymap.lua または設定ファイル
+
+-- 特定の特殊キーのヘルプを表示するマッピング
+vim.keymap.set('n', '<Leader>?w', ':WhichKey "<C-w>"<CR>', { noremap = true })
+vim.keymap.set('n', '<Leader>?c', ':WhichKey "C-"<CR>', { noremap = true })  -- Ctrlキーのマッピングすべて
+vim.keymap.set('n', '<Leader>?a', ':WhichKey "M-"<CR>', { noremap = true })  -- Altキーのマッピングすべて
+
+-- すべてのマッピングを表示
+vim.keymap.set('n', '<Leader>?', ':WhichKey<CR>', { noremap = true })
+
+
 --- カレントディレクトリでのファイラ、ターミナル起動
-keymap('n', '<F8>e', ':<C-u>FilerCurrentDir<CR><CR>', noremap)
+-- keymap('n', '<F8>e', ':<C-u>FilerCurrentDir<CR><CR>', noremap)
 keymap('n', '<F8>E', ':!explorer.exe .<CR>', noremap)
+keymap('n', '<F8>e', ':!tabe<CR>', noremap)
 keymap('n', '<F8>x', ':<C-u>TerminalCurrentDir<CR><CR>', noremap)
 keymap('n', '<F8>s', ':PackerSync<CR>', noremap)
 keymap('n', '<F8>c', ':PackerCompile<CR>', noremap)
@@ -154,8 +181,8 @@ keymap("t", "<Esc>", [[<C-\><C-n>]], {})
 -- other leader
 
 -- 改行コード強制変更
-vim.keymap.set('n', 'ml', ':%s/\r//g<CR>', noremap)
-vim.keymap.set('v', 'ml', ':s/\r//g', noremap)
+keymap('n', 'ml', [[:%s/\r//g<CR>]], noremap)
+keymap('v', 'ml', [[:s/\r//g]], noremap)
 
 --- 行ごと移動(VisualModeでは複数行まとめて)
 keymap('n', '<C-Down>', [["zdd"zp]], noremap)
@@ -171,13 +198,25 @@ keymap('', '<LocalLeader>r', ':RooterToggle<CR>', noremap)
 -- keymap('', '<LocalLeader>j', '<Plug>(expand_region_expand)', noremap)
 -- keymap('', '<LocalLeader>k', '<Plug>(expand_region_shrink)', noremap)
 minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
-minor_mode.create('ModeExpandRegion', '<LocalLeader>').set('j', '<plug>(expand_region_expand)' , 'x')
-minor_mode.create('ModeExpandRegion', '<LocalLeader>','x').set_multi(
-    {
-        { 'j', '<plug>(expand_region_expand)' , 'x'},
-        { 'J', '<Plug>(expand_region_shrink)' , 'x'},
-    }
-)
+
+-- -- 初回のexpand（ノーマルモードから）
+-- keymap('n', '<LocalLeader>j', '<Plug>(expand_region_expand)', noremap)
+
+-- -- ビジュアルモードでの操作
+-- keymap('v', '<LocalLeader>j', '<Plug>(expand_region_expand)', noremap)
+-- keymap('v', '<LocalLeader>J', '<Plug>(expand_region_shrink)', noremap)
+
+
+-- 最初のエントリー（ノーマルモードでexpand開始）
+minor_mode.create('ModeExpandRegion', '<LocalLeader>').set('j', '<Plug>(expand_region_expand)')
+
+-- 続きのコマンド（ビジュアルモードで操作）
+minor_mode.create('ModeExpandRegion', '<LocalLeader>', 'x').set_multi({
+    { 'j', '<Plug>(expand_region_expand)' },
+    { 'J', '<Plug>(expand_region_shrink)' },
+    { 'k', '<Plug>(expand_region_shrink)' },
+})
+
 minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
 --- translate ---
 keymap('x', '<LocalLeader>t', ':Translate<CR>', noremap)
@@ -281,25 +320,118 @@ keymap('o', 'iu', ':<c-u>lua require"treesitter-unit".select()<CR>', { noremap =
 keymap('o', 'au', ':<c-u>lua require"treesitter-unit".select(true)<CR>', { noremap = true })
 
 --
-keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', noremap)
+-- LSPコマンドをラップする関数を作成
+local function safe_lsp_call(fn, capability)
+    return function()
+        local active_clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        if #active_clients > 0 then
+            if capability then
+                -- 特定の機能がサポートされているか確認
+                local has_capability = false
+                for _, client in ipairs(active_clients) do
+                    if client.server_capabilities[capability] then
+                        has_capability = true
+                        break
+                    end
+                end
+                if has_capability then
+                    fn()
+                else
+                    vim.notify("LSP server doesn't support " .. capability, vim.log.levels.WARN)
+                end
+            else
+                fn()
+            end
+        else
+            vim.notify("No LSP client attached", vim.log.levels.WARN)
+        end
+    end
+end
+-- 基本的なLSPコマンド
 keymap('n', 'md', '<cmd>lua vim.lsp.buf.definition()<CR>', noremap)
-keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
-keymap('n', '<F9>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
--- keymap('n', 'mm', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
+keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', noremap)
 keymap('n', 'mi', '<cmd>lua vim.lsp.buf.implementation()<CR>', noremap)
--- keymap('n', '<C-k>', '<cmd>lua m.lsp.buf.signature_help()<CR>', noremap)
+keymap('n', 'mt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', noremap)
+keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
+keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', noremap)
+keymap('n', 'mr', '<cmd>lua vim.lsp.buf.rename()<CR>', noremap)
+keymap('n', 'mca', '<cmd>lua vim.lsp.buf.code_action()<CR>', noremap)
+keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', noremap)
+keymap('n', 'mrf', '<cmd>lua vim.lsp.buf.references()<CR>', noremap)
+
+-- ワークスペース関連
 keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', noremap)
 keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', noremap)
 keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', noremap)
-keymap('n', 'mD', '<cmd>lua vim.lsp.buf.type_definition()<CR>', noremap)
-keymap('n', 'mr', '<cmd>lua vim.lsp.buf.rename()<CR>', noremap)
-keymap('n', 'mca', '<cmd>lua vim.lsp.buf.code_action()<CR>', noremap)
-keymap('n', 'mr', '<cmd>lua vim.lsp.buf.references()<CR>', noremap)
-keymap('n', 'me', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', noremap)
-keymap('n', 'mk', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', noremap)
-keymap('n', 'mj', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', noremap)
-keymap('n', 'mq', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', noremap)
-keymap('n', 'mf', '<cmd>lua vim.lsp.buf.formatting()<CR>', noremap)
+
+-- 診断表示
+keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', noremap)
+keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', noremap)
+
+-- 診断移動用のminor_mode
+minor_mode.create('DiagnosticJump', 'm').set_multi({
+    -- 全ての診断
+    { ']',       '<cmd>lua vim.diagnostic.goto_next()<CR>' },
+    { '[',       '<cmd>lua vim.diagnostic.goto_prev()<CR>' },
+
+    -- エラーのみ
+    { 'e]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>' },
+    { 'e[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>' },
+
+    -- 警告のみ
+    { 'w]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>' },
+    { 'w[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>' },
+
+    -- 情報のみ
+    { 'i]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>' },
+    { 'i[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>' },
+
+    -- ヒントのみ
+    { 'h]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>' },
+    { 'h[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>' },
+})
+
+-- -- 診断移動の初期アクション付きマッピング
+-- keymap('n', 'm]', '<cmd>lua vim.diagnostic.goto_next()<CR><cmd>lua require("which-key")<CR>', noremap)
+-- keymap('n', 'm[', '<cmd>lua vim.diagnostic.goto_prev()<CR><cmd>lua require("which-key")<CR>', noremap)
+
+-- -- エラーへの直接ジャンプ用ショートカット
+-- keymap('n', 'me]',
+--     '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR><cmd>lua require("which-key").show("DiagnosticJump")<CR>',
+--     noremap)
+-- keymap('n', 'me[',
+--     '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR><cmd>lua require("which-key").show("DiagnosticJump")<CR>',
+--     noremap)
+-- キーマップ設定
+-- vim.keymap.set('n', 'mD', safe_lsp_call(vim.lsp.buf.declaration), { noremap = true })
+-- vim.keymap.set('n', 'md', safe_lsp_call(vim.lsp.buf.definition), { noremap = true })
+-- vim.keymap.set('n', '<C-Space>', safe_lsp_call(vim.lsp.buf.hover), { noremap = true })
+-- vim.keymap.set('n', 'mi', safe_lsp_call(vim.lsp.buf.implementation), { noremap = true })
+-- vim.keymap.set('n', 'mwa', safe_lsp_call(vim.lsp.buf.add_workspace_folder), { noremap = true })
+-- vim.keymap.set('n', 'mwr', safe_lsp_call(vim.lsp.buf.remove_workspace_folder), { noremap = true })
+-- vim.keymap.set('n', 'mr', safe_lsp_call(vim.lsp.buf.rename), { noremap = true })
+-- vim.keymap.set('n', 'mca', safe_lsp_call(vim.lsp.buf.code_action), { noremap = true })
+-- vim.keymap.set('n', 'mf', safe_lsp_call(vim.lsp.buf.formatting), { noremap = true })
+
+-- keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', noremap)
+-- keymap('n', 'md', '<cmd>lua vim.lsp.buf.definition()<CR>', noremap)
+-- keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
+-- keymap('n', '<F9>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
+-- -- keymap('n', 'mm', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
+-- keymap('n', 'mi', '<cmd>lua vim.lsp.buf.implementation()<CR>', noremap)
+-- -- keymap('n', '<C-k>', '<cmd>lua m.lsp.buf.signature_help()<CR>', noremap)
+-- keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', noremap)
+-- keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', noremap)
+-- keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', noremap)
+-- keymap('n', 'mD', '<cmd>lua vim.lsp.buf.type_definition()<CR>', noremap)
+-- keymap('n', 'mr', '<cmd>lua vim.lsp.buf.rename()<CR>', noremap)
+-- keymap('n', 'mca', '<cmd>lua vim.lsp.buf.code_action()<CR>', noremap)
+-- keymap('n', 'mr', '<cmd>lua vim.lsp.buf.references()<CR>', noremap)
+-- keymap('n', 'me', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', noremap)
+-- keymap('n', 'mk', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', noremap)
+-- keymap('n', 'mj', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', noremap)
+-- keymap('n', 'mq', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', noremap)
+-- keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({async = true})<CR>', noremap)
 
 -- 一単語をヤンクされた文字列を置きかえ<Normal>
 keymap('n', 'ciy', 'ciw<C-R>0<ESC><Right>', noremap)
