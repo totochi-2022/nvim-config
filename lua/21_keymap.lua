@@ -83,7 +83,7 @@ minor_mode.create('Buf', '<LocalLeader>').set_multi(
 minor_mode.create('Tab', '<LocalLeader>').set('t', 'gt') -- 次のタブへ移動
 keymap('', '<LocalLeader>T', '<C-W>T', noremap)
 -- }}}
---- NERDCommenter{{{
+-- NERDCommenter{{{
 keymap('n', '<LocalLeader>c', '<Plug>NERDCommenterToggle', noremap)
 keymap('x', '<LocalLeader>c', '<Plug>NERDCommenterToggle', noremap)
 keymap('n', '<LocalLeader>Cn', '<Plug>NERDCommenterNested', noremap)
@@ -321,32 +321,6 @@ keymap('o', 'au', ':<c-u>lua require"treesitter-unit".select(true)<CR>', { norem
 
 --
 -- LSPコマンドをラップする関数を作成
-local function safe_lsp_call(fn, capability)
-    return function()
-        local active_clients = vim.lsp.get_active_clients({ bufnr = 0 })
-        if #active_clients > 0 then
-            if capability then
-                -- 特定の機能がサポートされているか確認
-                local has_capability = false
-                for _, client in ipairs(active_clients) do
-                    if client.server_capabilities[capability] then
-                        has_capability = true
-                        break
-                    end
-                end
-                if has_capability then
-                    fn()
-                else
-                    vim.notify("LSP server doesn't support " .. capability, vim.log.levels.WARN)
-                end
-            else
-                fn()
-            end
-        else
-            vim.notify("No LSP client attached", vim.log.levels.WARN)
-        end
-    end
-end
 -- 基本的なLSPコマンド
 keymap('n', 'md', '<cmd>lua vim.lsp.buf.definition()<CR>', noremap)
 keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', noremap)
@@ -371,8 +345,8 @@ keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', noremap)
 -- 診断移動用のminor_mode
 minor_mode.create('DiagnosticJump', 'm').set_multi({
     -- 全ての診断
-    { ']',       '<cmd>lua vim.diagnostic.goto_next()<CR>' },
-    { '[',       '<cmd>lua vim.diagnostic.goto_prev()<CR>' },
+    { ']',       '<cmd>lua vim.diagnostic.goto_next()<CR>zz' },
+    { '[',       '<cmd>lua vim.diagnostic.goto_prev()<CR>zz' },
 
     -- エラーのみ
     { 'e]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>' },
