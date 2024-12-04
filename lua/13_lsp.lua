@@ -1,7 +1,12 @@
+local is_windows = vim.fn.has('win64') == 1
+
 require("mason").setup({
+    -- Windowsの場合、インストールパスに日本語が含まれていると問題が起きることがあるので注意
+    install_root_dir = is_windows
+        and vim.fn.expand('$LOCALAPPDATA/nvim-data/mason')  -- Windows用パス
+        or nil,  -- デフォルトパスを使用
     providers = {
-        -- "mason.providers.client",
-        "mason.providers.registry-api" -- This is the default provider. You can still include it here if you want, as a fallback to the client provider.
+        "mason.providers.registry-api"
     },
     ui = {
         icons = {
@@ -11,6 +16,8 @@ require("mason").setup({
         }
     }
 })
+
+
 -- Reference highlight
 
 null_ls = require('null-ls')

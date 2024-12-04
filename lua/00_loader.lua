@@ -9,7 +9,7 @@ require '03_function'
 
 -- 11_plugin.lua
 require '11_plugin'
-vim.cmd [[autocmd BufWritePost 11_plugins.lua PackerCompile]]
+-- vim.cmd [[autocmd BufWritePost 11_plugins.lua PackerCompile]]
 
 -- 13_lsp.lua
 require '13_lsp'

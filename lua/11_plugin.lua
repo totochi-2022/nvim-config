@@ -1,5 +1,5 @@
 -- 11_plugin.lua
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+local lazypath = vim.fn.stdpath("data") .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
     "git",
@@ -10,7 +10,16 @@ if not vim.loop.fs_stat(lazypath) then
     lazypath,
   })
 end
+
+
+local config = {}
 vim.opt.rtp:prepend(lazypath)
+-- Windows環境の場合は並列数を制限
+if vim.fn.has('win32') == 1 then
+    config.concurrency = 1
+else
+    config.concurrency = 10  -- WSL2ではより多くの並列処理を許可
+end
 
 if vim.fn.has('win64') then
     -- vim.g.sqlite_clib_path = 'c:/bin/local/sqlite3.dll'
@@ -650,6 +659,7 @@ require("lazy").setup({
         }
     },
 }, {
+    concurrency = config.concurrency ,  -- 同時ダウンロード数を1に制限
     ui = {
         border = "rounded"
     },

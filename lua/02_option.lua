@@ -1,13 +1,10 @@
+-- 環境判定
+local is_windows = vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1
+local is_wsl = vim.fn.has('wsl') == 1
+local is_nvim_qt = vim.g.GuiLoaded ~= nil
+
 --- ウガンダ非表示
-vim.opt.shortmess:append({ I = true })
-
---- 編集中のファイルをタイトルに表示
-vim.opt.title = true
-
---- viminfo(shada) ---
-vim.opt.viminfo = [['100,:1000,@500,f1,/500,<1000,h,%]]
-
--- 行番号表示
+vim.opt.shortmess:append({ I = true })-- 行番号表示
 vim.opt.number = true
 vim.opt.relativenumber = false
 
@@ -27,7 +24,6 @@ vim.opt.scrolloff = 2
 -- 長い行もちゃんと表示
 vim.opt.display = 'lastline'
 
-vim.opt.backupdir = vim.env.HOME .. '/.vim/backup'
 
 -- 仮想編集できるようにする
 vim.opt.virtualedit:append({
@@ -135,10 +131,27 @@ vim.opt.mousefocus = false
 
 -- 入力時にマウスポインタを隠さない
 vim.opt.mousehide = false
+if is_nvim_qt then
+    -- ドラッグ&ドロップ処理
+    if is_windows then
+        vim.cmd([[
+            function! OnGuiDrop(files)
+                for f in a:files
+                    exe 'e ' .. fnamemodify(f, ':p')
+                endfor
+            endfunction
 
+            command! -nargs=1 GuiDrop :call OnGuiDrop(split(<q-args>, '\n'))
+        ]])
+
+        vim.g.GuiDrop = 1
+        vim.opt.guioptions = 'a'
+    end
+end
 --- フォント ---
 -- GUI用のフォント設定(CUIでは無効)
-vim.opt.guifont = [[Cica\ 11]]
+-- vim.opt.guifont = [[Cica\ 11]]
+vim.opt.guifont = is_windows and "Cica:h11" or "Cica\\ 11"
 vim.g.WebDevIconsUnicodeDecorateFolderNodes = 1
 
 -- 行間隔の設定
@@ -155,7 +168,8 @@ vim.opt.inccommand = 'split'
 vim.opt.autochdir = true
 
 -- クリップボードと連携する
-vim.opt.clipboard = { 'unnamedplus', 'unnamed' }
+vim.opt.clipboard = is_windows and { 'unnamed' } or { 'unnamedplus', 'unnamed' }
+
 vim.opt.swapfile = false
 
 
@@ -226,10 +240,26 @@ vim.g.netrw_preview = 1
 vim.opt.diffopt:append('vertical')
 
 vim.opt.updatetime = 500
-vim.g.incsearch_use_migemo = 1
+vim.g.incsearch_use_migemo = 0
 vim.g.toggle_auto_hover = 0
 
+if vim.g.GuiLoaded then
+    -- Neovim-Qt固有の設定
+    vim.cmd([[
+        " ドラッグ&ドロップを明示的に有効化
+        GuiDrop 1
 
+        " ドロップハンドラーの登録
+        function! HandleDrop(files)
+            for file in a:files
+                execute 'edit ' . fnameescape(file)
+            endfor
+        endfunction
+
+        autocmd User GuiDropped call HandleDrop(deepcopy(v:argv))
+    ]])
+
+end
 Colorschemes = {
     -- 'tokyonight',
     'tokyonight-moon',
@@ -241,3 +271,39 @@ Colorschemes = {
     'zephyr',
     'habamax',
 }
+
+
+
+
+-- カーソルのアニメーション
+vim.g.neovide_cursor_animation_length = 0.1  -- アニメーション時間
+vim.g.neovide_cursor_trail_length = 0.8      -- 残像の長さ
+vim.g.neovide_cursor_antialiasing = true     -- アンチエイリアス
+
+-- カーソルパーティクル効果
+vim.g.neovide_cursor_vfx_mode = "railgun"    -- パーティクルモード
+vim.g.neovide_cursor_vfx_opacity = 200.0     -- 不透明度
+vim.g.neovide_cursor_vfx_particle_lifetime = 1.2  -- パーティクルの寿命
+vim.g.neovide_cursor_vfx_particle_density = 7.0   -- パーティクルの密度
+
+
+
+-- 透明度
+vim.g.neovide_transparency = 0.9
+
+-- フローティングブラー（実験的）
+vim.g.neovide_floating_blur_amount_x = 2.0
+vim.g.neovide_floating_blur_amount_y = 2.0
+
+-- スクロールアニメーション
+vim.g.neovide_scroll_animation_length = 0.3
+-- フォントの線幅
+vim.g.neovide_cursor_trail_size = 0.8
+
+-- フォントシャープネス
+vim.g.neovide_font_hinting = "full"
+vim.g.neovide_font_subpixel_antialiasing = 1.0
+
+
+
+

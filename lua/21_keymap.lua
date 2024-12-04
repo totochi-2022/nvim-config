@@ -168,7 +168,6 @@ keymap('n', '<F8>r', '<cmd>lua RandomScheme()<CR>', noremap)
 
 keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', noremap)
 
-keymap('', '<LocalLeader>y', ':let @q = @*<CR>', noremap)
 keymap('', '<LocalLeader>h', '^', noremap)
 keymap('', '<LocalLeader>l', '$', noremap)
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', noremap)
@@ -421,6 +420,15 @@ keymap('n', 'い', 'i', noremap)
 --
 
 minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>")
+
+keymap('', '<LocalLeader>y', ':let @q = @*<CR>', noremap)
+
+if is_windows then
+    -- PowerShell用の設定
+    keymap('t', '<Esc>', [[<C-\><C-n>]], {})
+    keymap('t', '<C-w>', [[<C-\><C-n><C-w>]], {})
+end
+
 
 -- vim.cmd [[
 -- function! G_callback(selected) abort
