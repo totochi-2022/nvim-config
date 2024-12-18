@@ -1,14 +1,14 @@
 -- 11_plugin.lua
 local lazypath = vim.fn.stdpath("data") .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable",
-    lazypath,
-  })
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable",
+        lazypath,
+    })
 end
 
 
@@ -18,7 +18,7 @@ vim.opt.rtp:prepend(lazypath)
 if vim.fn.has('win32') == 1 then
     config.concurrency = 1
 else
-    config.concurrency = 10  -- WSL2ではより多くの並列処理を許可
+    config.concurrency = 10 -- WSL2ではより多くの並列処理を許可
 end
 
 if vim.fn.has('win64') then
@@ -117,10 +117,10 @@ require("lazy").setup({
                             { "save current file (C-s)", ':w' },
                             { "save all files (C-A-s)",  ':wa' },
                             { "quit (C-q)",              ':qa' },
-                            { "file browser (C-i)", ":lua require'telescope'.extensions.file_browser.file_browser()", 1 },
-                            { "search word (A-w)", ":lua require('telescope.builtin').live_grep()",  1 },
-                            { "git files (A-f)",   ":lua require('telescope.builtin').git_files()",  1 },
-                            { "files (C-f)",       ":lua require('telescope.builtin').find_files()", 1 },
+                            { "file browser (C-i)",      ":lua require'telescope'.extensions.file_browser.file_browser()", 1 },
+                            { "search word (A-w)",       ":lua require('telescope.builtin').live_grep()",                  1 },
+                            { "git files (A-f)",         ":lua require('telescope.builtin').git_files()",                  1 },
+                            { "files (C-f)",             ":lua require('telescope.builtin').find_files()",                 1 },
                         },
                         { "Help",
                             { "tips",            ":help tips" },
@@ -193,26 +193,110 @@ require("lazy").setup({
             return vim.fn.executable('node') == 1
         end,
     },
-
-    -- TreeSitter
+    -- TreeSitterの設定を更新
     {
         'nvim-treesitter/nvim-treesitter',
         build = ":TSUpdate",
         dependencies = {
+            'nvim-treesitter/nvim-treesitter-textobjects',
+            'nvim-treesitter/nvim-treesitter-context',
             'JoosepAlviste/nvim-ts-context-commentstring',
             'RRethy/nvim-treesitter-endwise',
         },
         config = function()
-            require('ts_context_commentstring').setup {
-                enable_autocmd = true,
-            }
             require('nvim-treesitter.configs').setup {
-                endwise = {
+                ensure_installed = {
+                    "lua", "vim", "vimdoc", "query",
+                    "python", "javascript", "typescript",
+                    "markdown", "markdown_inline"
+                },
+                highlight = {
+                    enable = true,
+                },
+                indent = {
+                    enable = true
+                },
+                fold = {
+                    enable = true
+                },
+                -- 自動フォールディングの設定
+                folding = {
                     enable = true,
                 },
             }
+
+            -- TreesitterベースのFoldingを有効化
+            vim.opt.foldmethod = "expr"
+            vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+            -- デフォルトでは折りたたまない
+            vim.opt.foldenable = false
+            vim.opt.foldlevel = 99
         end,
     },
+
+
+    -- アウトライン表示用のSymbols-outline
+    {
+        'simrat39/symbols-outline.nvim',
+        config = function()
+            require('symbols-outline').setup({
+                -- 既存の設定はそのままで
+                symbols = {
+                    -- 変数関連の表示設定
+                    Variable = { icon = "", hl = "@constant", hide = true }, -- すべての変数を非表示
+                    Constant = { icon = "", hl = "@constant" },          -- 定数は表示
+
+                    -- その他のシンボルは表示したいものだけ残す
+                    File = { icon = "", hl = "@text.uri" },
+                    Module = { icon = "󰕳", hl = "@namespace" },
+                    Namespace = { icon = "󰌗", hl = "@namespace" },
+                    Package = { icon = "󰏖", hl = "@namespace" },
+                    Class = { icon = "󰌗", hl = "@type" },
+                    Method = { icon = "󰆧", hl = "@method" },
+                    Function = { icon = "󰊕", hl = "@function" },
+                    Struct = { icon = "󰌗", hl = "@type" },
+                    Interface = { icon = "", hl = "@type" },
+                },
+
+                -- 表示フィルター設定
+                filter_kind = {
+                    -- デフォルトで表示するシンボルの種類を指定
+                    "Class",
+                    -- "Constructor",
+                    -- "Enum",
+                    "Function",
+                    -- "Interface",
+                    "Method",
+                    "Module",
+                    -- "Namespace",
+                    -- "Package",
+                    "Struct",
+                    -- "Variable",  -- コメントアウトすると変数は表示されない
+                },
+            })
+        end,
+    },
+
+
+    -- TreeSitter
+    -- {
+    --     'nvim-treesitter/nvim-treesitter',
+    --     build = ":TSUpdate",
+    --     dependencies = {
+    --         'JoosepAlviste/nvim-ts-context-commentstring',
+    --         'RRethy/nvim-treesitter-endwise',
+    --     },
+    --     config = function()
+    --         require('ts_context_commentstring').setup {
+    --             enable_autocmd = true,
+    --         }
+    --         require('nvim-treesitter.configs').setup {
+    --             endwise = {
+    --                 enable = true,
+    --             },
+    --         }
+    --     end,
+    -- },
 
     -- 移動関連
     {
@@ -632,7 +716,7 @@ require("lazy").setup({
     { "mfussenegger/nvim-dap" },
     { "rcarriga/nvim-dap-ui" },
     { "mfussenegger/nvim-dap-python" },
-    { "vim-jp/vimdoc-ja", lazy = true },
+    { "vim-jp/vimdoc-ja",               lazy = true },
 
     {
         "iamcco/markdown-preview.nvim",
@@ -659,7 +743,7 @@ require("lazy").setup({
         }
     },
 }, {
-    concurrency = config.concurrency ,  -- 同時ダウンロード数を1に制限
+    concurrency = config.concurrency, -- 同時ダウンロード数を1に制限
     ui = {
         border = "rounded"
     },

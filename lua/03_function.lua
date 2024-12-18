@@ -33,15 +33,39 @@ ToggleDiagDisp(false)
 
 --}}}
 --- ToggleAutoHover   cmpの自動ホバー表示のトグル{{{
+-- function ToggleAutoHover()
+--     if vim.g.toggle_auto_hover == 1 then
+--         vim.g.toggle_auto_hover = 0
+--         print 'autohover off'
+--     else
+--         vim.g.toggle_auto_hover = 1
+--         print 'autohover on'
+--     end
+-- end -- }}}
+
+-- 03_function.lua
 function ToggleAutoHover()
+    -- 明示的に初期化
+    if vim.g.toggle_auto_hover == nil then
+        vim.g.toggle_auto_hover = 0
+    end
+
     if vim.g.toggle_auto_hover == 1 then
         vim.g.toggle_auto_hover = 0
-        print 'autohover off'
+        -- 既存のホバーウィンドウをクリア
+        vim.api.nvim_command('silent! lua vim.lsp.buf.clear_references()')
+        for _, winid in pairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_config(winid).relative ~= '' then
+                vim.api.nvim_win_close(winid, true)
+            end
+        end
+        print('Auto hover: OFF')
     else
         vim.g.toggle_auto_hover = 1
-        print 'autohover on'
+        print('Auto hover: ON')
     end
-end -- }}}
+end
+
 
 function RandomScheme()
     local col_sh = Colorschemes[math.random(table.maxn(Colorschemes))]
@@ -227,6 +251,68 @@ command! SyntaxInfo call s:get_syn_info()
 ]]
 
 
+
+
+-- 13_function.lua
+-- グローバルな関数として定義
+function SetFoldLevel(level)
+    -- 現在のfoldingの状態を確認
+    local current_foldenable = vim.opt.foldenable:get()
+
+    -- foldingが無効なら有効にする
+    if not current_foldenable then
+        vim.opt.foldenable = true
+    end
+
+    -- foldlevelを設定
+    vim.opt.foldlevel = level
+
+    -- 必要に応じて現在のバッファを再描画
+    vim.cmd('normal! zx')
+
+    print(string.format("Fold level set to %d", level))
+end
+
+-- コマンドとして登録
+vim.api.nvim_create_user_command('SetFoldLevel', function(opts)
+    SetFoldLevel(tonumber(opts.args))
+end, {
+    nargs = 1,
+    complete = function()
+        return { '0', '1', '2', '3', '4', '5' }
+    end
+})
+
+
+
+-- foldingの設定を動的に変更するコマンドを作成
+vim.api.nvim_create_user_command('SetFoldLevel', function(opts)
+    vim.opt.foldlevel = tonumber(opts.args)
+    -- vim.opt.foldenable = true
+end, {
+    nargs = 1,
+    complete = function()
+        return { '0', '1', '2', '3', '4', '5' }
+    end
+})
+
+vim.api.nvim_create_user_command('SetFoldNestMax', function(opts)
+    vim.opt.foldnestmax = tonumber(opts.args)
+end, {
+    nargs = 1,
+    complete = function()
+        return { '1', '2', '3', '4', '5' }
+    end
+})
+
+vim.api.nvim_create_user_command('SetFoldMinLines', function(opts)
+    vim.opt.foldminlines = tonumber(opts.args)
+end, {
+    nargs = 1,
+    complete = function()
+        return { '1', '2', '3', '4', '5' }
+    end
+})
 -- vim.cmd [[
 --   autocmd!
 --   autocmd InsertEnter * silent call chansend(v:stderr, '[<r')

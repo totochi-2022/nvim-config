@@ -4,7 +4,7 @@ local is_wsl = vim.fn.has('wsl') == 1
 local is_nvim_qt = vim.g.GuiLoaded ~= nil
 
 --- ウガンダ非表示
-vim.opt.shortmess:append({ I = true })-- 行番号表示
+vim.opt.shortmess:append({ I = true }) -- 行番号表示
 vim.opt.number = true
 vim.opt.relativenumber = false
 
@@ -173,23 +173,6 @@ vim.opt.clipboard = is_windows and { 'unnamed' } or { 'unnamedplus', 'unnamed' }
 vim.opt.swapfile = false
 
 
------------ fold -----------------
-vim.opt.foldmethod = 'marker'
-
--- " 初期はカラムなし
--- set foldcolumn=0
-
--- カーソル移動以外ではだいたい折り畳みが自動で開くようにする
-vim.opt.foldopen = {
-    'block',
-    'hor',
-    'mark',
-    'percent',
-    'quickfix',
-    'search',
-    'tag',
-    'undo'
-}
 -- カーソル移動
 vim.opt.whichwrap = 'bshl<>[]~]'
 --  b - <BS>    ノーマルとビジュアル
@@ -206,7 +189,6 @@ vim.opt.termguicolors = true
 
 vim.opt.autochdir = true
 
--- vim.opt.foldcolumn = '10'
 vim.opt.undofile = true
 vim.opt.undolevels = 5000
 vim.opt.ignorecase = true
@@ -258,8 +240,8 @@ if vim.g.GuiLoaded then
 
         autocmd User GuiDropped call HandleDrop(deepcopy(v:argv))
     ]])
-
 end
+
 Colorschemes = {
     -- 'tokyonight',
     'tokyonight-moon',
@@ -271,39 +253,94 @@ Colorschemes = {
     'zephyr',
     'habamax',
 }
+if vim.g.neovide then
+    -- フォント設定
+    vim.o.guifont = "Cica:h12" -- サイズを少し大きくして見やすく
+
+    -- ウィンドウ設定
+    vim.o.lines = 60
+    vim.o.columns = 160
+    vim.g.neovide_remember_window_size = true
+
+    -- レンダリング設定
+    vim.g.neovide_refresh_rate = 60
+    vim.g.neovide_refresh_rate_idle = 6
+
+    vim.g.neovide_transparency = 0.9
+    vim.g.neovide_scale_factor = 1.0
+
+    -- カーソル設定
+    vim.g.neovide_cursor_animation_length = 0.03
+    vim.g.neovide_cursor_trail_length = 0.3
+    vim.g.neovide_cursor_antialiasing = true
+
+    -- パディング設定
+    vim.g.neovide_padding_top = 0
+    vim.g.neovide_padding_bottom = 0
+    vim.g.neovide_padding_right = 0
+    vim.g.neovide_padding_left = 0
+
+    -- フォントのシャープネスとアンチエイリアス
+    vim.g.neovide_font_hinting = "full"
+    vim.g.neovide_font_subpixel_antialiasing = 1.0
+    vim.g.neovide_cursor_vfx_mode = "railgun"        -- パーティクルモード
+    vim.g.neovide_cursor_vfx_particle_lifetime = 0.5 -- パーティクルの寿命
+    vim.g.neovide_cursor_vfx_particle_density = 10.0 -- パーティクルの密度
+
+    -- -- 透明度
+    -- vim.g.neovide_transparency = 0.95
+
+    -- フローティングブラー（実験的）
+    vim.g.neovide_floating_blur_amount_x = 2.0
+    vim.g.neovide_floating_blur_amount_y = 2.0
+    -- スクロールアニメーション
+    vim.g.neovide_scroll_animation_length = 0.2
+    -- フォントの線幅
+    vim.g.neovide_cursor_trail_size = 0.8
+
+    -- フォントシャープネス
+    vim.g.neovide_font_hinting = "full"
+    vim.g.neovide_font_subpixel_antialiasing = 1.0
+    -- IMEの設定
+    vim.g.neovide_input_ime = true
+    vim.g.neovide_input_use_logo = false -- Windowsキーの挙動を制御
+    vim.o.iminsert = 0
+    vim.o.imsearch = -1
+
+    -- ----------- fold -----------------
+    -- vim.opt.foldmethod = 'marker'
+
+    -- -- " 初期はカラムなし
+    -- -- set foldcolumn=0
+
+    -- -- カーソル移動以外ではだいたい折り畳みが自動で開くようにする
+    -- vim.opt.foldopen = {
+    --     'block',
+    --     'hor',
+    --     'mark',
+    --     'percent',
+    --     'quickfix',
+    --     'search',
+    --     'tag',
+    --     'undo'
+    -- }
+    -- vim.opt.foldcolumn = '10'
 
 
-
-
--- カーソルのアニメーション
-vim.g.neovide_cursor_animation_length = 0.1  -- アニメーション時間
-vim.g.neovide_cursor_trail_length = 0.8      -- 残像の長さ
-vim.g.neovide_cursor_antialiasing = true     -- アンチエイリアス
-
--- カーソルパーティクル効果
-vim.g.neovide_cursor_vfx_mode = "railgun"    -- パーティクルモード
-vim.g.neovide_cursor_vfx_opacity = 200.0     -- 不透明度
-vim.g.neovide_cursor_vfx_particle_lifetime = 1.2  -- パーティクルの寿命
-vim.g.neovide_cursor_vfx_particle_density = 7.0   -- パーティクルの密度
-
-
-
--- 透明度
-vim.g.neovide_transparency = 0.9
-
--- フローティングブラー（実験的）
-vim.g.neovide_floating_blur_amount_x = 2.0
-vim.g.neovide_floating_blur_amount_y = 2.0
-
--- スクロールアニメーション
-vim.g.neovide_scroll_animation_length = 0.3
--- フォントの線幅
-vim.g.neovide_cursor_trail_size = 0.8
-
--- フォントシャープネス
-vim.g.neovide_font_hinting = "full"
-vim.g.neovide_font_subpixel_antialiasing = 1.0
-
-
-
-
+    -- Treesitterフォールディング関連
+    vim.opt.foldmethod = 'expr'
+    vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+    vim.opt.foldenable = false -- 起動時はフォールドを開いた状態に
+    vim.opt.foldlevel = 99     -- 深いレベルまで開く
+    -- fold開く条件
+    vim.opt.foldopen = {
+        'block',
+        'hor',
+        'mark',
+        'percent',
+        'quickfix',
+        'search',
+        'tag',
+        'undo'
+    }
+end

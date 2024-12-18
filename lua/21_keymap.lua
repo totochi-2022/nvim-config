@@ -148,8 +148,8 @@ keymap('', '<LocalLeader>E', ':e .<CR>', noremap) -- }}}
 
 -- 特定の特殊キーのヘルプを表示するマッピング
 vim.keymap.set('n', '<Leader>?w', ':WhichKey "<C-w>"<CR>', { noremap = true })
-vim.keymap.set('n', '<Leader>?c', ':WhichKey "C-"<CR>', { noremap = true })  -- Ctrlキーのマッピングすべて
-vim.keymap.set('n', '<Leader>?a', ':WhichKey "M-"<CR>', { noremap = true })  -- Altキーのマッピングすべて
+vim.keymap.set('n', '<Leader>?c', ':WhichKey "C-"<CR>', { noremap = true }) -- Ctrlキーのマッピングすべて
+vim.keymap.set('n', '<Leader>?a', ':WhichKey "M-"<CR>', { noremap = true }) -- Altキーのマッピングすべて
 
 -- すべてのマッピングを表示
 vim.keymap.set('n', '<Leader>?', ':WhichKey<CR>', { noremap = true })
@@ -344,24 +344,24 @@ keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', noremap)
 -- 診断移動用のminor_mode
 minor_mode.create('DiagnosticJump', 'm').set_multi({
     -- 全ての診断
-    { ']',       '<cmd>lua vim.diagnostic.goto_next()<CR>zz' },
-    { '[',       '<cmd>lua vim.diagnostic.goto_prev()<CR>zz' },
+    { ']',  '<cmd>lua vim.diagnostic.goto_next()<CR>zz' },
+    { '[',  '<cmd>lua vim.diagnostic.goto_prev()<CR>zz' },
 
     -- エラーのみ
-    { 'e]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>' },
-    { 'e[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>' },
+    { 'e]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>' },
+    { 'e[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>' },
 
     -- 警告のみ
-    { 'w]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>' },
-    { 'w[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>' },
+    { 'w]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>' },
+    { 'w[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>' },
 
     -- 情報のみ
-    { 'i]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>' },
-    { 'i[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>' },
+    { 'i]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>' },
+    { 'i[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>' },
 
     -- ヒントのみ
-    { 'h]',      '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>' },
-    { 'h[',      '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>' },
+    { 'h]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>' },
+    { 'h[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>' },
 })
 
 -- -- 診断移動の初期アクション付きマッピング
@@ -429,6 +429,21 @@ if is_windows then
     keymap('t', '<C-w>', [[<C-\><C-n><C-w>]], {})
 end
 
+-- アウトライン表示のトグル
+keymap('n', '<LocalLeader>o', ':SymbolsOutline<CR>', noremap)
+
+-- フォールディング関連のキーマップ
+minor_mode.create('Fold', 'z').set_multi({
+    { 'a', 'za' }, -- 現在のフォールドをトグル
+    { 'R', 'zR' }, -- すべてのフォールドを開く
+    { 'M', 'zM' }, -- すべてのフォールドを閉じる
+    { 'r', 'zr' }, -- フォールドレベルを1段階開く
+    { 'm', 'zm' }, -- フォールドレベルを1段階閉じる
+    { 'j', 'zj' }, -- 次のフォールドへ
+    { 'k', 'zk' }, -- 前のフォールドへ
+})
+
+
 
 -- vim.cmd [[
 -- function! G_callback(selected) abort
@@ -480,3 +495,20 @@ end
 -- vim.cmd [[
 --     call ddc#enable()
 -- ]]
+
+
+
+minor_mode.create('Fold', 'z').set_multi({
+    -- 基本的なfold操作
+    { 'a', 'za' }, -- 現在のfoldをトグル
+    { 'R', 'zR' }, -- すべてのfoldを開く
+    { 'M', 'zM' }, -- すべてのfoldを閉じる
+    { 'x', 'zx' }, -- foldを更新して再適用
+    -- レベル設定（関数を直接呼び出すのではなく、コマンドとして実行）
+    { '0', '<cmd>lua SetFoldLevel(0)<CR>' },
+    { '1', '<cmd>lua SetFoldLevel(1)<CR>' },
+    { '2', '<cmd>lua SetFoldLevel(2)<CR>' },
+    { '3', '<cmd>lua SetFoldLevel(3)<CR>' },
+    { '4', '<cmd>lua SetFoldLevel(4)<CR>' },
+
+})
