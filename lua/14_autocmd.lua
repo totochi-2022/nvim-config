@@ -46,35 +46,35 @@ autocmd("bufreadpost", {
 -- ホバー用のタイマー
 local hover_timer = nil
 -- カーソル停止時のイベント
-autocmd("CursorHold", {
-    pattern = "*",
-    callback = function()
-        if vim.g.toggle_auto_hover == 1 then
-            if hover_timer then
-                hover_timer:stop()
-            end
-            hover_timer = vim.defer_fn(function()
-                vim.lsp.buf.hover()
-            end, 500)  -- 0.5秒後に表示
-        end
-    end
-})
+-- autocmd("CursorHold", {
+--     pattern = "*",
+--     callback = function()
+--         if vim.g.toggle_auto_hover == 1 then
+--             if hover_timer then
+--                 hover_timer:stop()
+--             end
+--             hover_timer = vim.defer_fn(function()
+--                 vim.lsp.buf.hover()
+--             end, 500)  -- 0.5秒後に表示
+--         end
+--     end
+-- })
 
 -- カーソル移動時のイベント
-autocmd("CursorMoved", {
-    pattern = "*",
-    callback = function()
-        if hover_timer then
-            hover_timer:stop()
-        end
-        -- ホバーウィンドウをクリア
-        for _, winid in pairs(vim.api.nvim_list_wins()) do
-            if vim.api.nvim_win_get_config(winid).relative ~= '' then
-                vim.api.nvim_win_close(winid, true)
-            end
-        end
-    end
-})
+-- autocmd("CursorMoved", {
+--     pattern = "*",
+--     callback = function()
+--         if hover_timer then
+--             hover_timer:stop()
+--         end
+--         -- ホバーウィンドウをクリア
+--         for _, winid in pairs(vim.api.nvim_list_wins()) do
+--             if vim.api.nvim_win_get_config(winid).relative ~= '' then
+--                 vim.api.nvim_win_close(winid, true)
+--             end
+--         end
+--     end
+-- })
 
 -- 初期状態を設定
 vim.g.toggle_auto_hover = 0
