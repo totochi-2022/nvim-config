@@ -99,6 +99,115 @@ require("lazy").setup({
         },
         config = function()
             require('telescope').setup({
+                extensions = {
+                    command_palette = {
+                        { "Convert",
+                            { "Encoding",    "lua vim.cmd[[Telescope command_palette theme=ivy categories=Encoding\\ Menu]]" },
+                            { "Line Ending", "lua vim.cmd[[Telescope command_palette theme=ivy categories=Line\\ Menu]]" },
+                        },
+                        { "Encoding Menu",
+                            { "UTF-8",         "lua vim.cmd[[Telescope command_palette theme=ivy categories=UTF8\\ Menu]]" },
+                            { "Japanese",      "lua vim.cmd[[Telescope command_palette theme=ivy categories=Japanese\\ Menu]]" },
+                            { "Check Current", "set fileencoding?" },
+                        },
+                        { "UTF8 Menu",
+                            { "Normal",   "set fileencoding=utf-8" },
+                            { "with BOM", "set fileencoding=utf-8-bom" },
+                        },
+                        { "Japanese Menu",
+                            { "Shift-JIS", "set fileencoding=cp932" },
+                            { "EUC-JP",    "set fileencoding=euc-jp" },
+                        },
+                        { "Line Menu",
+                            { "Format",  "lua vim.cmd[[Telescope command_palette theme=ivy categories=Format\\ Menu]]" },
+                            { "Convert", "lua vim.cmd[[Telescope command_palette theme=ivy categories=Convert\\ Menu]]" },
+                        },
+                        { "Format Menu",
+                            { "Windows (CRLF)", "set fileformat=dos" },
+                            { "Unix (LF)",      "set fileformat=unix" },
+                            { "Mac (CR)",       "set fileformat=mac" },
+                        },
+                        { "Convert Menu",
+                            { "CRLF to LF", "%s/\\r\\n/\\n/g" },
+                            { "Remove CR",  "%s/\\r//g" },
+                        },
+                    }
+                    -- command_palette = {
+                    --     { "Convert",
+                    --         { "Encoding/Text/UTF-8/Normal",       ":set fileencoding=utf-8" },
+                    --         { "Encoding/Text/UTF-8/with BOM",     ":set fileencoding=utf-8-bom" },
+                    --         { "Encoding/Text/Japanese/Shift-JIS", ":set fileencoding=cp932" },
+                    --         { "Encoding/Text/Japanese/EUC-JP",    ":set fileencoding=euc-jp" },
+                    --         { "Encoding/Binary/UTF-16/LE",        ":set fileencoding=utf-16le" },
+                    --         { "Encoding/Binary/UTF-16/BE",        ":set fileencoding=utf-16be" },
+                    --         { "Line Ending/Format/Windows/CRLF",  ":set fileformat=dos" },
+                    --         { "Line Ending/Format/Unix/LF",       ":set fileformat=unix" },
+                    --         { "Line Ending/Format/Mac/CR",        ":set fileformat=mac" },
+                    --         { "Line Ending/Convert/CRLF to LF",   ":%s/\\r\\n/\\n/g" },
+                    --         { "Line Ending/Convert/Remove CR",    ":%s/\\r//g" },
+                    --         { "Status/Check/Encoding",            ":set fileencoding?" },
+                    --         { "Status/Check/Format",              ":set fileformat?" },
+                    --     },
+                    --     { "Convert",      -- 新しいトップレベルカテゴリ
+                    --         { "Encoding", -- 文字コード変換サブカテゴリ
+                    --             { "UTF-8", ":set fileencoding=utf-8" },
+                    --             { "UTF-8 (BOM付き)", ":set fileencoding=utf-8-bom" },
+                    --             { "UTF-16", ":set fileencoding=utf-16" },
+                    --             { "EUC-JP", ":set fileencoding=euc-jp" },
+                    --             { "Shift-JIS", ":set fileencoding=cp932" },
+                    --             { "Check Current", ":set fileencoding?" },
+                    --         },
+                    --         { "Line Ending", -- 改行コード変換サブカテゴリ
+                    --             { "Unix (LF)",      ":set fileformat=unix" },
+                    --             { "Windows (CRLF)", ":set fileformat=dos" },
+                    --             { "Mac (CR)",       ":set fileformat=mac" },
+                    --             { "Check Current",  ":set fileformat?" },
+                    --         },
+                    --         { "Line Ending Batch", -- 改行一括変換
+                    --             { "CRLF → LF (改行を Unix 形式に)", ":%s/\\r\\n/\\r/g" },
+                    --             { "Remove CR (^M の削除)", ":%s/\\r//g" },
+                    --         },
+                    --     },
+                    --     { "File",
+                    --         { "entire selection (C-a)",  ':call feedkeys("GVgg")' },
+                    --         { "save current file (C-s)", ':w' },
+                    --         { "save all files (C-A-s)",  ':wa' },
+                    --         { "quit (C-q)",              ':qa' },
+                    --         { "file browser (C-i)",      ":lua require'telescope'.extensions.file_browser.file_browser()", 1 },
+                    --         { "search word (A-w)",       ":lua require('telescope.builtin').live_grep()",                  1 },
+                    --         { "git files (A-f)",         ":lua require('telescope.builtin').git_files()",                  1 },
+                    --         { "files (C-f)",             ":lua require('telescope.builtin').find_files()",                 1 },
+                    --     },
+                    --     { "Help",
+                    --         { "tips",            ":help tips" },
+                    --         { "cheatsheet",      ":help index" },
+                    --         { "tutorial",        ":help tutor" },
+                    --         { "summary",         ":help summary" },
+                    --         { "quick reference", ":help quickref" },
+                    --         { "search help(F1)", ":lua require('telescope.builtin').help_tags()", 1 },
+                    --     },
+                    --     { "Vim",
+                    --         { "reload vimrc",              ":source $MYVIMRC" },
+                    --         { 'check health',              ":checkhealth" },
+                    --         { "jumps (Alt-j)",             ":lua require('telescope.builtin').jumplist()" },
+                    --         { "commands",                  ":lua require('telescope.builtin').commands()" },
+                    --         { "command history",           ":lua require('telescope.builtin').command_history()" },
+                    --         { "registers (A-e)",           ":lua require('telescope.builtin').registers()" },
+                    --         { "colorshceme",               ":lua require('telescope.builtin').colorscheme()",    1 },
+                    --         { "vim options",               ":lua require('telescope.builtin').vim_options()" },
+                    --         { "keymaps",                   ":lua require('telescope.builtin').keymaps()" },
+                    --         { "buffers",                   ":Telescope buffers" },
+                    --         { "search history (C-h)",      ":lua require('telescope.builtin').search_history()" },
+                    --         { "paste mode",                ':set paste!' },
+                    --         { 'cursor line',               ':set cursorline!' },
+                    --         { 'cursor column',             ':set cursorcolumn!' },
+                    --         { "spell checker",             ':set spell!' },
+                    --         { "relative number",           ':set relativenumber!' },
+                    --         { "search highlighting (F12)", ':set hlsearch!' },
+                    --     }
+
+                    -- }
+                },
                 pickers = {
                     buffers = {
                         show_all_buffers = true,
@@ -107,47 +216,6 @@ require("lazy").setup({
                             i = {
                                 ["<c-k>"] = "delete_buffer",
                             }
-                        }
-                    }
-                },
-                extensions = {
-                    command_palette = {
-                        { "File",
-                            { "entire selection (C-a)",  ':call feedkeys("GVgg")' },
-                            { "save current file (C-s)", ':w' },
-                            { "save all files (C-A-s)",  ':wa' },
-                            { "quit (C-q)",              ':qa' },
-                            { "file browser (C-i)",      ":lua require'telescope'.extensions.file_browser.file_browser()", 1 },
-                            { "search word (A-w)",       ":lua require('telescope.builtin').live_grep()",                  1 },
-                            { "git files (A-f)",         ":lua require('telescope.builtin').git_files()",                  1 },
-                            { "files (C-f)",             ":lua require('telescope.builtin').find_files()",                 1 },
-                        },
-                        { "Help",
-                            { "tips",            ":help tips" },
-                            { "cheatsheet",      ":help index" },
-                            { "tutorial",        ":help tutor" },
-                            { "summary",         ":help summary" },
-                            { "quick reference", ":help quickref" },
-                            { "search help(F1)", ":lua require('telescope.builtin').help_tags()", 1 },
-                        },
-                        { "Vim",
-                            { "reload vimrc",              ":source $MYVIMRC" },
-                            { 'check health',              ":checkhealth" },
-                            { "jumps (Alt-j)",             ":lua require('telescope.builtin').jumplist()" },
-                            { "commands",                  ":lua require('telescope.builtin').commands()" },
-                            { "command history",           ":lua require('telescope.builtin').command_history()" },
-                            { "registers (A-e)",           ":lua require('telescope.builtin').registers()" },
-                            { "colorshceme",               ":lua require('telescope.builtin').colorscheme()",    1 },
-                            { "vim options",               ":lua require('telescope.builtin').vim_options()" },
-                            { "keymaps",                   ":lua require('telescope.builtin').keymaps()" },
-                            { "buffers",                   ":Telescope buffers" },
-                            { "search history (C-h)",      ":lua require('telescope.builtin').search_history()" },
-                            { "paste mode",                ':set paste!' },
-                            { 'cursor line',               ':set cursorline!' },
-                            { 'cursor column',             ':set cursorcolumn!' },
-                            { "spell checker",             ':set spell!' },
-                            { "relative number",           ':set relativenumber!' },
-                            { "search highlighting (F12)", ':set hlsearch!' },
                         }
                     }
                 }
@@ -202,13 +270,32 @@ require("lazy").setup({
             'nvim-treesitter/nvim-treesitter-context',
             'JoosepAlviste/nvim-ts-context-commentstring',
             'RRethy/nvim-treesitter-endwise',
+            {
+                'nvim-treesitter/nvim-treesitter-textobjects',
+                event = "VeryLazy",
+            },
+            {
+                'mfussenegger/nvim-treehopper',
+                event = "VeryLazy",
+                keys = {
+                    { "<LocalLeader>s", mode = { "o", "x" } },
+                },
+            },
+            {
+                'David-Kunz/treesitter-unit',
+                event = "VeryLazy",
+                keys = {
+                    { "iu", mode = { "o", "x" } },
+                    { "au", mode = { "o", "x" } },
+                },
+            },
         },
         config = function()
             require('nvim-treesitter.configs').setup {
                 ensure_installed = {
                     "lua", "vim", "vimdoc", "query",
                     "python", "javascript", "typescript",
-                    "markdown", "markdown_inline"
+                    "markdown", "markdown_inline", "fish"
                 },
                 highlight = {
                     enable = true,
@@ -244,7 +331,7 @@ require("lazy").setup({
                 symbols = {
                     -- 変数関連の表示設定
                     Variable = { icon = "", hl = "@constant", hide = true }, -- すべての変数を非表示
-                    Constant = { icon = "", hl = "@constant" },          -- 定数は表示
+                    Constant = { icon = "", hl = "@constant" },              -- 定数は表示
 
                     -- その他のシンボルは表示したいものだけ残す
                     File = { icon = "", hl = "@text.uri" },
@@ -305,7 +392,37 @@ require("lazy").setup({
             require('accelerated-jk').setup({
                 mode = 'time_driven',
                 enable_deceleration = false,
-                acceleration_motions = { 'h', 'l', 'b', 'w', 'e', 'B', 'W', 'E', 'C-j', 'C-k' },
+                mapping = {
+                    -- ノーマルモードの設定
+                    n = {
+                        j = 'gj',
+                        k = 'gk',
+                        -- 他のモーション
+                        h = 'h',
+                        l = 'l',
+                        b = 'b',
+                        w = 'w',
+                        e = 'e',
+                        B = 'B',
+                        W = 'W',
+                        E = 'E',
+                    },
+                    -- ビジュアルモードの設定
+                    x = {
+                        j = 'gj',
+                        k = 'gk',
+                        -- 他のモーション
+                        h = 'h',
+                        l = 'l',
+                        b = 'b',
+                        w = 'w',
+                        e = 'e',
+                        B = 'B',
+                        W = 'W',
+                        E = 'E',
+                    },
+                },
+                acceleration_motions = { 'j', 'k', 'h', 'l', 'b', 'w', 'e', 'B', 'W', 'E', 'C-j', 'C-k' },
                 acceleration_limit = 150,
                 acceleration_table = { 7, 12, 17, 21, 24, 28, 31, 40 },
                 deceleration_table = { { 150, 9999 } }
@@ -556,6 +673,65 @@ require("lazy").setup({
         "simnalamburt/vim-mundo",
     },
 
+
+    --     "mbbill/undotree",
+    --     config = function()
+    --         -- diffパネルの高さを設定（デフォルトは10）
+    --         vim.g.undotree_DiffpanelHeight = 15
+
+    --         -- diffパネルを右側に表示（デフォルトは下部）
+    --         vim.g.undotree_DiffAutoOpen = 1
+
+    --         -- ウィンドウレイアウト
+    --         -- 1: undotree左 | buffer | diffpanel右
+    --         -- 2: undotree左 | buffer下diffpanel
+    --         -- 3: undotree右 | buffer | diffpanel左
+    --         -- 4: undotree右 | buffer下diffpanel
+    --         vim.g.undotree_WindowLayout = 2
+
+    --         -- フォーカス時に自動的にdiffを更新
+    --         vim.g.undotree_DiffAutoOpen = 1
+
+    --         -- 保存された変更を強調表示
+    --         vim.g.undotree_HighlightSavedText = 1
+
+    --         -- ウィンドウを開いた時に自動的にフォーカス
+    --         vim.g.undotree_SetFocusWhenToggle = 1
+    --     end,
+    -- },
+    -- 11_plugin.lua のundotreeの設定を更新
+
+
+    {
+        "jiaoshijie/undotree",
+        dependencies = "nvim-lua/plenary.nvim",
+        config = function()
+            require('undotree').setup({
+                float_diff = true,      -- フローティングウィンドウで差分表示
+                layout = "left",        -- ツリーを左側に表示
+                position = "left",      -- パネルの位置
+                window = {
+                    winblend = 0,       -- 透明度（0で不透明）
+                    border = "rounded", -- ウィンドウの境界線スタイル
+                },
+                keymaps = {
+                    -- キーマップのカスタマイズ
+                    ["j"] = "move_next",
+                    ["k"] = "move_prev",
+                    ["gj"] = "move2parent",
+                    ["gh"] = "move2parent",
+                    ["<cr>"] = "action_enter",
+                    ["p"] = "enter_diffbuf",
+                    ["q"] = "quit",
+                },
+            })
+            -- キーマップ設定
+            vim.keymap.set('n', '<Leader>ut', require('undotree').toggle)
+        end,
+    },
+
+
+
     -- ヤンク関連
     {
         "gbprod/yanky.nvim",
@@ -706,9 +882,118 @@ require("lazy").setup({
     {
         "folke/which-key.nvim",
         config = function()
-            require("which-key").setup {}
+            require("which-key").setup {
+
+                plugins = {
+                    marks = true,
+                    registers = true,
+                    spelling = {
+                        enabled = false,
+                    },
+                    presets = {
+                        operators = true,
+                        motions = true,
+                        text_objects = true,
+                        windows = true,
+                        nav = true,
+                        z = true,
+                        g = true,
+                    },
+                },
+                -- キーマップの重複警告を無視する設定を追加
+                ignore_warning = {
+                    overlap = true, -- 重複するキーマップの警告を無視
+                },
+            }
+        end,
+
+
+
+    },
+
+    {
+        "debugloop/telescope-undo.nvim",
+        dependencies = {
+            "nvim-telescope/telescope.nvim",
+            "nvim-lua/plenary.nvim"
+        },
+        config = function()
+            require("telescope").setup({
+                extensions = {
+                    undo = {
+                        use_delta = true,
+                        side_by_side = true,
+                        layout_strategy = "vertical",
+                        layout_config = {
+                            preview_height = 0.8,
+                            width = 0.95,
+                        },
+                        -- 非推奨のdiff_context_linesの代わりに新しい設定を使用
+                        vim_diff_opts = {
+                            ctxlen = -1, -- 全行を表示
+                        },
+                        delta_options = {
+                            side_by_side = true,
+                            line_numbers = true,
+                            width = -1,
+                            syntax_highlighting = true,
+                            minus_style = "syntax bold red",
+                            plus_style = "syntax bold green",
+                            zero_style = "syntax",
+                            line_numbers_minus_style = "red",
+                            line_numbers_plus_style = "green",
+                            keep_plus_minus_markers = true,
+                        },
+                    },
+                },
+            })
+            require("telescope").load_extension("undo")
         end,
     },
+    -- {
+    --     "debugloop/telescope-undo.nvim",
+    --     dependencies = {
+    --         "nvim-telescope/telescope.nvim",
+    --         "nvim-lua/plenary.nvim"
+    --     },
+    --     config = function()
+    --         require("telescope").setup({
+    --             extensions = {
+    --                 undo = {
+    --                     use_delta = true,
+    --                     side_by_side = true,
+    --                     layout_strategy = "vertical",
+    --                     layout_config = {
+    --                         preview_height = 0.8, -- プレビュー領域を大きく
+    --                         width = 0.95,     -- ウィンドウ幅を広く
+    --                     },
+    --                     diff_context_lines = -1, -- すべての行を表示
+    --                     delta_options = {
+    --                         side_by_side = true, -- 横並びで表示
+    --                         line_numbers = true, -- 行番号表示
+    --                         width = -1,       -- フル幅で表示
+    --                         syntax_highlighting = true,
+    --                         -- 変更箇所のみ色付け
+    --                         minus_style = "syntax bold red", -- 削除行
+    --                         plus_style = "syntax bold green", -- 追加行
+    --                         zero_style = "syntax",        -- 変更なし行（通常の色）
+    --                         -- 行番号の色
+    --                         line_numbers_minus_style = "red",
+    --                         line_numbers_plus_style = "green",
+    --                         -- 変更箇所のみマーカーを表示
+    --                         keep_plus_minus_markers = true,
+    --                     },
+    --                 },
+    --             },
+    --         })
+    --         require("telescope").load_extension("undo")
+
+    --         -- キーマップ設定
+    --         vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>")
+    --     end,
+    -- },
+
+
 
     -- その他のプラグイン
     { "skanehira/denops-translate.vim", lazy = true },
@@ -728,7 +1013,16 @@ require("lazy").setup({
 
     { "rbtnn/vim-jumptoline" },
     { "khaveesh/vim-fish-syntax", ft = { 'fish' } },
-    { "kamykn/popup-menu.nvim" },
+    -- { "kamykn/popup-menu.nvim" },
+
+
+    {
+        "kamykn/popup-menu.nvim",
+        config = function()
+            -- 基本設定
+            vim.g.popup_menu_borderchars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
+        end,
+    },
     {
         "osyo-manga/vim-precious",
         dependencies = { "Shougo/context_filetype.vim" }

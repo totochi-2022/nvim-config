@@ -66,7 +66,6 @@ function ToggleAutoHover()
     end
 end
 
-
 function RandomScheme()
     local col_sh = Colorschemes[math.random(table.maxn(Colorschemes))]
     vim.cmd('colorscheme ' .. col_sh)
@@ -286,33 +285,33 @@ end, {
 
 
 -- foldingの設定を動的に変更するコマンドを作成
-vim.api.nvim_create_user_command('SetFoldLevel', function(opts)
-    vim.opt.foldlevel = tonumber(opts.args)
-    -- vim.opt.foldenable = true
-end, {
-    nargs = 1,
-    complete = function()
-        return { '0', '1', '2', '3', '4', '5' }
-    end
-})
+-- vim.api.nvim_create_user_command('SetFoldLevel', function(opts)
+--     vim.opt.foldlevel = tonumber(opts.args)
+--     -- vim.opt.foldenable = true
+-- end, {
+--     nargs = 1,
+--     complete = function()
+--         return { '0', '1', '2', '3', '4', '5' }
+--     end
+-- })
 
-vim.api.nvim_create_user_command('SetFoldNestMax', function(opts)
-    vim.opt.foldnestmax = tonumber(opts.args)
-end, {
-    nargs = 1,
-    complete = function()
-        return { '1', '2', '3', '4', '5' }
-    end
-})
+-- vim.api.nvim_create_user_command('SetFoldNestMax', function(opts)
+--     vim.opt.foldnestmax = tonumber(opts.args)
+-- end, {
+--     nargs = 1,
+--     complete = function()
+--         return { '1', '2', '3', '4', '5' }
+--     end
+-- })
 
-vim.api.nvim_create_user_command('SetFoldMinLines', function(opts)
-    vim.opt.foldminlines = tonumber(opts.args)
-end, {
-    nargs = 1,
-    complete = function()
-        return { '1', '2', '3', '4', '5' }
-    end
-})
+-- vim.api.nvim_create_user_command('SetFoldMinLines', function(opts)
+--     vim.opt.foldminlines = tonumber(opts.args)
+-- end, {
+--     nargs = 1,
+--     complete = function()
+--         return { '1', '2', '3', '4', '5' }
+--     end
+-- })
 -- vim.cmd [[
 --   autocmd!
 --   autocmd InsertEnter * silent call chansend(v:stderr, '[<r')
@@ -350,3 +349,104 @@ end, {
 -- nnoremap ciy ciw<C-R>0<ESC><Right>
 -- nnoremap ciY ciW<C-R>0<ESC><Right>
 --
+function ConversionMenu()
+    local menu = require('popup_menu')
+    local items = {
+        {
+            text = '[e]ncoding',
+            key = 'e',
+            submenus = {
+                {
+                    text = '[u]tf8',
+                    key = 'u',
+                    submenus = {
+                        { text = '[n]ormal', key = 'n', cmd = 'set fileencoding=utf-8' },
+                        { text = '[b]om',    key = 'b', cmd = 'set fileencoding=utf-8-bom' },
+                        { text = '[c]heck',  key = 'c', cmd = 'set fileencoding?' },
+                    }
+                },
+                {
+                    text = '[j]apanese',
+                    key = 'j',
+                    submenus = {
+                        { text = '[s]jis',  key = 's', cmd = 'set fileencoding=cp932' },
+                        { text = '[e]ucjp', key = 'e', cmd = 'set fileencoding=euc-jp' },
+                    }
+                },
+            }
+        },
+        {
+            text = '[l]ine ending',
+            key = 'l',
+            submenus = {
+                {
+                    text = '[f]ormat',
+                    key = 'f',
+                    submenus = {
+                        { text = '[w]indows', key = 'w', cmd = 'set fileformat=dos' },
+                        { text = '[u]nix',    key = 'u', cmd = 'set fileformat=unix' },
+                        { text = '[m]ac',     key = 'm', cmd = 'set fileformat=mac' },
+                    }
+                },
+                {
+                    text = '[c]onvert',
+                    key = 'c',
+                    submenus = {
+                        { text = 'crlf to [l]f', key = 'l', cmd = '%s/\\r\\n/\\n/g' },
+                        { text = '[r]emove cr',  key = 'r', cmd = '%s/\\r//g' },
+                    }
+                },
+                { text = '[s]tatus', key = 's', cmd = 'set fileformat?' },
+            }
+        },
+    }
+    menu.open(items)
+end
+
+
+
+-- local function convert_windows_path_to_wsl_path(win_path)
+--     local handle = io.popen("wslpath '" .. win_path:gsub("\\", "\\\\") .. "'")
+--     local result = handle:read("*a")
+--     handle:close()
+--     return result:gsub("\n", "")
+-- end
+
+-- vim.api.nvim_create_autocmd("VimEnter", {
+--     callback = function()
+--         local files = vim.fn.argv()
+--         for i, file in ipairs(files) do
+--             files[i] = convert_windows_path_to_wsl_path(file)
+--         end
+--         vim.cmd("edit " .. table.concat(files, " "))
+--     end,
+-- })
+
+if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
+  vim.api.nvim_create_autocmd({"BufNewFile"}, {
+    callback = function(ev)
+      local file = ev.file
+      if file and #file > 0 then
+        if file:match("^\\\\wsl%.localhost\\[^\\]+\\") then
+          -- WSL UNCパスの場合は直接変換
+          local path = file:gsub("^\\\\wsl%.localhost\\[^\\]+\\", ""):gsub("\\", "/")
+          vim.cmd("bdelete")
+          vim.cmd("edit /" .. path)
+          vim.cmd("filetype detect")  -- ファイルタイプを再判定
+        elseif file:match("^%a:") or file:match("^\\\\[^\\]+\\") then
+          local handle = io.popen('wslpath "' .. file .. '"')
+          if handle then
+            local wsl_path = handle:read("*a"):gsub("\n$", "")
+            handle:close()
+            if wsl_path and wsl_path ~= file then
+              vim.cmd("bdelete")
+              vim.cmd("edit " .. wsl_path)
+              vim.cmd("filetype detect")  -- ファイルタイプを再判定
+            end
+          end
+        end
+      end
+    end
+  })
+end
+

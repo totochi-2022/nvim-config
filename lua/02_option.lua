@@ -288,7 +288,7 @@ if vim.g.neovide then
     vim.g.neovide_cursor_vfx_particle_density = 10.0 -- パーティクルの密度
 
     -- -- 透明度
-    -- vim.g.neovide_transparency = 0.95
+    vim.g.neovide_transparency = 1.0
 
     -- フローティングブラー（実験的）
     vim.g.neovide_floating_blur_amount_x = 2.0

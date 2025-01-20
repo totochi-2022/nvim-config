@@ -7,23 +7,25 @@ local minor_mode = require('rc/minor_mode')
 -- }}}
 --- initialize{{{
 keymap('', 's', '', noremap)
-
 -- 1. mのデフォルトマッピングを解除
 keymap('n', 'm', '', noremap)
 
 -- 2. 特定のマークのみを許可
 -- よく使うマークのみを設定
-keymap('n', 'mz', 'mz', noremap)
-keymap('n', 'mx', 'mx', noremap)
-keymap('n', 'mc', 'mc', noremap)
+-- keymap('n', 'mz', 'mz', noremap)
+-- keymap('n', 'mx', 'mx', noremap)
+-- keymap('n', 'mc', 'mc', noremap)
 -- マークへのジャンプも設定
-keymap('n', "'z", "'z", noremap)
-keymap('n', "'x", "'x", noremap)
-keymap('n', "'c", "'c", noremap)
+-- keymap('n', "'z", "'z", noremap)
+-- keymap('n', "'x", "'x", noremap)
+-- keymap('n', "'c", "'c", noremap)
 -- keymap('', ',', '', noremap)
 -- keymap('', '#', '', noremap)
 -- }}}
 --- set leader, localleader{{{
+-- require("which-key").register({
+--     ["s"] = { name = "Leader" },  -- sキーをLeaderとして認識
+-- })
 vim.g.mapleader = 's'
 vim.g.maplocalleader = ' '
 -- }}}
@@ -100,6 +102,8 @@ keymap('n', '<LocalLeader>Cy', '<Plug>NERDCommenterYank', noremap)
 keymap('x', '<LocalLeader>Cy', '<Plug>NERDCommenterYank', noremap)
 keymap('n', '<LocalLeader>Cp', '<Plug>NERDCommenterAppend <ESC> p', noremap)
 -- }}}
+
+
 --- [;] [:] replace ---{{{
 keymap('', ':', ';', noremap)
 keymap('n', '<Leader>;', ':', noremap)
@@ -107,6 +111,7 @@ keymap('n', 'q;', 'q:', noremap)
 keymap('n', '<LocalLeader>;', ':<C-u>Capture :', noremap)
 keymap('n', ';', '<cmd>FineCmdline<CR>', noremap)
 keymap('x', ';', [[:<C-u>FineCmdline '<,'><CR>]], noremap)
+
 -- }}}
 --- <Leader>{{{
 keymap('', '<Leader>b', ':Telescope buffers<CR>', noremap)
@@ -130,6 +135,8 @@ keymap('', '<Leader>e', ':Telescope file_browser<CR>', noremap)
 keymap('', '<Leader>J', ':Telescope jumplist<CR>', noremap)
 keymap('', '<Leader>S', ':SearchSession<CR>', noremap) -- }}}
 keymap('n', '<Leader>u', ':MundoToggle<CR>', noremap)
+-- keymap('n', '<Leader>u', require('undotree').toggle, noremap)
+
 keymap('n', '<Leader>t', ':terminal<CR>', noremap)
 --- inc dec ---{{{
 keymap('n', '-', '<C-X>', noremap)
@@ -228,9 +235,9 @@ keymap('', 'ga', '<plug>(EasyAlign)', remap)
 keymap('n', '<LocalLeader><Space>', '<Plug>(easymotion-overwin-f2)', noremap)
 keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', noremap)
 
---- accelated jk ---
-keymap('n', 'j', '<Plug>(accelerated_jk_gj)', noremap)
-keymap('n', 'k', '<Plug>(accelerated_jk_gk)', noremap)
+-- --- accelated jk ---
+-- keymap('n', 'j', '<Plug>(accelerated_jk_gj)', noremap)
+-- keymap('n', 'k', '<Plug>(accelerated_jk_gk)', noremap)
 
 --- visualmode togle
 keymap('v', 'v', ':<C-u>VmodeToggle<CR>', noremap)
@@ -260,7 +267,7 @@ keymap('', 'g*', '<Plug>(asterisk-gz*)', remap)
 keymap('', 'g#', '<Plug>(asterisk-gz#)', remap)
 -- }}}
 -- Markdown Preview --
-keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', noremap)
+keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', {noremap = false})
 keymap('n', '<LocalLeader>x', '<Plug>(quickhl-manual-this)', noremap)
 keymap('n', '<LocalLeader>X', '<Plug>(quickhl-manual-reset)', noremap)
 keymap('x', '<LocalLeader>x', '<Plug>(quickhl-manual-this)', noremap)
@@ -430,7 +437,7 @@ if is_windows then
 end
 
 -- アウトライン表示のトグル
-keymap('n', '<LocalLeader>o', ':SymbolsOutline<CR>', noremap)
+keymap('n', '<Leader>o', ':SymbolsOutline<CR>', noremap)
 
 -- フォールディング関連のキーマップ
 minor_mode.create('Fold', 'z').set_multi({
@@ -512,3 +519,5 @@ minor_mode.create('Fold', 'z').set_multi({
     { '4', '<cmd>lua SetFoldLevel(4)<CR>' },
 
 })
+
+
