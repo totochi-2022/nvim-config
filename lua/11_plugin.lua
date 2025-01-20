@@ -441,17 +441,17 @@ require("lazy").setup({
 
     -- 検索関連
     { "haya14busa/vim-asterisk" },
-    {
-        "unblevable/quick-scope",
-        config = function()
-            vim.g.qs_delay = 500
-            vim.g.lazy_highlight = 1
-            vim.g.qs_enable = 1
-            vim.g.qs_highlight_on_keys = { "f", "F", "t", "T" }
-            vim.g.qs_hi_priority = 2
-            vim.g.qs_filetype_blacklist = { "dashboard", "startify" }
-        end,
-    },
+    -- {
+    --     "unblevable/quick-scope",
+    --     config = function()
+    --         vim.g.qs_delay = 500
+    --         vim.g.lazy_highlight = 1
+    --         vim.g.qs_enable = 1
+    --         vim.g.qs_highlight_on_keys = { "f", "F", "t", "T" }
+    --         vim.g.qs_hi_priority = 2
+    --         vim.g.qs_filetype_blacklist = { "dashboard", "startify" }
+    --     end,
+    -- },
     {
         "haya14busa/incsearch-migemo.vim",
         dependencies = { "haya14busa/incsearch.vim" },
@@ -996,6 +996,19 @@ require("lazy").setup({
 
 
     -- その他のプラグイン
+    {
+        'rhysd/clever-f.vim',
+        config = function()
+            vim.g.clever_f_smart_case = 1
+            -- vim.g.clever_f_use_migemo = vim.g.incsearch_use_migemo or 0 -- 現在のmigemo状態に合わせる
+            vim.g.clever_f_use_migemo = 1
+            vim.g.clever_f_fix_key_direction = 1
+            vim.g.clever_f_timeout_ms = 2000                            -- タイムアウト時間（ミリ秒）
+            vim.g.clever_f_across_no_line = 0                           -- 0に設定すると改行を超えて検索します
+            vim.g.clever_f_mark_direct = 1
+            vim.g.clever_f_all_objects = 1
+        end
+    },
     { "skanehira/denops-translate.vim", lazy = true },
     { "tyru/open-browser.vim" },
     { "mfussenegger/nvim-dap" },

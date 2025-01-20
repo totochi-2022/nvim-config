@@ -103,32 +103,34 @@ endfunction
 command! VmodeToggle call s:vmode_toggle()
 ]]
 --}}}
---- MigemoToggle {{{
-vim.cmd [[
-function! s:migemo_mapping(verbose)
-  if g:incsearch_use_migemo == 0
-    map ?  <Plug>(incsearch-backward)
-    map /  <Plug>(incsearch-forward)
-    if a:verbose
-      echo 'incsearch no use migemo.'
-    end
-  else
-    map ?  <Plug>(incsearch-migemo-?)
-    map /  <Plug>(incsearch-migemo-/)
-    if a:verbose
-       echo 'incsearch use migemo.'
-    end
-  endif
-endfunction
+--MigemoToggle {{{
+ vim.cmd [[
+ function! s:migemo_mapping(verbose)
+   if g:incsearch_use_migemo == 0
+     map ?  <Plug>(incsearch-backward)
+     map /  <Plug>(incsearch-forward)
+     if a:verbose
+       echo 'incsearch no use migemo.'
+     end
+   else
+     map ?  <Plug>(incsearch-migemo-?)
+     map /  <Plug>(incsearch-migemo-/)
+     if a:verbose
+        echo 'incsearch use migemo.'
+     end
+   endif
+ endfunction
 
-function! s:migemo_toggle()
-  let g:incsearch_use_migemo = (g:incsearch_use_migemo == 0 ? 1 : 0)
-    call s:migemo_mapping(1)
-  endfunction
-call s:migemo_mapping(0)
-command! MigemoToggle call s:migemo_toggle()
-]]
+ function! s:migemo_toggle()
+   let g:incsearch_use_migemo = (g:incsearch_use_migemo == 0 ? 1 : 0)
+     call s:migemo_mapping(1)
+   endfunction
+ call s:migemo_mapping(0)
+ command! MigemoToggle call s:migemo_toggle()
+ ]]
 --}}}
+
+
 --- SynaxInfo  カーソル位置のsyntax情報の表示{{{
 -- https://cohama.hateblo.jp/entry/2013/08/11/020849
 vim.cmd [[
@@ -403,8 +405,6 @@ function ConversionMenu()
     menu.open(items)
 end
 
-
-
 -- local function convert_windows_path_to_wsl_path(win_path)
 --     local handle = io.popen("wslpath '" .. win_path:gsub("\\", "\\\\") .. "'")
 --     local result = handle:read("*a")
@@ -423,30 +423,29 @@ end
 -- })
 
 if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
-  vim.api.nvim_create_autocmd({"BufNewFile"}, {
-    callback = function(ev)
-      local file = ev.file
-      if file and #file > 0 then
-        if file:match("^\\\\wsl%.localhost\\[^\\]+\\") then
-          -- WSL UNCパスの場合は直接変換
-          local path = file:gsub("^\\\\wsl%.localhost\\[^\\]+\\", ""):gsub("\\", "/")
-          vim.cmd("bdelete")
-          vim.cmd("edit /" .. path)
-          vim.cmd("filetype detect")  -- ファイルタイプを再判定
-        elseif file:match("^%a:") or file:match("^\\\\[^\\]+\\") then
-          local handle = io.popen('wslpath "' .. file .. '"')
-          if handle then
-            local wsl_path = handle:read("*a"):gsub("\n$", "")
-            handle:close()
-            if wsl_path and wsl_path ~= file then
-              vim.cmd("bdelete")
-              vim.cmd("edit " .. wsl_path)
-              vim.cmd("filetype detect")  -- ファイルタイプを再判定
+    vim.api.nvim_create_autocmd({ "BufNewFile" }, {
+        callback = function(ev)
+            local file = ev.file
+            if file and #file > 0 then
+                if file:match("^\\\\wsl%.localhost\\[^\\]+\\") then
+                    -- WSL UNCパスの場合は直接変換
+                    local path = file:gsub("^\\\\wsl%.localhost\\[^\\]+\\", ""):gsub("\\", "/")
+                    vim.cmd("bdelete")
+                    vim.cmd("edit /" .. path)
+                    vim.cmd("filetype detect") -- ファイルタイプを再判定
+                elseif file:match("^%a:") or file:match("^\\\\[^\\]+\\") then
+                    local handle = io.popen('wslpath "' .. file .. '"')
+                    if handle then
+                        local wsl_path = handle:read("*a"):gsub("\n$", "")
+                        handle:close()
+                        if wsl_path and wsl_path ~= file then
+                            vim.cmd("bdelete")
+                            vim.cmd("edit " .. wsl_path)
+                            vim.cmd("filetype detect") -- ファイルタイプを再判定
+                        end
+                    end
+                end
             end
-          end
         end
-      end
-    end
-  })
+    })
 end
-
