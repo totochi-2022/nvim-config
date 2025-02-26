@@ -165,7 +165,7 @@ vim.opt.ambiwidth = 'single'
 vim.opt.inccommand = 'split'
 
 -- 常にカレントバッファをルートに
-vim.opt.autochdir = true
+-- vim.opt.autochdir = true
 
 -- クリップボードと連携する
 vim.opt.clipboard = is_windows and { 'unnamed' } or { 'unnamedplus', 'unnamed' }

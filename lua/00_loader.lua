@@ -17,6 +17,9 @@ require '13_lsp'
 -- 14_autocmd.lua
 require '14_autocmd'
 
+-- 14_autocmd.lua
+require '15_dap'
+
 -- 21_Keymap.lua
 require '21_keymap'
 

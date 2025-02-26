@@ -59,9 +59,24 @@ require("lazy").setup({
             require('fidget').setup {}
             require('lualine').setup {
                 options = {
-                    icons_enabled = true,
-                    theme = 'auto',
+                    disabled_filetypes = {
+                        winbar = {
+                            "dap-repl",
+                            "dap-repl-18",
+                            "dapui_breakpoints",
+                            "dapui_console",
+                            "dapui_scopes",
+                            "dapui_watches",
+                            "dapui_stacks",
+                        },
+                    },
                 },
+                -- options = {
+
+
+                --     icons_enabled = true,
+                --     theme = 'auto',
+                -- },
                 sections = {
                     lualine_a = { 'mode' },
                     lualine_b = { 'branch', 'diff', 'diagnostics' },
@@ -100,6 +115,16 @@ require("lazy").setup({
         config = function()
             require('telescope').setup({
                 extensions = {
+                    file_browser = {
+                        -- theme = "ivy",
+                        -- カレントディレクトリを明示的に使用
+                        cwd_to_path = true,
+                        respect_gitignore = false,
+                        hidden = true,
+                        grouped = true,
+                        initial_mode = "normal",
+                        layout_config = { height = 0.8 }
+                    },
                     command_palette = {
                         { "Convert",
                             { "Encoding",    "lua vim.cmd[[Telescope command_palette theme=ivy categories=Encoding\\ Menu]]" },
@@ -883,13 +908,10 @@ require("lazy").setup({
         "folke/which-key.nvim",
         config = function()
             require("which-key").setup {
-
                 plugins = {
                     marks = true,
                     registers = true,
-                    spelling = {
-                        enabled = false,
-                    },
+                    spelling = false,
                     presets = {
                         operators = true,
                         motions = true,
@@ -900,11 +922,72 @@ require("lazy").setup({
                         g = true,
                     },
                 },
-                -- キーマップの重複警告を無視する設定を追加
-                ignore_warning = {
-                    overlap = true, -- 重複するキーマップの警告を無視
+                icons = {
+                    breadcrumb = "»",
+                    separator = "➜",
+                    group = "+",
+                },
+                popup_mappings = {
+                    scroll_down = '<c-d>',
+                    scroll_up = '<c-u>',
+                },
+                window = {
+                    border = "rounded",
+                    position = "bottom",
+                    margin = { 1, 0, 1, 0 },
+                    padding = { 2, 2, 2, 2 },
+                    winblend = 0
+                },
+                layout = {
+                    height = { min = 4, max = 25 },
+                    width = { min = 20, max = 50 },
+                    spacing = 3,
+                    align = "left",
+                },
+                ignore_missing = false, -- 未登録キーを無視
+                hidden = { "<silent>", "<cmd>", "<Cmd>", "<CR>", "call", "lua", "^:", "^ " },
+                show_help = true,
+                show_keys = true,
+                -- disable = {
+                --     mapping_warnings = true, -- マッピングに関するワーニングを無視
+                -- },
+                -- silent = true,
+
+                triggers = "auto", -- トリガーを自動にする
+                triggers_blacklist = {
+                    i = { "j", "k" },
+                    v = { "j", "k" },
+                },
+                disable = {
+                    buftypes = {},
+                    filetypes = { "TelescopePrompt" },
                 },
             }
+
+            -- タイムアウト設定
+            vim.o.timeout = true
+            vim.o.timeoutlen = 300 -- より短いタイムアウト
+            --     plugins = {
+            --         marks = true,
+            --         registers = true,
+            --         spelling = {
+            --             enabled = false,
+            --         },
+            --         presets = {
+            --             operators = true,
+            --             motions = true,
+            --             text_objects = true,
+            --             windows = true,
+            --             nav = true,
+            --             z = true,
+            --             g = true,
+            --         },
+            --     },
+            --     -- キーマップの重複警告を無視する設定を追加
+            --     ignore_warning = {
+            --         overlap = true, -- 重複するキーマップの警告を無視
+            --     },
+            -- }
         end,
 
 
@@ -1003,18 +1086,35 @@ require("lazy").setup({
             -- vim.g.clever_f_use_migemo = vim.g.incsearch_use_migemo or 0 -- 現在のmigemo状態に合わせる
             vim.g.clever_f_use_migemo = 1
             vim.g.clever_f_fix_key_direction = 1
-            vim.g.clever_f_timeout_ms = 2000                            -- タイムアウト時間（ミリ秒）
-            vim.g.clever_f_across_no_line = 0                           -- 0に設定すると改行を超えて検索します
+            vim.g.clever_f_timeout_ms = 2000  -- タイムアウト時間（ミリ秒）
+            vim.g.clever_f_across_no_line = 0 -- 0に設定すると改行を超えて検索します
             vim.g.clever_f_mark_direct = 1
             vim.g.clever_f_all_objects = 1
         end
     },
     { "skanehira/denops-translate.vim", lazy = true },
     { "tyru/open-browser.vim" },
-    { "mfussenegger/nvim-dap" },
-    { "rcarriga/nvim-dap-ui" },
+    {
+        "mfussenegger/nvim-dap",
+        event = "VeryLazy", -- または特定のコマンドやキーマップで
+        dependencies = {
+            {
+                "rcarriga/nvim-dap-ui",
+                dependencies = { "nvim-neotest/nvim-nio" }
+            },
+            "mfussenegger/nvim-dap-python",
+        },
+    },
+    -- { "mfussenegger/nvim-dap" },
+
+    -- {
+    --     "rcarriga/nvim-dap-ui",
+    --     dependencies = {
+    --         "nvim-neotest/nvim-nio" -- この行を追加
+    --     }
+    -- },
     { "mfussenegger/nvim-dap-python" },
-    { "vim-jp/vimdoc-ja",               lazy = true },
+    { "vim-jp/vimdoc-ja",            lazy = true },
 
     {
         "iamcco/markdown-preview.nvim",
