@@ -160,7 +160,7 @@ vim.opt.linespace = 1
 -- 全角文字の幅
 -- vim.opt.ambiwidth = 'double'
 vim.opt.ambiwidth = 'single'
-
+-- 02_option.lua に追加
 -- 置換をインタラクティブに表示
 vim.opt.inccommand = 'split'
 

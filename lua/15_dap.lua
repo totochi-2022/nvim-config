@@ -217,3 +217,40 @@ minor_mode.create('Debug', '<Leader>d').set_multi({
 -- Update loader to include the DAP configuration
 
 -- This comment will be removed after adding to 00_loader.lua
+
+
+
+
+
+
+require('nvim-web-devicons').setup {
+  -- デフォルトアイコン
+  default = true,
+  -- アイコン後のスペース
+  strict = true,
+  -- アイコンの色付け
+  color_icons = true,
+  -- アイコンの後のパディング
+  default_icon = {
+    icon = "",
+    name = "Default",
+    color = "#6d8086",
+  },
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

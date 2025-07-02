@@ -9,14 +9,14 @@ local minor_mode = require('rc/minor_mode')
 
 -- 21_keymap.luaファイルの先頭付近に追加
 local notify_level = vim.log.levels.WARN
-vim.notify = function(msg, level, opts)
-    -- which-keyの特定のワーニングメッセージをフィルタリング
-    if level == notify_level and msg:match("which%-key") then
-        return
-    end
-    -- 元の通知関数を呼び出す
-    require("vim.notify")(msg, level, opts)
-end
+-- vim.notify = function(msg, level, opts)
+--     -- which-keyの特定のワーニングメッセージをフィルタリング
+--     if level == notify_level and msg:match("which%-key") then
+--         return
+--     end
+--     -- 元の通知関数を呼び出す
+--     require("vim.notify")(msg, level, opts)
+-- end
 
 
 --- initialize{{{
@@ -86,7 +86,7 @@ minor_mode.create('Disp', '<Leader>s').set_multi(
         { '=', '<C-w>=', 'ウィンドウの高さと幅を均等にする' },
         { 'b', ':bp<CR>', '前のバッファへ移動' },
         { 'B', ':bn<CR>', '次のバッファへ移動' },
-        { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
+        -- { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
     }
 )
 -- }}}
@@ -96,7 +96,7 @@ minor_mode.create('Buf', '<LocalLeader>').set_multi(
     {
         { 'b', ':bp<CR>', '前のバッファへ移動' },
         { 'B', ':bn<CR>', '次のバッファへ移動' },
-        { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
+        -- { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
     }
 )
 -- }}}
@@ -238,6 +238,8 @@ keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列
 -- EasyMotion
 keymap('n', '<LocalLeader><Space>', '<Plug>(easymotion-overwin-f2)', { noremap = true, desc = '2文字で画面内ジャンプ' })
 keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', { noremap = true, desc = '2文字でジャンプ' })
+-- keymap('n', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字で画面内ジャンプ' })
+-- keymap('x', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字でジャンプ' })
 
 -- VisualModeトグル
 keymap('v', 'v', ':<C-u>VmodeToggle<CR>', { noremap = true, desc = 'ビジュアルモード切替' })
@@ -419,9 +421,13 @@ minor_mode.create('Fold', 'z').set_multi({
 })
 
 
+keymap('o', '<LocalLeader>s', ':<C-U>lua require("tsht").nodes()<CR>', {})
+keymap('x', '<LocalLeader>s', ':lua require("tsht").nodes()<CR>', noremap)
+keymap('n', '<LocalLeader>s', 'v:lua require("tsht").nodes()<CR>', noremap)
+
 
 -- デバッグ用のキーマップ（F7をプレフィックスとして使用）
-minor_mode.create('Debugger', '<F7>').set_multi({
+minor_mode.create('Debugger', '<F7>','n',{persistent = true}).set_multi({
     { 'b', '<cmd>lua require("dap").toggle_breakpoint()<CR>', 'ブレークポイントをトグル' },
     { 'B', '<cmd>lua require("dap").set_breakpoint(vim.fn.input("条件付きブレークポイント: "))<CR>', '条件付きブレークポイント設定' },
     { 'c', '<cmd>lua require("dap").continue()<CR>', '実行継続' },
@@ -495,8 +501,6 @@ minor_mode.create('DiagnosticJump', 'm').set_multi({
     { 'h]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', '次のヒントへ' },
     { 'h[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>', '前のヒントへ' },
 })
-
-
 
 
 
@@ -587,7 +591,7 @@ vim.defer_fn(function()
     if _G.update_which_key_triggers then
         _G.update_which_key_triggers()
     end
-end, 100) -- 100ms遅延させて実行
+end, 10) -- 100ms遅延させて実行
 
 
 

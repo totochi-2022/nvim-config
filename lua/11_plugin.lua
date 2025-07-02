@@ -18,7 +18,7 @@ vim.opt.rtp:prepend(lazypath)
 if vim.fn.has('win32') == 1 then
     config.concurrency = 1
 else
-    config.concurrency = 10 -- WSL2ではより多くの並列処理を許可
+    config.concurrency = 20 -- WSL2ではより多くの並列処理を許可
 end
 
 if vim.fn.has('win64') then
@@ -347,6 +347,7 @@ require("lazy").setup({
     },
 
 
+
     -- アウトライン表示用のSymbols-outline
     {
         'simrat39/symbols-outline.nvim',
@@ -534,6 +535,9 @@ require("lazy").setup({
         end,
     },
 
+    {
+        "skanehira/jumpcursor.vim",
+    },
     -- テキストオブジェクト
 
 
@@ -1102,13 +1106,14 @@ require("lazy").setup({
                 "rcarriga/nvim-dap-ui",
                 dependencies = { "nvim-neotest/nvim-nio" }
             },
+            "theHamsta/nvim-dap-virtual-text",
             "mfussenegger/nvim-dap-python",
         },
     },
     -- { "mfussenegger/nvim-dap" },
 
     -- {
-    --     "rcarriga/nvim-dap-ui",
+    --     "rcarriga/nvim-dap-ui",t
     --     dependencies = {
     --         "nvim-neotest/nvim-nio" -- この行を追加
     --     }
@@ -1141,14 +1146,31 @@ require("lazy").setup({
         dependencies = { "Shougo/context_filetype.vim" }
     },
     {
-        "nvim-neo-tree/neo-tree.nvim",
-        branch = "v3.x",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            "nvim-tree/nvim-web-devicons",
-            "MunifTanjim/nui.nvim",
-        }
+        "nvim-tree/nvim-web-devicons",
+        config = function()
+            require('nvim-web-devicons').setup({})
+        end
     },
+    {
+        "stevearc/oil.nvim",
+        opts = {
+            default_file_explorer = true, -- デフォルトのファイラを oil にする
+            view_options = {
+                show_hidden = true,       -- 隠しファイルを表示（必要なら）
+            },
+        },
+        dependencies = { "nvim-tree/nvim-web-devicons" }, -- ファイルアイコン表示（オプション）
+    },
+    -- {
+    --     "nvim-neo-tree/neo-tree.nvim",
+    --     branch = "v3.x",
+    --     dependencies = {
+    --         "nvim-lua/plenary.nvim",
+    --         "nvim-tree/nvim-web-devicons",
+    --         "MunifTanjim/nui.nvim",
+    --     }
+    -- },
+
 }, {
     concurrency = config.concurrency, -- 同時ダウンロード数を1に制限
     ui = {
