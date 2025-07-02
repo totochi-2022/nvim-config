@@ -30,21 +30,22 @@ vim.g.mapleader = 's'
 vim.g.maplocalleader = ' '
 -- }}}
 
-local wk = require("which-key")
-wk.register({
-    s = { name = "ウィンドウ・バッファ操作" },
-    m = { name = "LSP・診断関連" },
-    z = { name = "フォールド操作" },
-})
+-- which-key設定は新しいAPIに移行予定
+-- local wk = require("which-key")
+-- wk.register({
+--     s = { name = "ウィンドウ・バッファ操作" },
+--     m = { name = "LSP・診断関連" },
+--     z = { name = "フォールド操作" },
+-- })
 
-wk.register({
-    ["<localleader>"] = {
-        b = { name = "バッファ操作" },
-        c = { name = "コメント操作" },
-        v = { name = "ウィンドウ分割" },
-        j = { name = "領域拡張" },
-    }
-})
+-- wk.register({
+--     ["<localleader>"] = {
+--         b = { name = "バッファ操作" },
+--         c = { name = "コメント操作" },
+--         v = { name = "ウィンドウ分割" },
+--         j = { name = "領域拡張" },
+--     }
+-- })
 
 --- split window{{{
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
@@ -505,102 +506,102 @@ minor_mode.create('DiagnosticJump', 'm').set_multi({
 
 
 
--- プレフィックスキーの明示的な登録
-local wk = require("which-key")
+-- プレフィックスキーの明示的な登録（新しいAPIに移行予定）
+-- local wk = require("which-key")
 
--- リーダーキー 's' の登録 - 完全なリスト形式
-wk.register({
-    { "s", name = "ウィンドウ・バッファ操作" },
-    { "sb", ":Telescope buffers<CR>", "バッファ一覧" },
-    { "sh", ":Telescope frecency<CR>", "履歴関連" },
-    { "sg", ":Telescope live_grep<CR>", "検索関連" },
-})
+-- -- リーダーキー 's' の登録 - 完全なリスト形式
+-- wk.register({
+--     { "s", name = "ウィンドウ・バッファ操作" },
+--     { "sb", ":Telescope buffers<CR>", "バッファ一覧" },
+--     { "sh", ":Telescope frecency<CR>", "履歴関連" },
+--     { "sg", ":Telescope live_grep<CR>", "検索関連" },
+-- })
 
--- 'm' プレフィックスの登録
-wk.register({
-    { "m", name = "LSP・診断関連" },
-    { "md", "<cmd>lua vim.lsp.buf.definition()<CR>", "定義へ移動" },
-    { "mD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "宣言へ移動" },
-    { "mi", "<cmd>lua vim.lsp.buf.implementation()<CR>", "実装へ移動" },
-    { "mr", "<cmd>lua vim.lsp.buf.rename()<CR>", "リネーム" },
-    { "me", "<cmd>lua vim.diagnostic.open_float()<CR>", "診断表示" },
-    { "m<Space>", "<cmd>lua vim.lsp.buf.hover()<CR>", "ホバー情報表示" },
-    { "m]", "<cmd>lua vim.diagnostic.goto_next()<CR>", "次の診断へ" },
-    { "m[", "<cmd>lua vim.diagnostic.goto_prev()<CR>", "前の診断へ" },
-    { "me]", "<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>", "次のエラーへ" },
-    { "me[", "<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>", "前のエラーへ" },
-})
+-- -- 'm' プレフィックスの登録
+-- wk.register({
+--     { "m", name = "LSP・診断関連" },
+--     { "md", "<cmd>lua vim.lsp.buf.definition()<CR>", "定義へ移動" },
+--     { "mD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "宣言へ移動" },
+--     { "mi", "<cmd>lua vim.lsp.buf.implementation()<CR>", "実装へ移動" },
+--     { "mr", "<cmd>lua vim.lsp.buf.rename()<CR>", "リネーム" },
+--     { "me", "<cmd>lua vim.diagnostic.open_float()<CR>", "診断表示" },
+--     { "m<Space>", "<cmd>lua vim.lsp.buf.hover()<CR>", "ホバー情報表示" },
+--     { "m]", "<cmd>lua vim.diagnostic.goto_next()<CR>", "次の診断へ" },
+--     { "m[", "<cmd>lua vim.diagnostic.goto_prev()<CR>", "前の診断へ" },
+--     { "me]", "<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>", "次のエラーへ" },
+--     { "me[", "<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>", "前のエラーへ" },
+-- })
 
--- ローカルリーダー設定（スペースキー）
-wk.register({
-    { "<Space>", name = "ローカルリーダー" },
-    { "<Space>b", name = "バッファ操作" },
-    { "<Space>c", name = "コメント操作" },
-    { "<Space>t", ":Translate<CR>", "翻訳" },
-    { "<Space>j", name = "領域拡張" },
-    { "<Space>v", name = "ウィンドウ分割" },
-    { "<Space>d", ":lua require('dapui').toggle()<CR>", "デバッグUIトグル" },
-    { "<Space>o", ":SymbolsOutline<CR>", "アウトライン表示" },
-})
+-- -- ローカルリーダー設定（スペースキー）
+-- wk.register({
+--     { "<Space>", name = "ローカルリーダー" },
+--     { "<Space>b", name = "バッファ操作" },
+--     { "<Space>c", name = "コメント操作" },
+--     { "<Space>t", ":Translate<CR>", "翻訳" },
+--     { "<Space>j", name = "領域拡張" },
+--     { "<Space>v", name = "ウィンドウ分割" },
+--     { "<Space>d", ":lua require('dapui').toggle()<CR>", "デバッグUIトグル" },
+--     { "<Space>o", ":SymbolsOutline<CR>", "アウトライン表示" },
+-- })
 
--- zキー（フォールド）
-wk.register({
-    { "z", name = "フォールド操作" },
-    { "za", "za", "現在のフォールドをトグル" },
-    { "zR", "zR", "すべてのフォールドを開く" },
-    { "zM", "zM", "すべてのフォールドを閉じる" },
-})
-
-
--- WhichKeyのトリガーを自動的に更新する関数
-_G.update_which_key_triggers = function()
-    -- 基本プレフィックス
-    local prefixes = { "<leader>", "<localleader>" }
-
-    -- 一般的に使用されるプレフィックスを追加
-    local known_prefixes = { "s", "m", "z", "g", "f", "d", "c", "y", "v" }
-
-    for _, prefix in ipairs(known_prefixes) do
-        table.insert(prefixes, prefix)
-    end
-
-    -- minor_modeで使用している可能性のあるプレフィックスも収集
-    for _, mode in ipairs({ "n", "v", "x", "s", "o", "i", "c", "t" }) do
-        local mode_maps = vim.api.nvim_get_keymap(mode)
-        for _, mapping in ipairs(mode_maps) do
-            local lhs = mapping.lhs
-            -- 単一キーのみ対象
-            if #lhs == 1 and not vim.tbl_contains(prefixes, lhs) then
-                table.insert(prefixes, lhs)
-            end
-        end
-    end
-
-    -- 重複排除
-    prefixes = vim.fn.uniq(prefixes)
-
-    -- WhichKeyの設定を更新
-    local status_ok, which_key = pcall(require, "which-key")
-    if status_ok then
-        which_key.setup({ triggers = prefixes })
-        -- print("WhichKey triggers updated: " .. table.concat(prefixes, ", "))
-    end
-end
-
--- キーマップがすべて設定された後に実行
-vim.defer_fn(function()
-    if _G.update_which_key_triggers then
-        _G.update_which_key_triggers()
-    end
-end, 10) -- 100ms遅延させて実行
+-- -- zキー（フォールド）
+-- wk.register({
+--     { "z", name = "フォールド操作" },
+--     { "za", "za", "現在のフォールドをトグル" },
+--     { "zR", "zR", "すべてのフォールドを開く" },
+--     { "zM", "zM", "すべてのフォールドを閉じる" },
+-- })
 
 
+-- WhichKeyのトリガーを自動的に更新する関数（新しいAPIに移行予定）
+-- _G.update_which_key_triggers = function()
+--     -- 基本プレフィックス
+--     local prefixes = { "<leader>", "<localleader>" }
 
--- キーを押したときに手動でWhichKeyを呼び出す
-vim.keymap.set('n', 's', function()
-    require("which-key").show("s", { mode = "n", auto = true })
-end, { noremap = true })
+--     -- 一般的に使用されるプレフィックスを追加
+--     local known_prefixes = { "s", "m", "z", "g", "f", "d", "c", "y", "v" }
 
-vim.keymap.set('n', 'm', function()
-    require("which-key").show("m", { mode = "n", auto = true })
-end, { noremap = true })
+--     for _, prefix in ipairs(known_prefixes) do
+--         table.insert(prefixes, prefix)
+--     end
+
+--     -- minor_modeで使用している可能性のあるプレフィックスも収集
+--     for _, mode in ipairs({ "n", "v", "x", "s", "o", "i", "c", "t" }) do
+--         local mode_maps = vim.api.nvim_get_keymap(mode)
+--         for _, mapping in ipairs(mode_maps) do
+--             local lhs = mapping.lhs
+--             -- 単一キーのみ対象
+--             if #lhs == 1 and not vim.tbl_contains(prefixes, lhs) then
+--                 table.insert(prefixes, lhs)
+--             end
+--         end
+--     end
+
+--     -- 重複排除
+--     prefixes = vim.fn.uniq(prefixes)
+
+--     -- WhichKeyの設定を更新
+--     local status_ok, which_key = pcall(require, "which-key")
+--     if status_ok then
+--         which_key.setup({ triggers = prefixes })
+--         -- print("WhichKey triggers updated: " .. table.concat(prefixes, ", "))
+--     end
+-- end
+
+-- -- キーマップがすべて設定された後に実行
+-- vim.defer_fn(function()
+--     if _G.update_which_key_triggers then
+--         _G.update_which_key_triggers()
+--     end
+-- end, 10) -- 100ms遅延させて実行
+
+
+
+-- -- キーを押したときに手動でWhichKeyを呼び出す
+-- vim.keymap.set('n', 's', function()
+--     require("which-key").show("s", { mode = "n", auto = true })
+-- end, { noremap = true })
+
+-- vim.keymap.set('n', 'm', function()
+--     require("which-key").show("m", { mode = "n", auto = true })
+-- end, { noremap = true })
