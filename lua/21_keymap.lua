@@ -314,6 +314,7 @@ keymap('n', '<LocalLeader>0', ':set readonly!<CR>', { noremap = true, desc = '�
 keymap('n', '<LocalLeader>9', '<cmd>lua ToggleAutoHover()<CR>', { noremap = true, desc = '自動ホバートグル' })
 keymap('n', '<LocalLeader>8', ':<C-u>MigemoToggle<CR>', { noremap = true, desc = 'Migemoトグル' })
 keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', { noremap = true, desc = 'カラー表示トグル' })
+keymap('n', '<LocalLeader>2', ':ToggleJumpMode<CR>', { noremap = true, desc = 'ジャンプモード切替（ファイル内⇔グローバル）' })
 minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true)<CR>", "診断表示モード切替")
 
 -- 構文情報

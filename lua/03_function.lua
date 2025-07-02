@@ -130,6 +130,120 @@ command! VmodeToggle call s:vmode_toggle()
  ]]
 --}}}
 
+--- FileLocalJumpList ファイル内ジャンプ履歴{{{
+-- ファイル内のジャンプ履歴を管理する
+vim.cmd [[
+" ファイル内ジャンプ履歴の実装
+let g:file_local_jumplist = {}
+
+function! s:add_to_file_jumplist()
+  let l:bufnr = bufnr('%')
+  let l:pos = [line('.'), col('.')]
+  
+  " バッファごとの履歴を初期化
+  if !has_key(g:file_local_jumplist, l:bufnr)
+    let g:file_local_jumplist[l:bufnr] = {'list': [], 'current': -1}
+  endif
+  
+  let l:jumplist = g:file_local_jumplist[l:bufnr]
+  
+  " 同じ位置の場合は追加しない
+  if len(l:jumplist.list) > 0 && l:jumplist.list[-1] == l:pos
+    return
+  endif
+  
+  " 現在位置より後の履歴を削除（新しいブランチ）
+  if l:jumplist.current < len(l:jumplist.list) - 1
+    let l:jumplist.list = l:jumplist.list[:l:jumplist.current]
+  endif
+  
+  " 新しい位置を追加
+  call add(l:jumplist.list, l:pos)
+  let l:jumplist.current = len(l:jumplist.list) - 1
+  
+  " 履歴が長すぎる場合は古いものを削除
+  if len(l:jumplist.list) > 100
+    let l:jumplist.list = l:jumplist.list[1:]
+    let l:jumplist.current -= 1
+  endif
+endfunction
+
+function! s:file_jump_back()
+  let l:bufnr = bufnr('%')
+  if !has_key(g:file_local_jumplist, l:bufnr)
+    echo "No file jump history"
+    return
+  endif
+  
+  let l:jumplist = g:file_local_jumplist[l:bufnr]
+  if l:jumplist.current <= 0
+    echo "Already at oldest position"
+    return
+  endif
+  
+  let l:jumplist.current -= 1
+  let l:pos = l:jumplist.list[l:jumplist.current]
+  call cursor(l:pos[0], l:pos[1])
+  echo "File jump back (" . (l:jumplist.current + 1) . "/" . len(l:jumplist.list) . ")"
+endfunction
+
+function! s:file_jump_forward()
+  let l:bufnr = bufnr('%')
+  if !has_key(g:file_local_jumplist, l:bufnr)
+    echo "No file jump history"
+    return
+  endif
+  
+  let l:jumplist = g:file_local_jumplist[l:bufnr]
+  if l:jumplist.current >= len(l:jumplist.list) - 1
+    echo "Already at newest position"
+    return
+  endif
+  
+  let l:jumplist.current += 1
+  let l:pos = l:jumplist.list[l:jumplist.current]
+  call cursor(l:pos[0], l:pos[1])
+  echo "File jump forward (" . (l:jumplist.current + 1) . "/" . len(l:jumplist.list) . ")"
+endfunction
+
+" コマンド定義
+command! FileJumpBack call s:file_jump_back()
+command! FileJumpForward call s:file_jump_forward()
+
+" 自動的に履歴に追加（大きなジャンプの時のみ）
+augroup FileLocalJumpList
+  autocmd!
+  autocmd CursorMoved * if abs(line('.') - line("''")) > 5 | call s:add_to_file_jumplist() | endif
+augroup END
+
+" ジャンプモード切り替え（ファイル内 vs グローバル）
+let g:jump_mode_file_local = 1
+
+function! s:toggle_jump_mode()
+  let g:jump_mode_file_local = !g:jump_mode_file_local
+  if g:jump_mode_file_local
+    echo "Jump Mode: File Local (Ctrl+O/Ctrl+I → ファイル内履歴)"
+    " Ctrl+O/Ctrl+Iをファイル内版に変更
+    nnoremap <C-o> :FileJumpBack<CR>
+    nnoremap <C-i> :FileJumpForward<CR>
+  else
+    echo "Jump Mode: Global (Ctrl+O/Ctrl+I → グローバル履歴)"
+    " 元のCtrl+O/Ctrl+Iに戻す
+    nunmap <C-o>
+    nunmap <C-i>
+  endif
+endfunction
+
+" 起動時にファイル内モードを設定
+augroup FileLocalJumpListInit
+  autocmd!
+  autocmd VimEnter * call s:toggle_jump_mode()
+augroup END
+
+command! ToggleJumpMode call s:toggle_jump_mode()
+]]
+--}}}
+
 
 --- SynaxInfo  カーソル位置のsyntax情報の表示{{{
 -- https://cohama.hateblo.jp/entry/2013/08/11/020849

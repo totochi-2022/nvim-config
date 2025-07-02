@@ -343,6 +343,20 @@ require("lazy").setup({
             -- デフォルトでは折りたたまない
             vim.opt.foldenable = false
             vim.opt.foldlevel = 99
+
+            -- treesitter-context設定
+            require('treesitter-context').setup({
+                enable = true,
+                max_lines = 0, -- 0は無制限
+                min_window_height = 0,
+                line_numbers = true,
+                multiline_threshold = 20,
+                trim_scope = 'outer',
+                mode = 'cursor',
+                separator = nil,
+                zindex = 20,
+                on_attach = nil,
+            })
         end,
     },
 
@@ -1170,6 +1184,21 @@ require("lazy").setup({
     --         "MunifTanjim/nui.nvim",
     --     }
     -- },
+
+    -- カーソルアニメーション（Terminal版Neovide風）
+    {
+        "sphamba/smear-cursor.nvim",
+        config = function()
+            require('smear_cursor').setup({
+                -- Neovide設定に近づける
+                cursor_color = '#ffffff',
+                trail_size = 8,           -- neovide_cursor_trail_size = 0.8 相当
+                trail_timeout = 30,       -- neovide_cursor_animation_length = 0.03 相当
+                distance_stop_animating = 0.5,
+                hide_target_hack = true,  -- ターミナルでのちらつき軽減
+            })
+        end,
+    },
 
 }, {
     concurrency = config.concurrency, -- 同時ダウンロード数を1に制限
