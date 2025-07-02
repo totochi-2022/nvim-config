@@ -60,23 +60,20 @@ return {
     {
         "folke/which-key.nvim",
         event = "VeryLazy",
-        opts = {
-            -- 新しいwhich-key APIに対応
-            preset = "classic",
-            delay = 300,
-            filter = function(mapping)
-                return true
-            end,
-            spec = {},
-            notify = true,
-            triggers = {
-                { "<auto>", mode = "nixsotc" },
-            },
-            disable = {
-                buftypes = {},
-                filetypes = {},
-            },
-        },
+        config = function()
+            local wk = require("which-key")
+            wk.setup({
+                preset = "classic",
+                delay = 300,
+                -- spec = require("plugins.which-key-spec"), -- 一時的に無効化
+                triggers = {
+                    { "<auto>", mode = "nxsotc" },
+                    { "s", mode = { "n", "v" } },     -- リーダーキー
+                    { "<space>", mode = { "n", "v" } }, -- ローカルリーダー
+                    { "m", mode = { "n", "v" } },     -- LSP用
+                },
+            })
+        end,
         keys = {
             {
                 "<leader>?",

@@ -136,13 +136,24 @@ function M.create(namespace, prefix, mode, beforehook, afterhook, options)
                 end
             end
 
-            -- WhichKeyに登録
+            -- WhichKeyに登録（自動判定）
             if which_key_exists() and desc then
                 local wk = require("which-key")
-                for _, m in ipairs(modes) do
-                    wk.register({
-                        { prefix .. repeater, desc = desc }
-                    }, { mode = m })
+                -- which-keyが新API（v3）をサポートしているかチェック
+                if wk.add then
+                    -- 新API（v3）を使用
+                    for _, m in ipairs(modes) do
+                        wk.add({
+                            { prefix .. repeater, desc = desc, mode = m }
+                        })
+                    end
+                elseif wk.register then
+                    -- 旧API（v2）を使用
+                    for _, m in ipairs(modes) do
+                        wk.register({
+                            [repeater] = { desc = desc }
+                        }, { prefix = prefix, mode = m })
+                    end
                 end
             end
             -- -- WhichKeyに登録
@@ -198,21 +209,33 @@ function M.create(namespace, prefix, mode, beforehook, afterhook, options)
             --         wk.register(wk_mappings, { prefix = prefix, mode = m })
             --     end
             -- end
-            -- WhichKeyに登録（存在する場合のみ）
+            -- WhichKeyに登録（自動判定）
             if which_key_exists() then
                 local wk = require("which-key")
-                local wk_mappings = {}
-
-                for _, keymap in pairs(params) do
-                    local repeater = keymap[1]
-                    local desc = keymap[3] or ""
-
-                    -- 最新の形式では完全にリスト形式に変更
-                    table.insert(wk_mappings, { prefix .. repeater, desc = desc })
-                end
-
-                for _, m in ipairs(modes) do
-                    wk.register(wk_mappings, { mode = m })
+                
+                -- which-keyが新API（v3）をサポートしているかチェック
+                if wk.add then
+                    -- 新API（v3）を使用
+                    local wk_mappings = {}
+                    for _, keymap in pairs(params) do
+                        local repeater = keymap[1]
+                        local desc = keymap[3] or ""
+                        for _, m in ipairs(modes) do
+                            table.insert(wk_mappings, { prefix .. repeater, desc = desc, mode = m })
+                        end
+                    end
+                    wk.add(wk_mappings)
+                elseif wk.register then
+                    -- 旧API（v2）を使用
+                    local wk_mappings = {}
+                    for _, keymap in pairs(params) do
+                        local repeater = keymap[1]
+                        local desc = keymap[3] or ""
+                        wk_mappings[repeater] = { desc = desc }
+                    end
+                    for _, m in ipairs(modes) do
+                        wk.register(wk_mappings, { prefix = prefix, mode = m })
+                    end
                 end
             end
 

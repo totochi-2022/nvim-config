@@ -20,7 +20,7 @@ local notify_level = vim.log.levels.WARN
 
 
 --- initialize{{{
-keymap('', 's', '', noremap)
+-- keymap('', 's', '', noremap)  -- which-keyで管理するのでコメントアウト
 -- 1. mのデフォルトマッピングを解除
 keymap('n', 'm', '', noremap)
 -- }}}
@@ -30,22 +30,7 @@ vim.g.mapleader = 's'
 vim.g.maplocalleader = ' '
 -- }}}
 
--- which-key設定は新しいAPIに移行予定
--- local wk = require("which-key")
--- wk.register({
---     s = { name = "ウィンドウ・バッファ操作" },
---     m = { name = "LSP・診断関連" },
---     z = { name = "フォールド操作" },
--- })
-
--- wk.register({
---     ["<localleader>"] = {
---         b = { name = "バッファ操作" },
---         c = { name = "コメント操作" },
---         v = { name = "ウィンドウ分割" },
---         j = { name = "領域拡張" },
---     }
--- })
+-- which-key設定は plugins/which-key-spec.lua に移行済み
 
 --- split window{{{
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
