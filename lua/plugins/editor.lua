@@ -129,9 +129,34 @@ return {
 
     -- アウトライン表示
     {
-        'simrat39/symbols-outline.nvim',
+        'hedyhli/outline.nvim',
         config = function()
-            require("symbols-outline").setup()
+            require("outline").setup({
+                outline_window = {
+                    position = 'right',
+                    width = 25,
+                    relative_width = true,
+                    auto_close = true,  -- 選択したら自動で閉じる
+                },
+                outline_items = {
+                    highlight_hovered_item = true,
+                    show_symbol_details = false,
+                },
+                symbols = {
+                    filter = {
+                        default = {
+                            'Class', 'Constructor', 'Enum', 'Field', 'Function', 
+                            'Interface', 'Method', 'Module', 'Namespace', 'Package', 
+                            'Property', 'Struct', 'Trait'
+                        },
+                        lua = {
+                            'Class', 'Constructor', 'Enum', 'Field', 'Function', 
+                            'Interface', 'Method', 'Module', 'Namespace', 'Package', 
+                            'Property', 'Struct', 'Trait'
+                        },
+                    },
+                },
+            })
         end
     },
 

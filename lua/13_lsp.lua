@@ -33,18 +33,15 @@ mason_lspconfig.setup({
         "taplo",
         "vimls",
     },
-    automatic_instllation = true,
+    automatic_installation = true,
 })
 -- auto lspconfig setting
-local mason_lspconfig_ok, mason_lspconfig = pcall(require, 'mason-lspconfig')
-if mason_lspconfig_ok and mason_lspconfig.setup_handlers then
+if mason_lspconfig.setup_handlers then
   mason_lspconfig.setup_handlers {
     function(server_name)
       require('lspconfig')[server_name].setup {}
     end,
   }
-else
-  vim.notify("mason-lspconfig setup_handlers not available", vim.log.levels.WARN)
 end
 
 require('mason-null-ls').setup({

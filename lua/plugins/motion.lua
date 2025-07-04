@@ -28,7 +28,7 @@ return {
                         k = 'gk',
                     },
                 },
-                acceleration_motions = {},
+                acceleration_motions = { 'j', 'k', 'h', 'l', 'b', 'w', 'e', 'B', 'W', 'E' },
                 acceleration_limit = 150,
                 acceleration_table = { 7, 12, 17, 21, 24, 26, 28, 30 }
             })

@@ -257,6 +257,23 @@ keymap('', 'g#', '<Plug>(asterisk-gz#)', { remap = true, desc = '逆方向部分
 -- Markdown Preview
 keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', { noremap = false, desc = 'Markdownプレビュートグル' })
 
+-- Git操作
+keymap('n', 'mgs', ':Git<CR>', { noremap = true, desc = 'Git status' })
+keymap('n', 'mgd', ':Gdiffsplit<CR>', { noremap = true, desc = 'Git diff split' })
+keymap('n', 'mgD', ':DiffviewFileHistory %<CR>', { noremap = true, desc = 'ファイル履歴' })
+keymap('n', 'mgb', ':Git blame<CR>', { noremap = true, desc = 'Git blame' })
+keymap('n', 'mgl', ':Git log --oneline<CR>', { noremap = true, desc = 'Git log' })
+keymap('n', 'mgp', ':Gitsigns preview_hunk<CR>', { noremap = true, desc = 'Hunkプレビュー' })
+keymap('n', 'mgr', ':Gitsigns reset_hunk<CR>', { noremap = true, desc = 'Hunkリセット' })
+keymap('n', 'mgh', ':Gitsigns stage_hunk<CR>', { noremap = true, desc = 'Hunkステージ' })
+keymap('n', 'mgc', ':Gitsigns toggle_current_line_blame<CR>', { noremap = true, desc = 'Blame表示トグル' })
+
+-- Git Hunk移動（submode付き）
+minor_mode.create('GitHunk', 'mg').set_multi({
+    { 'j', ':Gitsigns next_hunk<CR>', '次のHunkへ' },
+    { 'k', ':Gitsigns prev_hunk<CR>', '前のHunkへ' },
+})
+
 -- ハイライト
 keymap('n', '<LocalLeader>x', '<Plug>(quickhl-manual-this)', { noremap = true, desc = 'カーソル位置の単語をハイライト' })
 keymap('n', '<LocalLeader>X', '<Plug>(quickhl-manual-reset)', { noremap = true, desc = 'ハイライトをリセット' })
@@ -388,7 +405,7 @@ if is_windows then
 end
 
 -- アウトライン表示
-keymap('n', '<Leader>o', ':SymbolsOutline<CR>', { noremap = true, desc = 'アウトライン表示トグル' })
+keymap('n', '<Leader>o', ':Outline<CR>', { noremap = true, desc = 'アウトライン表示' })
 
 -- フォールディング関連のキーマップ
 minor_mode.create('Fold', 'z').set_multi({
@@ -526,7 +543,7 @@ minor_mode.create('DiagnosticJump', 'm').set_multi({
 --     { "<Space>j", name = "領域拡張" },
 --     { "<Space>v", name = "ウィンドウ分割" },
 --     { "<Space>d", ":lua require('dapui').toggle()<CR>", "デバッグUIトグル" },
---     { "<Space>o", ":SymbolsOutline<CR>", "アウトライン表示" },
+--     { "<Space>o", ":Outline<CR>", "アウトライン表示" },
 -- })
 
 -- -- zキー（フォールド）
