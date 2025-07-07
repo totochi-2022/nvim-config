@@ -30,6 +30,20 @@ return {
                     },
                     command_palette = {
                         -- 元の長いコマンドパレット設定をそのまま保持
+                    },
+                    undo = {
+                        use_delta = true,
+                        use_custom_command = nil,
+                        side_by_side = true,
+                        layout_strategy = "horizontal",
+                        layout_config = {
+                            preview_width = 0.65,
+                        },
+                        vim_diff_opts = {
+                            ctxlen = vim.o.scrolloff,
+                        },
+                        entry_format = "state #$ID, $STAT, $TIME",
+                        time_format = "",
                     }
                 },
                 pickers = {
@@ -49,6 +63,7 @@ return {
             require('telescope').load_extension('frecency')
             require('telescope').load_extension('file_browser')
             require('telescope').load_extension('command_palette')
+            require('telescope').load_extension('undo')
         end,
     },
 
