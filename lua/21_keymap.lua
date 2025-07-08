@@ -136,8 +136,7 @@ keymap('', '<Leader>f', ':Telescope fd<CR>', { noremap = true, desc = 'ファイ
 keymap('', '<Leader>e', ':Telescope file_browser path=%:p:h<CR>', { noremap = true, desc = 'ファイルブラウザ（現在のディレクトリ）' })
 keymap('', '<Leader>J', ':Telescope jumplist<CR>', { noremap = true, desc = 'ジャンプリスト' })
 keymap('', '<Leader>S', ':SearchSession<CR>', { noremap = true, desc = 'セッション検索' })
-keymap('n', '<Leader>u', ':MundoToggle<CR>', { noremap = true, desc = '変更履歴（UNDO）表示' })
-keymap('n', '<Leader>U', ':Telescope undo<CR>', { noremap = true, desc = '変更履歴（Telescope）' })
+keymap('n', '<Leader>u', ':Telescope undo<CR>', { noremap = true, desc = '変更履歴（Telescope）' })
 keymap('n', '<Leader>t', ':terminal<CR>', { noremap = true, desc = 'ターミナル起動' })
 
 --- inc dec

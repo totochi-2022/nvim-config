@@ -26,11 +26,4 @@ return {
     { "nvimtools/none-ls.nvim" },
     { "hrsh7th/cmp-omni" },
     { "hrsh7th/cmp-emoji" },
-    {
-        "tzachar/cmp-tabnine",
-        build = "./install.sh",
-        cond = function()
-            return vim.fn.executable('node') == 1
-        end,
-    },
 }
