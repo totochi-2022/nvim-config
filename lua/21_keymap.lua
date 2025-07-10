@@ -44,6 +44,10 @@ keymap('n', 'u', 'g-', { noremap = true, desc = '前の変更に戻る' })
 keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモード' })
 -- }}}
 
+--- Windows path conversion{{{
+keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>', { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
+-- }}}
+
 --- window{{{
 minor_mode.create('Disp', '<Leader>s').set_multi(
     {

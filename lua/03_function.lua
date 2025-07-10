@@ -538,13 +538,15 @@ end
 
 -- Windows path to WSL path conversion  
 function ConvertWindowsPath(win_path)
-    -- 将来的に独自スクリプトに置き換え可能
-    local handle = io.popen('wslpath "' .. win_path .. '" 2>/dev/null')
+    -- 外部コマンドでパス変換（将来的にカスタムスクリプトに置き換え可能）
+    local converter_cmd = "wslpath"  -- 将来的にはカスタムスクリプトのパスに変更可能
+    
+    local handle = io.popen(converter_cmd .. ' "' .. win_path .. '" 2>/dev/null')
     if handle then
         local wsl_path = handle:read("*a"):gsub("\n$", "")
         handle:close()
         
-        -- wslpathが成功した場合のみ変換結果を返す
+        -- 変換が成功した場合のみ変換結果を返す
         if wsl_path ~= "" then
             return wsl_path
         end
@@ -552,14 +554,78 @@ function ConvertWindowsPath(win_path)
     return win_path
 end
 
--- input()を使ったWindowsパス入力コマンド
-vim.api.nvim_create_user_command('ew', function()
+-- グローバル変数: 自動パス変換モードの状態
+vim.g.auto_windows_path_mode = false
+
+-- ファイル存在チェック関数
+function FileExists(path)
+    local stat = vim.loop.fs_stat(path)
+    return stat and stat.type == 'file'
+end
+
+-- Windowsパス判定関数
+function IsWindowsPath(path)
+    return path:match("^%a:[/\\]") or path:match("^\\\\")
+end
+
+-- Windows Terminalでは、ドラッグ&ドロップは単純なテキスト貼り付けとして処理される
+-- そのため、InsertCharPreイベントなどで文字入力を監視する必要がある
+
+-- autocmdのIDを保存する変数
+local auto_path_autocmd_id = nil
+
+-- 自動パス変換モードのトグル関数
+function ToggleAutoWindowsPathMode()
+    vim.g.auto_windows_path_mode = not vim.g.auto_windows_path_mode
+    
+    if vim.g.auto_windows_path_mode then
+        -- autocmdを作成
+        auto_path_autocmd_id = vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+            callback = function()
+                local line = vim.api.nvim_get_current_line()
+                
+                -- 空行や改行を含む行は無視
+                if line == "" or line:find('\n') then
+                    return
+                end
+                
+                -- Windowsパスかどうかチェック
+                if IsWindowsPath(line) then
+                    local converted_path = ConvertWindowsPath(line)
+                    if FileExists(converted_path) then
+                        -- 現在行をクリアしてファイルを開く
+                        vim.api.nvim_set_current_line("")
+                        vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
+                    end
+                end
+            end
+        })
+        print("Auto Windows Path Mode: ON")
+    else
+        -- autocmdを削除
+        if auto_path_autocmd_id then
+            vim.api.nvim_del_autocmd(auto_path_autocmd_id)
+            auto_path_autocmd_id = nil
+        end
+        print("Auto Windows Path Mode: OFF")
+    end
+end
+
+-- input()を使ったWindowsパス入力コマンド（存在チェック付き）
+vim.api.nvim_create_user_command('Ew', function()
     local path = vim.fn.input('Windows path: ')
     if path and #path > 0 then
         local converted_path = ConvertWindowsPath(path)
-        vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
+        if FileExists(converted_path) then
+            vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
+        else
+            vim.api.nvim_err_writeln("File does not exist: " .. converted_path)
+        end
     end
 end, {})
+
+-- 小文字でも使えるようにabbreviation追加
+vim.cmd('cnoreabbrev ew Ew')
 
 if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
     vim.api.nvim_create_autocmd({ "BufNewFile" }, {
