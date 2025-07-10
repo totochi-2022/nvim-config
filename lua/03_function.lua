@@ -536,6 +536,31 @@ end
 --     end,
 -- })
 
+-- Windows path to WSL path conversion  
+function ConvertWindowsPath(win_path)
+    -- 将来的に独自スクリプトに置き換え可能
+    local handle = io.popen('wslpath "' .. win_path .. '" 2>/dev/null')
+    if handle then
+        local wsl_path = handle:read("*a"):gsub("\n$", "")
+        handle:close()
+        
+        -- wslpathが成功した場合のみ変換結果を返す
+        if wsl_path ~= "" then
+            return wsl_path
+        end
+    end
+    return win_path
+end
+
+-- input()を使ったWindowsパス入力コマンド
+vim.api.nvim_create_user_command('ew', function()
+    local path = vim.fn.input('Windows path: ')
+    if path and #path > 0 then
+        local converted_path = ConvertWindowsPath(path)
+        vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
+    end
+end, {})
+
 if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
     vim.api.nvim_create_autocmd({ "BufNewFile" }, {
         callback = function(ev)
