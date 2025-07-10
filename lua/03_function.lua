@@ -1,7 +1,7 @@
 ---- Lua Function
---- ToggleDiagDisp   diagnostic 表示のトグル{{{
-function ToggleDiagDisp(toggle)
-    local state = vim.g.diag_toggle_state
+--- ToggleDiagDisp   diagnostic 表示のトグル（lsp_lines無し版）{{{
+function ToggleDiagDisp(toggle, show_message)
+    local state = vim.g.diag_toggle_state or 1
     if toggle then
         state = state + 1
     else
@@ -10,25 +10,68 @@ function ToggleDiagDisp(toggle)
     if state > 3 then
         state = 1
     end
+    
     if state == 1 then
+        -- 非表示
         vim.diagnostic.config({
             virtual_text = false,
-            virtual_lines = false,
+            signs = false,
+            underline = false,
+            update_in_insert = false,
         })
+        if show_message then print("診断表示: OFF") end
     elseif state == 2 then
+        -- アンダーラインのみ
         vim.diagnostic.config({
             virtual_text = false,
-            virtual_lines = true,
+            signs = true,
+            underline = true,
+            update_in_insert = false,
         })
+        if show_message then print("診断表示: アンダーライン＋サイン") end
     elseif state == 3 then
+        -- 通常表示（重複エラー対応、1行表示）
         vim.diagnostic.config({
-            virtual_text = true,
-            virtual_lines = false,
+            virtual_text = {
+                prefix = "●",
+                source = "if_many",  -- 複数ソースがある場合のみソース表示
+                spacing = 2,
+                format = function(diagnostic)
+                    -- 重複エラーを統合して1行で表示
+                    local message = diagnostic.message
+                    -- 長いメッセージは省略
+                    if #message > 50 then
+                        message = message:sub(1, 47) .. "..."
+                    end
+                    -- ソース情報を簡潔に
+                    local source = diagnostic.source and ("[" .. diagnostic.source .. "] ") or ""
+                    return source .. message
+                end,
+            },
+            signs = {
+                priority = 20, -- 他のサインより優先度を上げる
+            },
+            underline = true,
+            update_in_insert = false,
+            severity_sort = true,
+            float = {
+                -- フロート表示時は詳細表示
+                border = "rounded",
+                source = "always",
+                header = "",
+                prefix = "",
+                format = function(diagnostic)
+                    return diagnostic.message
+                end,
+            },
         })
+        if show_message then print("診断表示: フル表示（重複対応）") end
     end
     vim.g.diag_toggle_state = state
 end
 
+-- 初期化（デフォルトは通常表示）
+vim.g.diag_toggle_state = 3
 ToggleDiagDisp(false)
 
 --}}}

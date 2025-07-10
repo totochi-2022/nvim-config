@@ -7,26 +7,26 @@ local dapui = require('dapui')
 
 
 local dap_signs = {
-  -- 基本的なデバッグアイコン
-  DapBreakpoint = { text = "●", texthl = "DapBreakpoint", linehl = "", numhl = "" },
-  DapBreakpointCondition = { text = "◆", texthl = "DapBreakpointCondition", linehl = "", numhl = "" },
-  DapLogPoint = { text = "◉", texthl = "DapLogPoint", linehl = "", numhl = "" },
-  DapStopped = { text = "▶", texthl = "DapStopped", linehl = "DapStoppedLine", numhl = "" },
-  DapBreakpointRejected = { text = "○", texthl = "DapBreakpointRejected", linehl = "", numhl = "" },
+    -- 基本的なデバッグアイコン
+    DapBreakpoint = { text = "●", texthl = "DapBreakpoint", linehl = "", numhl = "" },
+    DapBreakpointCondition = { text = "◆", texthl = "DapBreakpointCondition", linehl = "", numhl = "" },
+    DapLogPoint = { text = "◉", texthl = "DapLogPoint", linehl = "", numhl = "" },
+    DapStopped = { text = "▶", texthl = "DapStopped", linehl = "DapStoppedLine", numhl = "" },
+    DapBreakpointRejected = { text = "○", texthl = "DapBreakpointRejected", linehl = "", numhl = "" },
 
-  -- 追加アイコン
-  DapStepOver = { text = "→", texthl = "DapStepOver" },
-  DapStepInto = { text = "↓", texthl = "DapStepInto" },
-  DapStepOut = { text = "↑", texthl = "DapStepOut" },
-  DapContinue = { text = "▷", texthl = "DapContinue" },
-  DapPause = { text = "⏸", texthl = "DapPause" },
-  DapRestart = { text = "↺", texthl = "DapRestart" },
-  DapTerminate = { text = "□", texthl = "DapTerminate" }
+    -- 追加アイコン
+    DapStepOver = { text = "→", texthl = "DapStepOver" },
+    DapStepInto = { text = "↓", texthl = "DapStepInto" },
+    DapStepOut = { text = "↑", texthl = "DapStepOut" },
+    DapContinue = { text = "▷", texthl = "DapContinue" },
+    DapPause = { text = "⏸", texthl = "DapPause" },
+    DapRestart = { text = "↺", texthl = "DapRestart" },
+    DapTerminate = { text = "□", texthl = "DapTerminate" }
 }
 
 -- すべてのデバッグサインを登録
 for name, sign in pairs(dap_signs) do
-  vim.fn.sign_define(name, sign)
+    vim.fn.sign_define(name, sign)
 end
 
 -- ハイライトグループの設定
@@ -224,33 +224,16 @@ minor_mode.create('Debug', '<Leader>d').set_multi({
 
 
 require('nvim-web-devicons').setup {
-  -- デフォルトアイコン
-  default = true,
-  -- アイコン後のスペース
-  strict = true,
-  -- アイコンの色付け
-  color_icons = true,
-  -- アイコンの後のパディング
-  default_icon = {
-    icon = "",
-    name = "Default",
-    color = "#6d8086",
-  },
+    -- デフォルトアイコン
+    default = true,
+    -- アイコン後のスペース
+    strict = true,
+    -- アイコンの色付け
+    color_icons = true,
+    -- アイコンの後のパディング
+    default_icon = {
+        icon = "",
+        name = "Default",
+        color = "#6d8086",
+    },
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

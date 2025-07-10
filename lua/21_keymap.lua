@@ -1,6 +1,6 @@
 --- local value{{{
 local noremap = { noremap = true, desc = nil }
-local remap = { remap = true, desc = nil } -- remapに変更
+-- local remap = { remap = true, desc = nil } -- remapに変更
 local keymap = vim.keymap.set
 
 local minor_mode = require('rc/minor_mode')
@@ -45,7 +45,8 @@ keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモー�
 -- }}}
 
 --- Windows path conversion{{{
-keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>', { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
+keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>',
+    { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
 -- }}}
 
 --- window{{{
@@ -322,7 +323,7 @@ keymap('n', '<LocalLeader>9', '<cmd>lua ToggleAutoHover()<CR>', { noremap = true
 keymap('n', '<LocalLeader>8', ':<C-u>MigemoToggle<CR>', { noremap = true, desc = 'Migemoトグル' })
 keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', { noremap = true, desc = 'カラー表示トグル' })
 keymap('n', '<LocalLeader>2', ':ToggleJumpMode<CR>', { noremap = true, desc = 'ジャンプモード切替（ファイル内⇔グローバル）' })
-minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true)<CR>", "診断表示モード切替")
+minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true, true)<CR>", "診断表示モード切替")
 
 -- 構文情報
 keymap('x', '<LocalLeader>1', ':SyntaxInfo<CR>', { noremap = true, desc = '構文情報表示' })
@@ -435,7 +436,7 @@ keymap('n', '<LocalLeader>s', 'v:lua require("tsht").nodes()<CR>', noremap)
 
 
 -- デバッグ用のキーマップ（F7をプレフィックスとして使用）
-minor_mode.create('Debugger', '<F7>','n',{persistent = true}).set_multi({
+minor_mode.create('Debugger', '<F7>', 'n', { persistent = true }).set_multi({
     { 'b', '<cmd>lua require("dap").toggle_breakpoint()<CR>', 'ブレークポイントをトグル' },
     { 'B', '<cmd>lua require("dap").set_breakpoint(vim.fn.input("条件付きブレークポイント: "))<CR>', '条件付きブレークポイント設定' },
     { 'c', '<cmd>lua require("dap").continue()<CR>', '実行継続' },
@@ -464,150 +465,3 @@ minor_mode.create('RustDebug', '<F7>r').set_multi({
     { 'r', '<cmd>lua require("dap").run_last()<CR>', '最後の実行を再開' },
     { 'm', '<cmd>lua require("dap").run_to_cursor()<CR>', 'カーソル位置まで実行' },
 })
-
--- LSPコマンド
-keymap('n', 'md', '<cmd>lua vim.lsp.buf.definition()<CR>', { noremap = true, desc = '定義にジャンプ' })
-keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { noremap = true, desc = '宣言にジャンプ' })
-keymap('n', 'mi', '<cmd>lua vim.lsp.buf.implementation()<CR>', { noremap = true, desc = '実装にジャンプ' })
-keymap('n', 'mt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', { noremap = true, desc = '型定義にジャンプ' })
-keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', { noremap = true, desc = 'ホバー情報表示' })
-keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { noremap = true, desc = '関数シグネチャ表示' })
-keymap('n', 'mr', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap = true, desc = 'リネーム' })
-keymap('n', 'mca', '<cmd>lua vim.lsp.buf.code_action()<CR>', { noremap = true, desc = 'コードアクション' })
-keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', { noremap = true, desc = 'コードフォーマット' })
-keymap('n', 'mrf', '<cmd>lua vim.lsp.buf.references()<CR>', { noremap = true, desc = '参照検索' })
-
--- ワークスペース関連
-keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', { noremap = true, desc = 'ワークスペースフォルダ追加' })
-keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', { noremap = true, desc = 'ワークスペースフォルダ削除' })
-keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>',
-    { noremap = true, desc = 'ワークスペースフォルダ一覧' })
-
--- 診断表示
-keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap = true, desc = '診断情報を表示' })
-keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', { noremap = true, desc = '診断をloclistに表示' })
-
--- 診断移動用のminor_mode
-minor_mode.create('DiagnosticJump', 'm').set_multi({
-    -- 全ての診断
-    { ']', '<cmd>lua vim.diagnostic.goto_next()<CR>zz', '次の診断へ' },
-    { '[', '<cmd>lua vim.diagnostic.goto_prev()<CR>zz', '前の診断へ' },
-
-    -- エラーのみ
-    { 'e]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>', '次のエラーへ' },
-    { 'e[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>', '前のエラーへ' },
-
-    -- 警告のみ
-    { 'w]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>', '次の警告へ' },
-    { 'w[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>', '前の警告へ' },
-
-    -- 情報のみ
-    { 'i]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>', '次の情報へ' },
-    { 'i[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>', '前の情報へ' },
-
-    -- ヒントのみ
-    { 'h]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', '次のヒントへ' },
-    { 'h[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>', '前のヒントへ' },
-})
-
-
-
--- プレフィックスキーの明示的な登録（新しいAPIに移行予定）
--- local wk = require("which-key")
-
--- -- リーダーキー 's' の登録 - 完全なリスト形式
--- wk.register({
---     { "s", name = "ウィンドウ・バッファ操作" },
---     { "sb", ":Telescope buffers<CR>", "バッファ一覧" },
---     { "sh", ":Telescope frecency<CR>", "履歴関連" },
---     { "sg", ":Telescope live_grep<CR>", "検索関連" },
--- })
-
--- -- 'm' プレフィックスの登録
--- wk.register({
---     { "m", name = "LSP・診断関連" },
---     { "md", "<cmd>lua vim.lsp.buf.definition()<CR>", "定義へ移動" },
---     { "mD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "宣言へ移動" },
---     { "mi", "<cmd>lua vim.lsp.buf.implementation()<CR>", "実装へ移動" },
---     { "mr", "<cmd>lua vim.lsp.buf.rename()<CR>", "リネーム" },
---     { "me", "<cmd>lua vim.diagnostic.open_float()<CR>", "診断表示" },
---     { "m<Space>", "<cmd>lua vim.lsp.buf.hover()<CR>", "ホバー情報表示" },
---     { "m]", "<cmd>lua vim.diagnostic.goto_next()<CR>", "次の診断へ" },
---     { "m[", "<cmd>lua vim.diagnostic.goto_prev()<CR>", "前の診断へ" },
---     { "me]", "<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>", "次のエラーへ" },
---     { "me[", "<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>", "前のエラーへ" },
--- })
-
--- -- ローカルリーダー設定（スペースキー）
--- wk.register({
---     { "<Space>", name = "ローカルリーダー" },
---     { "<Space>b", name = "バッファ操作" },
---     { "<Space>c", name = "コメント操作" },
---     { "<Space>t", ":Translate<CR>", "翻訳" },
---     { "<Space>j", name = "領域拡張" },
---     { "<Space>v", name = "ウィンドウ分割" },
---     { "<Space>d", ":lua require('dapui').toggle()<CR>", "デバッグUIトグル" },
---     { "<Space>o", ":Outline<CR>", "アウトライン表示" },
--- })
-
--- -- zキー（フォールド）
--- wk.register({
---     { "z", name = "フォールド操作" },
---     { "za", "za", "現在のフォールドをトグル" },
---     { "zR", "zR", "すべてのフォールドを開く" },
---     { "zM", "zM", "すべてのフォールドを閉じる" },
--- })
-
-
--- WhichKeyのトリガーを自動的に更新する関数（新しいAPIに移行予定）
--- _G.update_which_key_triggers = function()
---     -- 基本プレフィックス
---     local prefixes = { "<leader>", "<localleader>" }
-
---     -- 一般的に使用されるプレフィックスを追加
---     local known_prefixes = { "s", "m", "z", "g", "f", "d", "c", "y", "v" }
-
---     for _, prefix in ipairs(known_prefixes) do
---         table.insert(prefixes, prefix)
---     end
-
---     -- minor_modeで使用している可能性のあるプレフィックスも収集
---     for _, mode in ipairs({ "n", "v", "x", "s", "o", "i", "c", "t" }) do
---         local mode_maps = vim.api.nvim_get_keymap(mode)
---         for _, mapping in ipairs(mode_maps) do
---             local lhs = mapping.lhs
---             -- 単一キーのみ対象
---             if #lhs == 1 and not vim.tbl_contains(prefixes, lhs) then
---                 table.insert(prefixes, lhs)
---             end
---         end
---     end
-
---     -- 重複排除
---     prefixes = vim.fn.uniq(prefixes)
-
---     -- WhichKeyの設定を更新
---     local status_ok, which_key = pcall(require, "which-key")
---     if status_ok then
---         which_key.setup({ triggers = prefixes })
---         -- print("WhichKey triggers updated: " .. table.concat(prefixes, ", "))
---     end
--- end
-
--- -- キーマップがすべて設定された後に実行
--- vim.defer_fn(function()
---     if _G.update_which_key_triggers then
---         _G.update_which_key_triggers()
---     end
--- end, 10) -- 100ms遅延させて実行
-
-
-
--- -- キーを押したときに手動でWhichKeyを呼び出す
--- vim.keymap.set('n', 's', function()
---     require("which-key").show("s", { mode = "n", auto = true })
--- end, { noremap = true })
-
--- vim.keymap.set('n', 'm', function()
---     require("which-key").show("m", { mode = "n", auto = true })
--- end, { noremap = true })

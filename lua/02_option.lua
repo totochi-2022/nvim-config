@@ -19,8 +19,9 @@ vim.opt.hidden = true
 -- コマンド履歴
 vim.opt.history = 10000
 
--- 上下のスクロールしない高さ
-vim.opt.scrolloff = 2
+-- 上下のスクロールマージン（最低限の表示行数）
+vim.opt.scrolloff = 5
+vim.opt.sidescrolloff = 5
 -- 長い行もちゃんと表示
 vim.opt.display = 'lastline'
 
@@ -221,7 +222,7 @@ vim.g.netrw_preview = 1
 
 vim.opt.diffopt:append('vertical')
 
-vim.opt.updatetime = 500
+vim.opt.updatetime = 300
 vim.g.incsearch_use_migemo = 0
 vim.g.toggle_auto_hover = 0
 
