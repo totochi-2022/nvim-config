@@ -21,6 +21,7 @@ nvim/
 │   ├── 02_option.lua          # Neovimオプション設定
 │   ├── 03_function.lua        # カスタム関数定義
 │   ├── 11_plugin.lua          # プラグインマネージャー設定
+│   ├── 12_toggle.lua          # トグル設定
 │   ├── 13_lsp.lua            # LSP設定
 │   ├── 14_autocmd.lua        # 自動コマンド設定
 │   ├── 15_dap.lua            # デバッグ設定
@@ -37,12 +38,41 @@ nvim/
 │   │   └── ui.lua            # UI関連
 │   └── rc/
 │       ├── minor_mode.lua    # マイナーモード設定
-│       └── submode.lua       # サブモード設定
+│       └── toggle.lua        # トグルライブラリ
 ├── data/                     # データディレクトリ
+│   ├── bookmark/             # ブックマーク
+│   ├── howm/                 # メモデータ
+│   ├── junk/                 # 一時ファイル
+│   └── setting/              # 設定保存ディレクトリ
+│       └── toggle/           # トグル関連設定
+│           ├── states.json   # トグル状態保存
+│           └── lualine.json  # lualine表示設定
 ├── nvim-data/               # Neovimデータ
 ├── plugin/                  # プラグインディレクトリ
 └── lazy-lock.json          # プラグインのロックファイル
 ```
+
+## ディレクトリ構成ルール
+
+### lua/ ディレクトリ
+- **番号付きファイル**: 読み込み順序を制御するメイン設定ファイル
+  - `00-09`: 基本設定（loader, initial, option, function）
+  - `10-19`: プラグイン・機能設定（plugin, toggle, lsp, autocmd, dap）
+  - `20-29`: UI・キーマップ設定（keymap）
+- **plugins/**: 機能別プラグイン設定（lazy.nvim用）
+- **rc/**: 再利用可能なライブラリ・ユーティリティ
+
+### data/ ディレクトリ
+- **bookmark/, howm/, junk/**: 既存のユーザーデータ
+- **setting/**: アプリケーション設定の保存場所
+  - **toggle/**: トグル機能関連の設定・状態保存
+  - その他の機能別ディレクトリを今後追加可能
+
+### ファイル配置の指針
+- **設定ファイル**: `lua/` 配下に配置
+- **状態保存ファイル**: `data/setting/` 配下に機能別ディレクトリを作成
+- **一時ファイル**: `data/junk/` 配下に配置
+- **ユーザーデータ**: `data/` 直下または適切なサブディレクトリ
 
 ## 設定ファイルの読み込み順序
 

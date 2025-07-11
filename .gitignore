@@ -1,0 +1,10 @@
+# Data directory (user data, temporary files, state files)
+data/
+
+# Plugin lock file changes
+lazy-lock.json
+
+# Temporary and cache files
+*.tmp
+*.cache
+.DS_Store

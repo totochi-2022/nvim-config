@@ -44,9 +44,10 @@ keymap('n', 'u', 'g-', { noremap = true, desc = '前の変更に戻る' })
 keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモード' })
 -- }}}
 
---- Windows path conversion{{{
-keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>',
-    { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
+--- Windows path conversion (now handled by toggle library){{{
+-- keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>',
+--     { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
+-- Moved to toggle library
 -- }}}
 
 --- window{{{
@@ -317,21 +318,34 @@ keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc 
 -- JumpToLine
 keymap('n', 'mo', ':<C-u>JumpToLine<CR>', { noremap = true, desc = '指定行へジャンプ' })
 
--- トグル関連
-keymap('n', '<LocalLeader>0', ':set readonly!<CR>', { noremap = true, desc = '読み取り専用モードトグル' })
-keymap('n', '<LocalLeader>9', '<cmd>lua ToggleAutoHover()<CR>', { noremap = true, desc = '自動ホバートグル' })
-keymap('n', '<LocalLeader>8', ':<C-u>MigemoToggle<CR>', { noremap = true, desc = 'Migemoトグル' })
-keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', { noremap = true, desc = 'カラー表示トグル' })
-keymap('n', '<LocalLeader>2', ':ToggleJumpMode<CR>', { noremap = true, desc = 'ジャンプモード切替（ファイル内⇔グローバル）' })
-minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true, true)<CR>", "診断表示モード切替")
+-- トグル関連 (now handled by toggle library)
+-- Moved to toggle library
+-- keymap('n', '<LocalLeader>0', ':set readonly!<CR>', { noremap = true, desc = '読み取り専用モードトグル' })
+-- keymap('n', '<LocalLeader>9', '<cmd>lua ToggleAutoHover()<CR>', { noremap = true, desc = '自動ホバートグル' })
+-- keymap('n', '<LocalLeader>8', ':<C-u>MigemoToggle<CR>', { noremap = true, desc = 'Migemoトグル' })
+-- keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', { noremap = true, desc = 'カラー表示トグル' })
+-- keymap('n', '<LocalLeader>2', ':ToggleJumpMode<CR>', { noremap = true, desc = 'ジャンプモード切替（ファイル内⇔グローバル）' })
+-- minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true, true)<CR>", "診断表示モード切替")
 
 -- 構文情報
 keymap('x', '<LocalLeader>1', ':SyntaxInfo<CR>', { noremap = true, desc = '構文情報表示' })
 
 -- その他設定
-keymap('n', '<LocalLeader>6', ':set paste!<CR>', { noremap = true, desc = 'ペーストモードトグル' })
-keymap('n', '<LocalLeader>5', ':QuickScopeToggle<CR>', { noremap = true, desc = 'QuickScopeトグル' })
+-- Moved to toggle library
+-- keymap('n', '<LocalLeader>6', ':set paste!<CR>', { noremap = true, desc = 'ペーストモードトグル' })
+-- keymap('n', '<LocalLeader>5', ':QuickScopeToggle<CR>', { noremap = true, desc = 'QuickScopeトグル' })
 keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィンドウに移動' })
+
+--- Toggle Library Integration{{{
+-- Load toggle configuration (automatically registers minor_mode mappings)
+-- require('12_toggle') -- 番号順で自動読み込みされるのでコメントアウト
+
+-- 追加の管理機能キーマップ
+keymap('n', '<LocalLeader>0l', '<cmd>lua require("rc.toggle").list_toggles()<CR>', { noremap = true, desc = 'トグル一覧表示' })
+keymap('n', '<LocalLeader>0L', ':ToggleLualineSelect<CR>', { noremap = true, desc = 'lualine表示切り替え' })
+keymap('n', '<LocalLeader>0s', '<cmd>lua require("rc.toggle").save_states()<CR>', { noremap = true, desc = 'トグル状態保存' })
+keymap('n', '<LocalLeader>0o', '<cmd>lua require("rc.toggle").load_states()<CR>', { noremap = true, desc = 'トグル状態読み込み' })
+-- }}}
 
 -- ナビゲーション
 keymap('n', '<C-,>', '<Plug>(milfeulle-prev)', { noremap = true, desc = '前の位置に移動' })

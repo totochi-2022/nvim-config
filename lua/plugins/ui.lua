@@ -72,7 +72,18 @@ return {
                     lualine_x = {
                         'encoding',
                         'fileformat',
-                        'filetype'
+                        'filetype',
+                        -- Toggle状態を表示（OFF時は背景色ベース、ON時はVisual色）
+                        {
+                            function()
+                                -- toggle_configが読み込まれているかチェック
+                                local ok, toggle = pcall(require, '12_toggle')
+                                if ok and toggle.lualine_component then
+                                    return toggle.lualine_component()
+                                end
+                                return ''
+                            end,
+                        },
                     },
                     lualine_y = { 'progress' },
                     lualine_z = { 'location' }

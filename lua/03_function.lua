@@ -1,78 +1,23 @@
 ---- Lua Function
 --- ToggleDiagDisp   diagnostic 表示のトグル（lsp_lines無し版）{{{
+-- NOTE: This function has been replaced by the toggle library
+-- The functionality is now handled in toggle_config.lua
+-- Keeping this for backward compatibility if needed
+
+-- Legacy function - redirects to new toggle library
 function ToggleDiagDisp(toggle, show_message)
-    local state = vim.g.diag_toggle_state or 1
-    if toggle then
-        state = state + 1
-    else
-        state = 1
-    end
-    if state > 3 then
-        state = 1
-    end
-    
-    if state == 1 then
-        -- 非表示
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = false,
-            underline = false,
-            update_in_insert = false,
-        })
-        if show_message then print("診断表示: OFF") end
-    elseif state == 2 then
-        -- アンダーラインのみ
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = true,
-            underline = true,
-            update_in_insert = false,
-        })
-        if show_message then print("診断表示: アンダーライン＋サイン") end
-    elseif state == 3 then
-        -- 通常表示（重複エラー対応、1行表示）
-        vim.diagnostic.config({
-            virtual_text = {
-                prefix = "●",
-                source = "if_many",  -- 複数ソースがある場合のみソース表示
-                spacing = 2,
-                format = function(diagnostic)
-                    -- 重複エラーを統合して1行で表示
-                    local message = diagnostic.message
-                    -- 長いメッセージは省略
-                    if #message > 50 then
-                        message = message:sub(1, 47) .. "..."
-                    end
-                    -- ソース情報を簡潔に
-                    local source = diagnostic.source and ("[" .. diagnostic.source .. "] ") or ""
-                    return source .. message
-                end,
-            },
-            signs = {
-                priority = 20, -- 他のサインより優先度を上げる
-            },
-            underline = true,
-            update_in_insert = false,
-            severity_sort = true,
-            float = {
-                -- フロート表示時は詳細表示
-                border = "rounded",
-                source = "always",
-                header = "",
-                prefix = "",
-                format = function(diagnostic)
-                    return diagnostic.message
-                end,
-            },
-        })
-        if show_message then print("診断表示: フル表示（重複対応）") end
-    end
-    vim.g.diag_toggle_state = state
+    local toggle_lib = require('rc.toggle')
+    return toggle_lib.toggle('diagnostics')
 end
 
--- 初期化（デフォルトは通常表示）
-vim.g.diag_toggle_state = 3
-ToggleDiagDisp(false)
+-- Initialize diagnostics to full display mode via toggle library
+vim.defer_fn(function()
+    local toggle_lib = require('rc.toggle')
+    if toggle_lib.get_state('diagnostics') then
+        -- Already initialized by toggle library
+        return
+    end
+end, 100)
 
 --}}}
 --- ToggleAutoHover   cmpの自動ホバー表示のトグル{{{
@@ -87,26 +32,11 @@ ToggleDiagDisp(false)
 -- end -- }}}
 
 -- 03_function.lua
+-- NOTE: This function has been replaced by the toggle library
+-- Legacy function - redirects to new toggle library
 function ToggleAutoHover()
-    -- 明示的に初期化
-    if vim.g.toggle_auto_hover == nil then
-        vim.g.toggle_auto_hover = 0
-    end
-
-    if vim.g.toggle_auto_hover == 1 then
-        vim.g.toggle_auto_hover = 0
-        -- 既存のホバーウィンドウをクリア
-        vim.api.nvim_command('silent! lua vim.lsp.buf.clear_references()')
-        for _, winid in pairs(vim.api.nvim_list_wins()) do
-            if vim.api.nvim_win_get_config(winid).relative ~= '' then
-                vim.api.nvim_win_close(winid, true)
-            end
-        end
-        print('Auto hover: OFF')
-    else
-        vim.g.toggle_auto_hover = 1
-        print('Auto hover: ON')
-    end
+    local toggle_lib = require('rc.toggle')
+    return toggle_lib.toggle('auto_hover')
 end
 
 function RandomScheme()
@@ -618,40 +548,11 @@ end
 local auto_path_autocmd_id = nil
 
 -- 自動パス変換モードのトグル関数
+-- NOTE: This function has been replaced by the toggle library
+-- Legacy function - redirects to new toggle library
 function ToggleAutoWindowsPathMode()
-    vim.g.auto_windows_path_mode = not vim.g.auto_windows_path_mode
-    
-    if vim.g.auto_windows_path_mode then
-        -- autocmdを作成
-        auto_path_autocmd_id = vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
-            callback = function()
-                local line = vim.api.nvim_get_current_line()
-                
-                -- 空行や改行を含む行は無視
-                if line == "" or line:find('\n') then
-                    return
-                end
-                
-                -- Windowsパスかどうかチェック
-                if IsWindowsPath(line) then
-                    local converted_path = ConvertWindowsPath(line)
-                    if FileExists(converted_path) then
-                        -- 現在行をクリアしてファイルを開く
-                        vim.api.nvim_set_current_line("")
-                        vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
-                    end
-                end
-            end
-        })
-        print("Auto Windows Path Mode: ON")
-    else
-        -- autocmdを削除
-        if auto_path_autocmd_id then
-            vim.api.nvim_del_autocmd(auto_path_autocmd_id)
-            auto_path_autocmd_id = nil
-        end
-        print("Auto Windows Path Mode: OFF")
-    end
+    local toggle_lib = require('rc.toggle')
+    return toggle_lib.toggle('windows_path')
 end
 
 -- input()を使ったWindowsパス入力コマンド（存在チェック付き）
