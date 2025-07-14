@@ -479,3 +479,6 @@ minor_mode.create('RustDebug', '<F7>r').set_multi({
     { 'r', '<cmd>lua require("dap").run_last()<CR>', '最後の実行を再開' },
     { 'm', '<cmd>lua require("dap").run_to_cursor()<CR>', 'カーソル位置まで実行' },
 })
+
+-- 起動時にランダムカラースキームを実行
+RandomScheme(true)

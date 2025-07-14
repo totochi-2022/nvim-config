@@ -39,10 +39,30 @@ function ToggleAutoHover()
     return toggle_lib.toggle('auto_hover')
 end
 
-function RandomScheme()
-    local col_sh = Colorschemes[math.random(table.maxn(Colorschemes))]
+function RandomScheme(silent)
+    -- Colorschemes変数の存在確認
+    if not Colorschemes or #Colorschemes == 0 then
+        if not silent then
+            print("Error: No colorschemes available!")
+        end
+        return
+    end
+    
+    -- プロセスIDとメモリアドレスを組み合わせたユニークなシード
+    local pid = vim.fn.getpid()
+    local addr = tostring({}):match("0x(%w+)") or "0"
+    local hrtime = vim.loop.hrtime()
+    local seed = pid + tonumber(addr, 16) + hrtime % 1000000
+    
+    math.randomseed(seed)
+    
+    local random_num = math.random(#Colorschemes)
+    local col_sh = Colorschemes[random_num]
+    
     vim.cmd('colorscheme ' .. col_sh)
-    print(col_sh)
+    if not silent then
+        print(col_sh)
+    end
 end
 
 ---- VimL Function

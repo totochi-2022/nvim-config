@@ -89,6 +89,8 @@ local hover_timer = nil
 -- 初期状態を設定
 vim.g.toggle_auto_hover = 0
 
+-- 起動時のランダムカラースキーム設定は21_keymap.luaで実行
+
 -- autocmd('FileType', {
 --     pattern = { 'python', 'lua', 'javascript', 'typescript' }, -- 必要な言語を指定
 --     callback = function()
