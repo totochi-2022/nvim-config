@@ -60,6 +60,27 @@ function RandomScheme(silent)
     local col_sh = Colorschemes[random_num]
     
     vim.cmd('colorscheme ' .. col_sh)
+    
+    -- フローティングウィンドウの背景色を本体と同じに設定
+    vim.defer_fn(function()
+        local normal_bg = vim.fn.synIDattr(vim.fn.hlID('Normal'), 'bg')
+        if normal_bg == '' then
+            normal_bg = 'NONE'
+        end
+        
+        -- FloatBorderの背景色のみを調整（線の色はそのまま）
+        local current_float_border = vim.api.nvim_get_hl(0, { name = 'FloatBorder' })
+        vim.api.nvim_set_hl(0, 'FloatBorder', {
+            fg = current_float_border.fg,  -- 線の色はそのまま維持
+            bg = normal_bg,                -- 背景色のみを本体と同じにする
+        })
+        
+        -- フローティングウィンドウ内容の背景色も調整
+        vim.api.nvim_set_hl(0, 'NormalFloat', {
+            bg = normal_bg,      -- フローティング内容の背景色
+        })
+    end, 50)  -- カラースキーム適用後に少し遅延して実行
+    
     if not silent then
         print(col_sh)
     end

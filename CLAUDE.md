@@ -139,6 +139,58 @@ nvim/
 - **LSP設定**: `13_lsp.lua`と`plugins/lsp.lua`
 - **UI関連**: `plugins/ui.lua`
 
+## Git ブランチ運用ルール
+
+### 基本方針
+- **個人開発**: 小さな変更は `main` ブランチで直接作業
+- **大きな変更**: 機能ブランチを作成してから `main` にマージ
+
+### ブランチ命名規則
+```bash
+# Claude Code での作業
+claude-coding
+
+# 機能追加
+feature/機能名
+
+# バグ修正  
+fix/修正内容
+
+# 実験的変更
+experiment/試行内容
+```
+
+### Claude Code 専用ブランチ
+```bash
+# Claude Code セッション開始時
+git checkout -b claude-coding
+
+# 作業完了後
+git checkout main
+git merge claude-coding
+git branch -d claude-coding
+
+# 次回セッション（同じ名前で再利用可能）
+git checkout -b claude-coding
+```
+
+### ブランチ作成の判断基準
+**ブランチを作成する場合:**
+- 複数ファイルにまたがる大きな変更
+- 新機能の追加（今回のトグルライブラリなど）
+- 実験的な変更（失敗したら捨てたい）
+- Claude Code での作業
+
+**main で直接作業する場合:**
+- 小さな設定変更
+- タイポ修正
+- 1ファイルのみの軽微な変更
+
+### マージ後の処理
+- 作業完了したブランチは削除
+- ブランチ名は再利用可能
+- 履歴はコミットメッセージで管理
+
 ## デバッグ用コマンド
 
 ```vim
