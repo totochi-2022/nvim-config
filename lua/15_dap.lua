@@ -1,4 +1,6 @@
 -- nvim-dap configuration
+-- vim: ft=lua
+---@diagnostic disable: undefined-global, lowercase-global
 local dap = require('dap')
 local dapui = require('dapui')
 

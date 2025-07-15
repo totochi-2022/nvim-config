@@ -269,7 +269,7 @@ return {
                 cmdline = {
                     enable_keymaps = true,
                     smart_history = true,
-                    prompt = ': '
+                    prompt = ''
                 },
                 popup = {
                     position = {
@@ -323,6 +323,19 @@ return {
 
     -- ファイルタイプ判定
     { "Shougo/context_filetype.vim" },
+
+    -- Claude Code統合
+    {
+        "coder/claudecode.nvim",
+        dependencies = { "folke/snacks.nvim" },
+        config = function()
+            require('claudecode').setup()
+        end,
+        keys = {
+            { "mz", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+            { "mx", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" }
+        }
+    },
 
     -- コメントアウトされたプラグイン
     -- { "mbbill/undotree" },

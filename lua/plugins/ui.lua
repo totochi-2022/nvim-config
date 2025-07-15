@@ -9,6 +9,36 @@ return {
         "kyoz/purify",
         rtp = 'vim'
     },
+    
+    -- 新しく追加するカラースキーム
+    {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        config = function()
+            require("catppuccin").setup({
+                flavour = "mocha", -- latte, frappe, macchiato, mocha
+            })
+        end
+    },
+    {
+        "rose-pine/neovim",
+        name = "rose-pine",
+        config = function()
+            require("rose-pine").setup({
+                variant = "auto", -- auto, main, moon, dawn
+            })
+        end
+    },
+    {
+        "rebelot/kanagawa.nvim",
+        config = function()
+            require("kanagawa").setup({
+                compile = false,
+                undercurl = true,
+            })
+        end
+    },
+    { "sainnhe/everforest" },
 
     -- アイコン設定
     {

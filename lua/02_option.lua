@@ -244,6 +244,7 @@ if vim.g.GuiLoaded then
 end
 
 Colorschemes = {
+    -- 既存のカラースキーム
     -- 'tokyonight',
     'tokyonight-moon',
     -- 'tokyonight-night',
@@ -253,6 +254,29 @@ Colorschemes = {
     -- 'purify',
     'zephyr',
     'habamax',
+    
+    -- 新しく追加するカラースキーム
+    -- Catppuccin系
+    'catppuccin',
+    'catppuccin-latte',
+    'catppuccin-frappe', 
+    'catppuccin-macchiato',
+    'catppuccin-mocha',
+    
+    -- Rose Pine系
+    'rose-pine',
+    'rose-pine-main',
+    'rose-pine-moon',
+    'rose-pine-dawn',
+    
+    -- Kanagawa系
+    'kanagawa',
+    'kanagawa-wave',
+    'kanagawa-dragon',
+    'kanagawa-lotus',
+    
+    -- Everforest
+    'everforest',
 }
 if vim.g.neovide then
     -- フォント設定
