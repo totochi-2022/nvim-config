@@ -8,7 +8,7 @@ return {
                 mode = 'time_driven',
                 enable_deceleration = false,
                 mapping = {
-                    -- ノーマルモードの設定
+                    --ノーマルモードの設定
                     n = {
                         j = 'gj',
                         k = 'gk',
@@ -100,3 +100,4 @@ return {
     --     end
     -- },
 }
+
