@@ -48,11 +48,21 @@ mason_lspconfig.setup({
 
         -- 基本言語
         "pyright",   -- Python
+        "ruby_lsp",  -- Ruby (Shopify)
         "bashls",    -- Bash
         "marksman",  -- Markdown
         "omnisharp", -- C# (Masonでインストールのみ、設定は手動)
     },
     automatic_installation = false, -- 手動管理で安定性確保
+})
+
+-- Mason-null-ls設定（フォーマッター・リンターの自動インストール）
+local mason_null_ls = require("mason-null-ls")
+mason_null_ls.setup({
+    ensure_installed = {
+        "ruff",  -- Python linter/formatter
+    },
+    automatic_installation = false,
 })
 
 -- LSPサーバーの自動設定
@@ -93,7 +103,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
 -- 手動でのLSP設定（omnisharpを除外して設定）
 local servers = {
     "lua_ls", "rust_analyzer", "html", "cssls",
-    "ts_ls", "jsonls", "pyright", "bashls", "marksman"
+    "ts_ls", "jsonls", "pyright", "ruby_lsp", "bashls", "marksman"
     -- omnisharpはここから除外（下で個別設定）
 }
 
@@ -131,6 +141,14 @@ for _, server in ipairs(servers) do
                 checkOnSave = {
                     command = "clippy",
                 },
+            },
+        }
+    elseif server == "ruby_lsp" then
+        server_config.settings = {
+            ruby_lsp = {
+                formatter = "syntax_tree",  -- syntax_treeの方が高速
+                diagnostics = true,
+                codeActions = true,
             },
         }
     end
@@ -280,4 +298,15 @@ cmp.setup.cmdline(':', {
     }, {
         { name = 'cmdline' }
     })
+})
+
+-- none-ls設定（ruff対応）
+local null_ls = require("null-ls")
+null_ls.setup({
+    sources = {
+        -- Python
+        null_ls.builtins.diagnostics.ruff,
+        null_ls.builtins.formatting.ruff,
+    },
+    on_attach = on_attach,
 })
