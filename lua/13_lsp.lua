@@ -86,20 +86,25 @@ local on_attach = function(client, bufnr)
     end
 end
 
--- 重複診断の削減設定（グローバル）
-vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
-    vim.lsp.diagnostic.on_publish_diagnostics, {
-        -- 同じ位置の診断を統合
-        virtual_text = {
-            spacing = 2,
-            prefix = "●",
-        },
-        signs = true,
-        underline = true,
+-- 標準診断設定（signsのみ有効）
+vim.diagnostic.config({
+    virtual_text = false,  -- virtual_textは無効
+    signs = true,          -- エラー行判別用にsignsを有効
+    underline = false,     -- アンダーラインは無効
+    update_in_insert = false,
+    severity_sort = true,
+})
+
+-- 確実に設定するため遅延実行
+vim.defer_fn(function()
+    vim.diagnostic.config({
+        virtual_text = false,
+        signs = true,          -- signsを有効化
+        underline = false,     -- アンダーラインは無効
         update_in_insert = false,
         severity_sort = true,
-    }
-)
+    })
+end, 500)
 
 -- 手動でのLSP設定（omnisharpを除外して設定）
 local servers = {

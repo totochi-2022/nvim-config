@@ -29,73 +29,14 @@ toggle.setup({
 
 -- 一括トグル定義
 toggle.define_toggles({
-    -- 診断表示トグル（既存のToggleDiagDispを置き換え）
-    {
-        name = 'diagnostics',
-        type = 'cycle',
-        states = { 'off', 'underline', 'full' },
-        initial_state = 'full',
-        -- keymap = '<LocalLeader>`',  -- 個別キーを削除
-        desc = '診断表示モード切替',
-        icons = { 'D', 'D', 'D' },
-        colors = { 'NonText', 'NonText', 'Visual' },
-        messages = {
-            '診断表示: OFF',
-            '診断表示: アンダーライン＋サイン',
-            '診断表示: フル表示（重複対応）'
-        },
-        callbacks = {
-            -- OFF
-            function()
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = false,
-                    underline = false,
-                    update_in_insert = false,
-                })
-            end,
-            -- アンダーラインのみ
-            function()
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,
-                    underline = true,
-                    update_in_insert = false,
-                })
-            end,
-            -- フル表示
-            function()
-                vim.diagnostic.config({
-                    virtual_text = {
-                        prefix = "●",
-                        source = "if_many",
-                        spacing = 2,
-                        format = function(diagnostic)
-                            local message = diagnostic.message
-                            if #message > 50 then
-                                message = message:sub(1, 47) .. "..."
-                            end
-                            local source = diagnostic.source and ("[" .. diagnostic.source .. "] ") or ""
-                            return source .. message
-                        end,
-                    },
-                    signs = { priority = 20 },
-                    underline = true,
-                    update_in_insert = false,
-                    severity_sort = true,
-                    float = {
-                        border = "rounded",
-                        source = "always",
-                        header = "",
-                        prefix = "",
-                        format = function(diagnostic)
-                            return diagnostic.message
-                        end,
-                    },
-                })
-            end
-        }
-    },
+    -- 診断表示トグル（tiny-inline-diagnostic専用のため完全無効化）
+    -- {
+    --     name = 'diagnostics',
+    --     type = 'cycle',
+    --     states = { 'off', 'underline', 'full' },
+    --     initial_state = 'off',
+    --     desc = '診断表示モード切替（無効化済み）',
+    -- },
     
     -- 自動ホバートグル（既存のToggleAutoHoverを置き換え）
     {
@@ -294,12 +235,12 @@ toggle.define_toggles({
     }
 })
 
--- プレフィックスモード設定
+-- プレフィックスモード設定（診断トグルを除外）
 toggle.setup_prefix_mode('<LocalLeader>0', {
     r = 'readonly',
     p = 'paste_mode',
     h = 'auto_hover',
-    d = 'diagnostics',
+    -- d = 'diagnostics',  -- tiny-inline-diagnostic専用のため削除
     c = 'colorizer',
     m = 'migemo',
     q = 'quickscope',
@@ -312,23 +253,6 @@ toggle.setup_prefix_mode('<LocalLeader>0', {
     show_icons = true,
     footer = 'ESC: exit, 連続切り替え可能'
 })
-
--- 追加のプレフィックスモード（カテゴリ別）
--- <LocalLeader>tは翻訳機能で使用するためコメントアウト
--- toggle.setup_prefix_mode('<LocalLeader>t', {
---     d = 'diagnostics',
---     h = 'auto_hover',
---     r = 'readonly',
---     p = 'paste_mode',
---     c = 'colorizer',
---     m = 'migemo',
---     q = 'quickscope',
---     j = 'jump_mode',
---     w = 'windows_path',
--- }, {
---     title = '🎛️ All Toggles',
---     persistent = true
--- })
 
 -- lualine用のセレクターをセットアップ
 local lualine_selector = toggle.setup_lualine_selector()
