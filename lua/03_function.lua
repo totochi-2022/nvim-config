@@ -365,7 +365,7 @@ function! s:get_syn_info()
   let baseSyn = s:get_syn_attr(s:get_syn_id(0))
   echo "name: " . baseSyn.name .
         \ " ctermfg: " . baseSyn.ctermfg .
- ss       \ " ctermbg: " . baseSyn.ctermbg .
+        \ " ctermbg: " . baseSyn.ctermbg .
         \ " guifg: " . baseSyn.guifg .
         \ " guibg: " . baseSyn.guibg
   let linkedSyn = s:get_syn_attr(s:get_syn_id(1))
