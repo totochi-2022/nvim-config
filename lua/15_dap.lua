@@ -203,19 +203,25 @@ end
 -- Create a minor mode for debugging using your minor_mode.lua
 local minor_mode = require('rc/minor_mode')
 
-minor_mode.create('Debug', '<Leader>d').set_multi({
-    { 'b', '<cmd>lua require("dap").toggle_breakpoint()<CR>' },
-    { 'B', '<cmd>lua require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>' },
-    { 'c', '<cmd>lua require("dap").continue()<CR>' },
-    { 'i', '<cmd>lua require("dap").step_into()<CR>' },
-    { 'o', '<cmd>lua require("dap").step_over()<CR>' },
-    { 'O', '<cmd>lua require("dap").step_out()<CR>' },
-    { 'r', '<cmd>lua require("dap").repl.open()<CR>' },
-    { 'l', '<cmd>lua require("dap").run_last()<CR>' },
-    { 'u', '<cmd>lua require("dapui").toggle()<CR>' },
-    { 't', '<cmd>lua require("dap").terminate()<CR>' },
-    { 'w', '<cmd>lua require("dap.ui.widgets").hover()<CR>' },
-    { 's', '<cmd>lua local widgets=require("dap.ui.widgets");widgets.centered_float(widgets.scopes)<CR>' },
+minor_mode.define_mode({
+    namespace = 'Debug',
+    entries = {
+        { key = '<Leader>d', desc = 'デバッグモード' }
+    },
+    actions = {
+        { key = 'b', action = '<cmd>lua require("dap").toggle_breakpoint()<CR>', desc = 'ブレークポイント切替' },
+        { key = 'B', action = '<cmd>lua require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>', desc = '条件付きブレークポイント' },
+        { key = 'c', action = '<cmd>lua require("dap").continue()<CR>', desc = '実行継続' },
+        { key = 'i', action = '<cmd>lua require("dap").step_into()<CR>', desc = 'ステップイン' },
+        { key = 'o', action = '<cmd>lua require("dap").step_over()<CR>', desc = 'ステップオーバー' },
+        { key = 'O', action = '<cmd>lua require("dap").step_out()<CR>', desc = 'ステップアウト' },
+        { key = 'r', action = '<cmd>lua require("dap").repl.open()<CR>', desc = 'REPL開く' },
+        { key = 'l', action = '<cmd>lua require("dap").run_last()<CR>', desc = '最後の実行' },
+        { key = 'u', action = '<cmd>lua require("dapui").toggle()<CR>', desc = 'UI切替' },
+        { key = 't', action = '<cmd>lua require("dap").terminate()<CR>', desc = '終了' },
+        { key = 'w', action = '<cmd>lua require("dap.ui.widgets").hover()<CR>', desc = 'ホバー表示' },
+        { key = 's', action = '<cmd>lua local widgets=require("dap.ui.widgets");widgets.centered_float(widgets.scopes)<CR>', desc = 'スコープ表示' }
+    }
 })
 
 -- Update loader to include the DAP configuration

@@ -47,7 +47,6 @@ return {
         priority = 1000,  -- 最高優先度
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         config = function()
-            print("DEBUG: dashboard-nvim config is running!")  -- デバッグ出力
             require('dashboard').setup({
                 theme = 'hyper',
                 config = {
@@ -73,7 +72,6 @@ return {
                     },
                 },
             })
-            print("DEBUG: dashboard-nvim setup completed!")  -- デバッグ出力
             
             -- 起動時の自動表示は21_keymap.luaで処理
         end,

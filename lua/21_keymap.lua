@@ -51,46 +51,52 @@ keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモー�
 -- }}}
 
 --- window{{{
-minor_mode.create('Disp', '<Leader>s').set_multi(
-    {
-        -- { '-', '<C-w>-', '横幅を縮小' },  -- 71行目と重複（正しくは高さを縮小）のため削除
-        { '|', '<C-w>|', '最大幅にする' },
-        { 'x', '<C-w>x', 'カレントと次のウィンドウを入れ替え' },
-        { 'w', '<C-w>w', '次のウィンドウへ移動' },
-        { 'h', '<C-w>h', '左のウィンドウへ移動' },
-        { 'j', '<C-w>j', '下のウィンドウへ移動' },
-        { 'k', '<C-w>k', '上のウィンドウへ移動' },
-        { 'l', '<C-w>l', '右のウィンドウへ移動' },
-        { 'H', '<C-w>H', 'ウィンドウを左に移動' },
-        { 'J', '<C-w>J', 'ウィンドウを下に移動' },
-        { 'K', '<C-w>K', 'ウィンドウを上に移動' },
-        { 'L', '<C-w>L', 'ウィンドウを右に移動' },
-        { '>', '<C-w>>', '横幅を拡大' },
-        { '<', '<C-w><', '横幅を縮小' },
-        { '+', '<C-w>+', '高さを拡大' },
-        { '-', '<C-w>-', '高さを縮小' },
-        { 'c', '<C-w>c', 'ウィンドウを閉じる' },
-        { 'o', '<C-w>o', '他のウィンドウを閉じる' },
-        { 'r', '<C-w>r', 'ウィンドウを下向きに回転' },
-        { 'R', '<C-w>R', 'ウィンドウを上向きに回転' },
-        { 't', 'gt', '次のタブへ移動' },
-        { 'T', '<C-w>T', 'ウィンドウを新しいタブに移動' },
-        { '=', '<C-w>=', 'ウィンドウの高さと幅を均等にする' },
-        { 'b', ':bp<CR>', '前のバッファへ移動' },
-        { 'B', ':bn<CR>', '次のバッファへ移動' },
-        -- { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
+minor_mode.define_mode({
+    namespace = 'WindowManagement',
+    entries = {
+        { key = '<Leader>s', desc = 'ウィンドウ管理モード開始' }
+    },
+    actions = {
+        { key = '|', action = '<C-w>|', desc = '最大幅にする' },
+        { key = 'x', action = '<C-w>x', desc = 'カレントと次のウィンドウを入れ替え' },
+        { key = 'w', action = '<C-w>w', desc = '次のウィンドウへ移動' },
+        { key = 'h', action = '<C-w>h', desc = '左のウィンドウへ移動' },
+        { key = 'j', action = '<C-w>j', desc = '下のウィンドウへ移動' },
+        { key = 'k', action = '<C-w>k', desc = '上のウィンドウへ移動' },
+        { key = 'l', action = '<C-w>l', desc = '右のウィンドウへ移動' },
+        { key = 'H', action = '<C-w>H', desc = 'ウィンドウを左に移動' },
+        { key = 'J', action = '<C-w>J', desc = 'ウィンドウを下に移動' },
+        { key = 'K', action = '<C-w>K', desc = 'ウィンドウを上に移動' },
+        { key = 'L', action = '<C-w>L', desc = 'ウィンドウを右に移動' },
+        { key = '>', action = '<C-w>>', desc = '横幅を拡大' },
+        { key = '<', action = '<C-w><', desc = '横幅を縮小' },
+        { key = '+', action = '<C-w>+', desc = '高さを拡大' },
+        { key = '-', action = '<C-w>-', desc = '高さを縮小' },
+        { key = 'c', action = '<C-w>c', desc = 'ウィンドウを閉じる' },
+        { key = 'o', action = '<C-w>o', desc = '他のウィンドウを閉じる' },
+        { key = 'r', action = '<C-w>r', desc = 'ウィンドウを下向きに回転' },
+        { key = 'R', action = '<C-w>R', desc = 'ウィンドウを上向きに回転' },
+        { key = 't', action = 'gt', desc = '次のタブへ移動' },
+        { key = 'T', action = '<C-w>T', desc = 'ウィンドウを新しいタブに移動' },
+        { key = '=', action = '<C-w>=', desc = 'ウィンドウの高さと幅を均等にする' },
+        { key = 'b', action = ':bp<CR>', desc = '前のバッファへ移動' },
+        { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
-)
+})
 -- }}}
 
 --- buffer{{{
-minor_mode.create('Buf', '<LocalLeader>').set_multi(
-    {
-        { 'b', ':bp<CR>', '前のバッファへ移動' },
-        { 'B', ':bn<CR>', '次のバッファへ移動' },
-        -- { 's', ':Telescope buffers<CR>', 'バッファ一覧' },
+minor_mode.define_mode({
+    namespace = 'Buffer',
+    entries = {
+        { key = '<LocalLeader>b', action = ':bp<CR>', desc = '前のバッファへ移動+バッファモード開始' },
+        { key = '<LocalLeader>B', action = ':bn<CR>', desc = '次のバッファへ移動+バッファモード開始' }
+    },
+    actions = {
+        { key = 'b', action = ':bp<CR>', desc = '前のバッファへ移動' },
+        { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
-)
+})
 -- }}}
 
 --- tab
@@ -221,14 +227,30 @@ keymap('n', '<LocalLeader>d', ':lua require("dapui").toggle()<CR>', { noremap = 
 keymap('', '<LocalLeader>r', ':RooterToggle<CR>', { noremap = true, desc = 'プロジェクトルート自動変更トグル' })
 
 -- 文字列変換
-minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>", "文字列の大文字小文字変換")
+minor_mode.define_mode({
+    namespace = 'ConvertCase',
+    entries = {
+        { key = '<LocalLeader>k', action = ':ConvertCaseLoop<CR>', desc = '文字列の大文字小文字変換' }
+    },
+    actions = {
+        { key = 'k', action = ':ConvertCaseLoop<CR>', desc = '文字列の大文字小文字変換' },
+    }
+})
 
 -- テキスト領域拡張モード
-minor_mode.create('ModeExpandRegion', '<LocalLeader>').set('j', '<Plug>(expand_region_expand)', 'テキスト選択範囲を広げる')
-minor_mode.create('ModeExpandRegion', '<LocalLeader>', 'x').set_multi({
-    { 'j', '<Plug>(expand_region_expand)', '選択範囲を広げる' },
-    { 'J', '<Plug>(expand_region_shrink)', '選択範囲を狭める' },
-    { 'k', '<Plug>(expand_region_shrink)', '選択範囲を狭める' },
+minor_mode.define_mode({
+    namespace = 'ExpandRegion',
+    entries = {
+        { key = '<LocalLeader>j', action = '<Plug>(expand_region_expand)', desc = 'テキスト選択範囲を広げる' }
+    },
+    actions = {
+        { key = 'j', action = '<Plug>(expand_region_expand)', desc = '選択範囲を広げる' },
+        { key = 'J', action = '<Plug>(expand_region_shrink)', desc = '選択範囲を狭める' },
+        { key = 'k', action = '<Plug>(expand_region_shrink)', desc = '選択範囲を狭める' },
+    },
+    options = {
+        mode = {'n', 'x'}  -- ノーマルモードとビジュアルモード対応
+    }
 })
 
 -- 翻訳
@@ -316,9 +338,16 @@ keymap('n', 'mgh', ':Gitsigns stage_hunk<CR>', { noremap = true, desc = 'Hunkス
 keymap('n', 'mgc', ':Gitsigns toggle_current_line_blame<CR>', { noremap = true, desc = 'Blame表示トグル' })
 
 -- Git Hunk移動（submode付き）
-minor_mode.create('GitHunk', 'mg').set_multi({
-    { 'j', ':Gitsigns next_hunk<CR>', '次のHunkへ' },
-    { 'k', ':Gitsigns prev_hunk<CR>', '前のHunkへ' },
+minor_mode.define_mode({
+    namespace = 'GitHunk',
+    entries = {
+        { key = 'mgj', action = ':Gitsigns next_hunk<CR>', desc = '次のHunkへ+Hunkモード開始' },
+        { key = 'mgk', action = ':Gitsigns prev_hunk<CR>', desc = '前のHunkへ+Hunkモード開始' }
+    },
+    actions = {
+        { key = 'j', action = ':Gitsigns next_hunk<CR>', desc = '次のHunkへ' },
+        { key = 'k', action = ':Gitsigns prev_hunk<CR>', desc = '前のHunkへ' },
+    }
 })
 
 -- ハイライト
@@ -423,8 +452,8 @@ local function diag_mode_exit()
     print("診断表示を元に戻しました")
 end
 
--- 新しいdefine_complete_modeを使用
-minor_mode.define_complete_mode({
+-- 新しいdefine_modeを使用
+minor_mode.define_mode({
     namespace = 'DIAGNOSTIC',
     entries = {
         { key = 'mo', action = '<cmd>lua vim.diagnostic.goto_next()<CR>', desc = '次の診断へジャンプ+モード開始' },
@@ -535,7 +564,6 @@ keymap('n', 'あ', 'a', { noremap = true, desc = '後に挿入（日本語）' }
 keymap('n', 'い', 'i', { noremap = true, desc = '前に挿入（日本語）' })
 
 -- 追加キーマップ
--- minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>", "文字列の大文字小文字変換")  -- 215行目と重複のため削除
 
 -- レジスタ関連
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', { noremap = true, desc = 'クリップボードをレジスタqにコピー' })
@@ -551,20 +579,26 @@ end
 keymap('n', '<Leader>o', ':Outline<CR>', { noremap = true, desc = 'アウトライン表示' })
 
 -- フォールディング関連のキーマップ
-minor_mode.create('Fold', 'z').set_multi({
-    { 'a', 'za', '現在のフォールドをトグル' },
-    { 'R', 'zR', 'すべてのフォールドを開く' },
-    { 'M', 'zM', 'すべてのフォールドを閉じる' },
-    { 'r', 'zr', 'フォールドレベルを1段階開く' },
-    { 'm', 'zm', 'フォールドレベルを1段階閉じる' },
-    { 'j', 'zj', '次のフォールドへ' },
-    { 'k', 'zk', '前のフォールドへ' },
-    { 'x', 'zx', 'フォールドを更新して再適用' },
-    { '0', '<cmd>lua SetFoldLevel(0)<CR>', 'フォールドレベル0に設定' },
-    { '1', '<cmd>lua SetFoldLevel(1)<CR>', 'フォールドレベル1に設定' },
-    { '2', '<cmd>lua SetFoldLevel(2)<CR>', 'フォールドレベル2に設定' },
-    { '3', '<cmd>lua SetFoldLevel(3)<CR>', 'フォールドレベル3に設定' },
-    { '4', '<cmd>lua SetFoldLevel(4)<CR>', 'フォールドレベル4に設定' },
+minor_mode.define_mode({
+    namespace = 'Fold',
+    entries = {
+        { key = 'za', action = 'za', desc = 'フォールドトグル+フォールドモード開始' }
+    },
+    actions = {
+        { key = 'a', action = 'za', desc = '現在のフォールドをトグル' },
+        { key = 'R', action = 'zR', desc = 'すべてのフォールドを開く' },
+        { key = 'M', action = 'zM', desc = 'すべてのフォールドを閉じる' },
+        { key = 'r', action = 'zr', desc = 'フォールドレベルを1段階開く' },
+        { key = 'm', action = 'zm', desc = 'フォールドレベルを1段階閉じる' },
+        { key = 'j', action = 'zj', desc = '次のフォールドへ' },
+        { key = 'k', action = 'zk', desc = '前のフォールドへ' },
+        { key = 'x', action = 'zx', desc = 'フォールドを更新して再適用' },
+        { key = '0', action = '<cmd>lua SetFoldLevel(0)<CR>', desc = 'フォールドレベル0に設定' },
+        { key = '1', action = '<cmd>lua SetFoldLevel(1)<CR>', desc = 'フォールドレベル1に設定' },
+        { key = '2', action = '<cmd>lua SetFoldLevel(2)<CR>', desc = 'フォールドレベル2に設定' },
+        { key = '3', action = '<cmd>lua SetFoldLevel(3)<CR>', desc = 'フォールドレベル3に設定' },
+        { key = '4', action = '<cmd>lua SetFoldLevel(4)<CR>', desc = 'フォールドレベル4に設定' },
+    }
 })
 
 
@@ -574,34 +608,52 @@ keymap('n', '<LocalLeader>s', 'v:lua require("tsht").nodes()<CR>', noremap)
 
 
 -- デバッグ用のキーマップ（F7をプレフィックスとして使用）
-minor_mode.create('Debugger', '<F7>', 'n', { persistent = true }).set_multi({
-    { 'b', '<cmd>lua require("dap").toggle_breakpoint()<CR>', 'ブレークポイントをトグル' },
-    { 'B', '<cmd>lua require("dap").set_breakpoint(vim.fn.input("条件付きブレークポイント: "))<CR>', '条件付きブレークポイント設定' },
-    { 'c', '<cmd>lua require("dap").continue()<CR>', '実行継続' },
-    { 'i', '<cmd>lua require("dap").step_into()<CR>', 'ステップイン' },
-    { 'o', '<cmd>lua require("dap").step_over()<CR>', 'ステップオーバー' },
-    { 'O', '<cmd>lua require("dap").step_out()<CR>', 'ステップアウト' },
-    { 'r', '<cmd>lua require("dap").repl.open()<CR>', 'REPL表示' },
-    { 'l', '<cmd>lua require("dap").run_last()<CR>', '最後の実行を再開' },
-    { 'u', '<cmd>lua require("dapui").toggle()<CR>', 'デバッグUIトグル' },
-    { 't', '<cmd>lua require("dap").terminate()<CR>', '終了' },
-    { 'w', '<cmd>lua require("dap.ui.widgets").hover()<CR>', '変数情報表示' },
-    { 's', '<cmd>lua local widgets=require("dap.ui.widgets");widgets.centered_float(widgets.scopes)<CR>', 'スコープ表示' },
+minor_mode.define_mode({
+    namespace = 'Debugger',
+    entries = {
+        { key = '<F7>', desc = 'デバッグモード開始' }
+    },
+    actions = {
+        { key = 'b', action = '<cmd>lua require("dap").toggle_breakpoint()<CR>', desc = 'ブレークポイントをトグル' },
+        { key = 'B', action = '<cmd>lua require("dap").set_breakpoint(vim.fn.input("条件付きブレークポイント: "))<CR>', desc = '条件付きブレークポイント設定' },
+        { key = 'c', action = '<cmd>lua require("dap").continue()<CR>', desc = '実行継続' },
+        { key = 'i', action = '<cmd>lua require("dap").step_into()<CR>', desc = 'ステップイン' },
+        { key = 'o', action = '<cmd>lua require("dap").step_over()<CR>', desc = 'ステップオーバー' },
+        { key = 'O', action = '<cmd>lua require("dap").step_out()<CR>', desc = 'ステップアウト' },
+        { key = 'r', action = '<cmd>lua require("dap").repl.open()<CR>', desc = 'REPL表示' },
+        { key = 'l', action = '<cmd>lua require("dap").run_last()<CR>', desc = '最後の実行を再開' },
+        { key = 'u', action = '<cmd>lua require("dapui").toggle()<CR>', desc = 'デバッグUIトグル' },
+        { key = 't', action = '<cmd>lua require("dap").terminate()<CR>', desc = '終了' },
+        { key = 'w', action = '<cmd>lua require("dap.ui.widgets").hover()<CR>', desc = '変数情報表示' },
+        { key = 's', action = '<cmd>lua local widgets=require("dap.ui.widgets");widgets.centered_float(widgets.scopes)<CR>', desc = 'スコープ表示' },
+    }
 })
 
 -- 言語別のデバッグ用キーマップ
 -- Python用
-minor_mode.create('PythonDebug', '<F7>p').set_multi({
-    { 'r', '<cmd>lua require("dap").run_last()<CR>', '最後の実行を再開' },
-    { 'd', '<cmd>lua require("dap-python").debug_selection()<CR>', '選択範囲をデバッグ' },
-    { 't', '<cmd>lua require("dap-python").test_method()<CR>', 'テストメソッド実行' },
-    { 'c', '<cmd>lua require("dap-python").test_class()<CR>', 'テストクラス実行' },
+minor_mode.define_mode({
+    namespace = 'PythonDebug',
+    entries = {
+        { key = '<F7>p', desc = 'Pythonデバッグモード開始' }
+    },
+    actions = {
+        { key = 'r', action = '<cmd>lua require("dap").run_last()<CR>', desc = '最後の実行を再開' },
+        { key = 'd', action = '<cmd>lua require("dap-python").debug_selection()<CR>', desc = '選択範囲をデバッグ' },
+        { key = 't', action = '<cmd>lua require("dap-python").test_method()<CR>', desc = 'テストメソッド実行' },
+        { key = 'c', action = '<cmd>lua require("dap-python").test_class()<CR>', desc = 'テストクラス実行' },
+    }
 })
 
 -- Rust用
-minor_mode.create('RustDebug', '<F7>r').set_multi({
-    { 'r', '<cmd>lua require("dap").run_last()<CR>', '最後の実行を再開' },
-    { 'm', '<cmd>lua require("dap").run_to_cursor()<CR>', 'カーソル位置まで実行' },
+minor_mode.define_mode({
+    namespace = 'RustDebug',
+    entries = {
+        { key = '<F7>r', desc = 'Rustデバッグモード開始' }
+    },
+    actions = {
+        { key = 'r', action = '<cmd>lua require("dap").run_last()<CR>', desc = '最後の実行を再開' },
+        { key = 'm', action = '<cmd>lua require("dap").run_to_cursor()<CR>', desc = 'カーソル位置まで実行' },
+    }
 })
 
 -- 起動時処理は31_startup.luaに移動

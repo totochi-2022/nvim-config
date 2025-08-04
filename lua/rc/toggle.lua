@@ -403,7 +403,23 @@ function M.setup_prefix_mode(prefix_key, mappings, options)
         end
         
         -- minor_modeで登録（persistentオプション付き）
-        minor_mode.create("Toggle", prefix_key, 'n', { persistent = true }).set_multi(toggle_mappings)
+        -- 新しいdefine_modeを使用してトグル操作を設定
+        local toggle_actions = {}
+        for key, toggle_name in pairs(mappings) do
+            table.insert(toggle_actions, { 
+                key = key, 
+                action = '<cmd>lua require("rc.toggle").toggle("' .. toggle_name .. '")<CR>', 
+                desc = 'Toggle ' .. toggle_name 
+            })
+        end
+        
+        minor_mode.define_mode({
+            namespace = 'Toggle',
+            entries = {
+                { key = prefix_key, desc = 'トグルモード開始' }
+            },
+            actions = toggle_actions
+        })
     else
         -- フォールバック: 通常のキーマップ設定
         vim.keymap.set('n', prefix_key, function()
