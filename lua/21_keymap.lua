@@ -517,5 +517,4 @@ minor_mode.create('RustDebug', '<F7>r').set_multi({
     { 'm', '<cmd>lua require("dap").run_to_cursor()<CR>', 'カーソル位置まで実行' },
 })
 
--- 起動時にランダムカラースキームを実行
-RandomScheme(true)
+-- 起動時処理は31_startup.luaに移動

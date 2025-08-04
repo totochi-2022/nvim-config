@@ -40,6 +40,45 @@ return {
     },
     { "sainnhe/everforest" },
 
+    -- スタート画面（デバッグ用）
+    {
+        'nvimdev/dashboard-nvim',
+        lazy = false,  -- 強制的に即座読み込み
+        priority = 1000,  -- 最高優先度
+        dependencies = { 'nvim-tree/nvim-web-devicons' },
+        config = function()
+            print("DEBUG: dashboard-nvim config is running!")  -- デバッグ出力
+            require('dashboard').setup({
+                theme = 'hyper',
+                config = {
+                    week_header = {
+                        enable = true,
+                    },
+                    shortcut = {
+                        { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
+                        { desc = ' Find file', group = 'Label', action = 'Telescope find_files', key = 'f' },
+                        { desc = '󰈞 Recent files', group = 'DiagnosticHint', action = 'Telescope oldfiles', key = 'r' },
+                        { desc = ' Git files', group = 'Number', action = 'Telescope git_files', key = 'g' },
+                        { desc = ' New file', group = 'DiagnosticWarn', action = 'ene | startinsert', key = 'n' },
+                        { desc = ' Quit', group = 'DiagnosticError', action = 'qa', key = 'q' },
+                    },
+                    project = {
+                        enable = false,  -- プロジェクト表示を無効化
+                    },
+                    mru = {
+                        limit = 10,
+                        icon = '󰈚',
+                        label = ' Most Recent Files:',
+                        cwd_only = false
+                    },
+                },
+            })
+            print("DEBUG: dashboard-nvim setup completed!")  -- デバッグ出力
+            
+            -- 起動時の自動表示は21_keymap.luaで処理
+        end,
+    },
+
     -- アイコン設定
     {
         'nvim-tree/nvim-web-devicons',
