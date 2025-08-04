@@ -127,7 +127,11 @@ keymap('', '<Leader>b', ':Telescope buffers<CR>', { noremap = true, desc = 'バ�
 keymap('', '<F3>', ':Telescope command_palette<CR>', { noremap = true, desc = 'コマンドパレット' })
 keymap('', '<Leader>h', ':Telescope frecency<CR>', { noremap = true, desc = '最近使用したファイル（頻度順）' })
 keymap('', '<Leader>H', ':Telescope oldfiles<CR>', { noremap = true, desc = '最近使用したファイル（時間順）' })
-keymap('', '<Leader>r', ':Telescope registers<CR>', { noremap = true, desc = 'レジスタ一覧' })
+keymap('', '<Leader>R', ':Telescope registers<CR>', { noremap = true, desc = 'レジスタ一覧' })
+
+-- grug-far.nvim 検索・置換
+keymap('n', '<Leader>r', ':GrugFarCurrentBuffer<CR>', { noremap = true, desc = '現在のバッファで検索・置換' })
+keymap('v', '<Leader>r', ':GrugFarCurrentWord<CR>', { noremap = true, desc = 'カーソル下の単語を現在のバッファで検索' })
 keymap('', '<Leader>k', ':Telescope keymaps<CR>', { noremap = true, desc = 'キーマップ一覧' })
 keymap('', '<Leader><F1>', ':Telescope help_tags<CR>', { noremap = true, desc = 'ヘルプタグ検索' })
 keymap('', '<Leader><F2>', ':Telescope man_pages<CR>', { noremap = true, desc = 'マニュアルページ検索' })
@@ -352,8 +356,103 @@ keymap('n', 'mnt', ':Jaq terminal<CR>', { noremap = true, desc = 'Jaq実行（�
 keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
 keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc = 'QuickRunセッション終了' })
 
--- JumpToLine
-keymap('n', 'mo', ':<C-u>JumpToLine<CR>', { noremap = true, desc = '指定行へジャンプ' })
+-- エラージャンプモード（新しいdefine_complete_mode使用）
+local minor_mode = require('rc/minor_mode')
+
+-- フック関数：モード開始時に全エラー表示に切り替え
+local function diag_mode_enter()
+    vim.diagnostic.config({
+        virtual_text = {
+            prefix = "●",
+            source = "if_many",
+            spacing = 2,
+        },
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+    })
+    -- tiny-inline-diagnosticを無効化
+    local ok, tiny = pcall(require, "tiny-inline-diagnostic")
+    if ok then
+        tiny.disable()
+    end
+    print("-- DIAGNOSTIC MODE: 全エラー表示 --")
+end
+
+-- フック関数：モード終了時に元の表示に戻す
+local function diag_mode_exit()
+    -- トグル設定を復元（単純に診断トグルの現在状態を再適用）
+    local ok, toggle = pcall(require, '12_toggle')
+    if ok and toggle then
+        -- 現在の診断トグル状態を取得
+        local current_state = toggle.get_state('diagnostics')
+        if current_state then
+            -- 状態に応じて適切な診断設定を復元
+            if current_state == 'cursor_only' then
+                -- tiny-inline-diagnosticに戻す
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+                if tiny_ok then
+                    tiny.enable()
+                end
+            elseif current_state == 'full_with_underline' then
+                -- 全表示（既に設定済みなので何もしない）
+            elseif current_state == 'signs_only' then
+                -- サインのみに戻す
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+                if tiny_ok then
+                    tiny.disable()
+                end
+            end
+        end
+    end
+    print("診断表示を元に戻しました")
+end
+
+-- 新しいdefine_complete_modeを使用
+minor_mode.define_complete_mode({
+    namespace = 'DIAGNOSTIC',
+    entries = {
+        { key = 'mo', action = '<cmd>lua vim.diagnostic.goto_next()<CR>', desc = '次の診断へジャンプ+モード開始' },
+        { key = 'mi', action = '<cmd>lua vim.diagnostic.goto_prev()<CR>', desc = '前の診断へジャンプ+モード開始' }
+    },
+    actions = {
+        { key = 'o', action = '<cmd>lua vim.diagnostic.goto_next()<CR>', desc = '次の診断（全種類）' },
+        { key = 'i', action = '<cmd>lua vim.diagnostic.goto_prev()<CR>', desc = '前の診断（全種類）' },
+        { key = 'p', action = '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>', desc = '前のERROR' },
+        { key = 'n', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>', desc = '次のERROR' },
+        { key = '<', action = '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>', desc = '前のINFO' },
+        { key = '>', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>', desc = '次のINFO' },
+        { key = 'j', action = '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>', desc = '前のWARN' },
+        { key = 'k', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>', desc = '次のWARN' },
+        { key = ',', action = '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>', desc = '前のHINT' },
+        { key = '.', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', desc = '次のHINT' },
+    },
+    hooks = {
+        enter = diag_mode_enter,
+        exit = diag_mode_exit
+    },
+    options = {
+        persistent = true
+        -- exit_keys は デフォルトで {'<Esc>', 'q'} が設定される
+        -- show_help_key は デフォルトで '?' が設定される
+    }
+})
+
 
 -- トグル関連 (now handled by toggle library)
 -- Moved to toggle library
@@ -395,16 +494,25 @@ keymap('o', 'iu', ':<c-u>lua require"treesitter-unit".select()<CR>', { noremap =
 keymap('o', 'au', ':<c-u>lua require"treesitter-unit".select(true)<CR>', { noremap = true, desc = 'TS:ユニット全体選択（操作）' })
 
 -- LSPコマンド
-keymap('n', 'md', '<cmd>lua vim.lsp.buf.definition()<CR>', { noremap = true, desc = '定義にジャンプ' })
-keymap('n', 'mD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { noremap = true, desc = '宣言にジャンプ' })
-keymap('n', 'mi', '<cmd>lua vim.lsp.buf.implementation()<CR>', { noremap = true, desc = '実装にジャンプ' })
-keymap('n', 'mt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', { noremap = true, desc = '型定義にジャンプ' })
+-- LSP基本ナビゲーション（Telescope版）
+keymap('n', 'md', '<cmd>Telescope lsp_definitions<CR>', { noremap = true, desc = '定義一覧（Telescope）' })
+keymap('n', 'mD', '<cmd>Telescope lsp_declarations<CR>', { noremap = true, desc = '宣言一覧（Telescope）' })
+keymap('n', 'mt', '<cmd>Telescope lsp_type_definitions<CR>', { noremap = true, desc = '型定義一覧（Telescope）' })
 keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', { noremap = true, desc = 'ホバー情報表示' })
 keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { noremap = true, desc = '関数シグネチャ表示' })
-keymap('n', 'mr', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap = true, desc = 'リネーム' })
-keymap('n', 'mca', '<cmd>lua vim.lsp.buf.code_action()<CR>', { noremap = true, desc = 'コードアクション' })
+
+-- mrシリーズ（grシリーズのm版）
+keymap('n', 'mrr', '<cmd>Telescope lsp_references<CR>', { noremap = true, desc = '参照一覧（Telescope）' })
+keymap('n', 'mra', '<cmd>Telescope lsp_code_actions<CR>', { noremap = true, desc = 'コードアクション（Telescope）' })
+keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap = true, desc = 'リネーム' })
+keymap('n', 'mri', '<cmd>Telescope lsp_implementations<CR>', { noremap = true, desc = '実装一覧（Telescope）' })
+
+-- シンボル検索（gO, gSのm版）
+keymap('n', 'mO', '<cmd>Telescope lsp_document_symbols<CR>', { noremap = true, desc = 'ドキュメントシンボル（Telescope）' })
+keymap('n', 'mS', '<cmd>Telescope lsp_workspace_symbols<CR>', { noremap = true, desc = 'ワークスペースシンボル（Telescope）' })
+
+-- その他
 keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', { noremap = true, desc = 'コードフォーマット' })
-keymap('n', 'mrf', '<cmd>lua vim.lsp.buf.references()<CR>', { noremap = true, desc = '参照検索' })
 
 -- ワークスペース関連
 keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', { noremap = true, desc = 'ワークスペースフォルダ追加' })
@@ -416,28 +524,7 @@ keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folder
 keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap = true, desc = '診断情報を表示' })
 keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', { noremap = true, desc = '診断をloclistに表示' })
 
--- 診断移動用のminor_mode
-minor_mode.create('DiagnosticJump', 'm').set_multi({
-    -- 全ての診断
-    { ']', '<cmd>lua vim.diagnostic.goto_next()<CR>zz', '次の診断へ' },
-    { '[', '<cmd>lua vim.diagnostic.goto_prev()<CR>zz', '前の診断へ' },
-
-    -- エラーのみ
-    { 'e]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.ERROR})<CR>', '次のエラーへ' },
-    { 'e[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.ERROR})<CR>', '前のエラーへ' },
-
-    -- 警告のみ
-    { 'w]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.WARN})<CR>', '次の警告へ' },
-    { 'w[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.WARN})<CR>', '前の警告へ' },
-
-    -- 情報のみ
-    { 'i]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.INFO})<CR>', '次の情報へ' },
-    { 'i[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.INFO})<CR>', '前の情報へ' },
-
-    -- ヒントのみ
-    { 'h]', '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', '次のヒントへ' },
-    { 'h[', '<cmd>lua vim.diagnostic.goto_prev({severity = vim.diagnostic.severity.HINT})<CR>', '前のヒントへ' },
-})
+-- 診断移動は上記のDIAGNOSTICモードで統一（削除）
 
 -- 単語置換関連
 keymap('n', 'ciy', 'ciw<C-R>0<ESC><Right>', { noremap = true, desc = '単語をヤンク内容に置換' })

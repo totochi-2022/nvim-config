@@ -44,17 +44,29 @@ mason_lspconfig.setup({
         "html",   -- HTML
         "cssls",  -- CSS
         "ts_ls",  -- TypeScript/JavaScript
+
         "jsonls", -- JSON
 
         -- 基本言語
-        "pyright",   -- Python
-        "ruff",      -- Python linter/formatter (LSP)
-        "ruby_lsp",  -- Ruby (Shopify)
-        "bashls",    -- Bash
-        "marksman",  -- Markdown
-        "omnisharp", -- C# (Masonでインストールのみ、設定は手動)
+        "pyright",                  -- Python
+        "ruff",                     -- Python linter/formatter (LSP)
+        "ruby_lsp",                 -- Ruby (Shopify)
+        "bashls",                   -- Bash
+        "marksman",                 -- Markdown
+        "omnisharp",                -- C# (Masonでインストールのみ、設定は手動)
     },
     automatic_installation = false, -- 手動管理で安定性確保
+    handlers = {
+        -- pyrightとruffは自動で設定
+        function(server_name)
+            if server_name == "pyright" or server_name == "ruff" then
+                require('lspconfig')[server_name].setup({
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                })
+            end
+        end,
+    }
 })
 
 -- Mason-null-ls設定（フォーマッター・リンターの自動インストール）
@@ -72,7 +84,8 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- 共通のon_attach関数
 local on_attach = function(client, bufnr)
-    -- LSPキーマップは21_keymap.luaで設定済み
+    -- LSPキーマップはm系列で設定済み（21_keymap.luaで定義）
+    -- デフォルトのg系列は使用しない
 
     -- フォーマット機能がある場合のみ保存時フォーマットを有効化
     if client.server_capabilities.documentFormattingProvider then
@@ -88,9 +101,9 @@ end
 
 -- 標準診断設定（signsのみ有効）
 vim.diagnostic.config({
-    virtual_text = false,  -- virtual_textは無効
-    signs = true,          -- エラー行判別用にsignsを有効
-    underline = false,     -- アンダーラインは無効
+    virtual_text = false, -- virtual_textは無効
+    signs = true,         -- エラー行判別用にsignsを有効
+    underline = false,    -- アンダーラインは無効
     update_in_insert = false,
     severity_sort = true,
 })
@@ -99,8 +112,8 @@ vim.diagnostic.config({
 vim.defer_fn(function()
     vim.diagnostic.config({
         virtual_text = false,
-        signs = true,          -- signsを有効化
-        underline = false,     -- アンダーラインは無効
+        signs = true,      -- signsを有効化
+        underline = false, -- アンダーラインは無効
         update_in_insert = false,
         severity_sort = true,
     })
@@ -109,7 +122,8 @@ end, 500)
 -- 手動でのLSP設定（omnisharpを除外して設定）
 local servers = {
     "lua_ls", "rust_analyzer", "html", "cssls",
-    "ts_ls", "jsonls", "pyright", "ruff", "ruby_lsp", "bashls", "marksman"
+    "ts_ls", "jsonls", "ruby_lsp", "bashls", "marksman"
+    -- pyrightとruffは定義ジャンプが重複するため除外（ensure_installedで自動設定される）
     -- omnisharpはここから除外（下で個別設定）
 }
 
@@ -152,7 +166,7 @@ for _, server in ipairs(servers) do
     elseif server == "ruby_lsp" then
         server_config.settings = {
             ruby_lsp = {
-                formatter = "syntax_tree",  -- syntax_treeの方が高速
+                formatter = "syntax_tree", -- syntax_treeの方が高速
                 diagnostics = true,
                 codeActions = true,
             },
@@ -184,15 +198,7 @@ lspconfig.omnisharp.setup({
         client.server_capabilities.documentFormattingProvider = false
         client.server_capabilities.documentRangeFormattingProvider = false
 
-        -- 基本的なLSPキーマップ
-        local bufopts = { noremap = true, silent = true, buffer = bufnr }
-        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
-        vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
-        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-        vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
-        vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
-        vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+        -- キーマップは21_keymap.luaのm系列を使用（共通のon_attach関数は呼ばない）
     end,
     capabilities = capabilities,
 })
@@ -249,6 +255,8 @@ cmp.setup({
     -- フォーマット設定
     formatting = lspkind_ok and {
         format = lspkind.cmp_format({
+
+
             mode = 'symbol_text',
             maxwidth = 50,
             ellipsis_char = '...',

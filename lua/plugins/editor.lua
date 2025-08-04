@@ -287,7 +287,7 @@ return {
         end,
     },
 
-    -- アウトライン表示
+    -- アウトライン表示（既存）
     {
         'hedyhli/outline.nvim',
         config = function()
@@ -330,6 +330,67 @@ return {
             },
         },
         dependencies = { "nvim-tree/nvim-web-devicons" },
+    },
+
+    -- 検索・置換
+    {
+        'MagicDuck/grug-far.nvim',
+        config = function()
+            require('grug-far').setup({
+                -- シンタックスハイライト用の言語設定
+                folding = {
+                  enabled = true
+                },
+                -- 結果のハイライト
+                resultLocation = {
+                  showNumbersColumn = true
+                },
+                -- 検索エンジン設定
+                engines = {
+                  ripgrep = {
+                    -- ripgrepの追加オプション
+                    extraArgs = ''
+                  }
+                },
+                -- キーマップ設定
+                keymaps = {
+                    replace = { n = '<leader>r' },
+                    qflist = { n = '<leader>q' },
+                    syncLocations = { n = '<leader>s' },
+                    syncLine = { n = '<leader>l' },
+                    close = { n = '<leader>c' },
+                    historyOpen = { n = '<leader>t' },
+                    historyAdd = { n = '<leader>a' },
+                    refresh = { n = '<leader>f' },
+                    openLocation = { n = '<leader>o' },
+                    gotoLocation = { n = '<enter>' },
+                    pickHistoryEntry = { n = '<enter>' },
+                    abort = { n = '<leader>b' },
+                    help = { n = 'g?' },
+                    toggleShowCommand = { n = '<leader>p' },
+                    swapEngine = { n = '<leader>e' }
+                }
+            })
+            
+            -- 現在のバッファで検索するコマンド
+            vim.api.nvim_create_user_command('GrugFarCurrentBuffer', function()
+                require('grug-far').open({
+                    prefills = {
+                        paths = vim.fn.expand('%:p')  -- 現在のファイルのフルパス
+                    }
+                })
+            end, {})
+            
+            -- カーソル下の単語を現在のバッファで検索
+            vim.api.nvim_create_user_command('GrugFarCurrentWord', function()
+                require('grug-far').open({
+                    prefills = {
+                        search = vim.fn.expand('<cword>'),  -- カーソル下の単語
+                        paths = vim.fn.expand('%:p')  -- 現在のファイル
+                    }
+                })
+            end, {})
+        end
     },
 
     -- フォールディング

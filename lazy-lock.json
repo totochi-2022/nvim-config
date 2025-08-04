@@ -23,6 +23,7 @@
   "fine-cmdline.nvim": { "branch": "main", "commit": "7db181d1cb294581b12a036eadffffde762a118f" },
   "foldCC.vim": { "branch": "master", "commit": "344335d27349b837d33dc7757de0cb7930ac33ae" },
   "gitsigns.nvim": { "branch": "main", "commit": "8270378ab83540b03d09c0194ba3e208f9d0cb72" },
+  "grug-far.nvim": { "branch": "main", "commit": "482517700eef8579b289a20995f017a0775a6ec4" },
   "gruvbox": { "branch": "master", "commit": "697c00291db857ca0af00ec154e5bd514a79191f" },
   "hlargs.nvim": { "branch": "main", "commit": "ce8d705866dae44513ff48613d5e37e4da524d70" },
   "hlchunk.nvim": { "branch": "main", "commit": "474ec5d0f220158afa83aaefab32402e710d3032" },
