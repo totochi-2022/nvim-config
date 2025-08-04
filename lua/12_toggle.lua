@@ -29,14 +29,80 @@ toggle.setup({
 
 -- 一括トグル定義
 toggle.define_toggles({
-    -- 診断表示トグル（tiny-inline-diagnostic専用のため完全無効化）
-    -- {
-    --     name = 'diagnostics',
-    --     type = 'cycle',
-    --     states = { 'off', 'underline', 'full' },
-    --     initial_state = 'off',
-    --     desc = '診断表示モード切替（無効化済み）',
-    -- },
+    -- 診断表示トグル（tiny-inline-diagnostic対応）
+    {
+        name = 'diagnostics',
+        type = 'cycle',
+        states = { 'cursor_only', 'full_with_underline', 'signs_only' },
+        initial_state = 'cursor_only',
+        desc = '診断表示モード切替',
+        icons = { 'D', 'D', 'D' },
+        colors = { 'Visual', 'DiagnosticWarn', 'NonText' },
+        messages = {
+            '診断表示: カーソル行のみ（tiny-inline-diagnostic）',
+            '診断表示: フル表示＋アンダーライン',
+            '診断表示: サインのみ'
+        },
+        callbacks = {
+            -- カーソル行のみ（tiny-inline-diagnostic有効）
+            function()
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+                -- tiny-inline-diagnosticを有効化
+                local ok, tiny_diag = pcall(require, 'tiny-inline-diagnostic')
+                if ok then
+                    tiny_diag.enable()
+                end
+            end,
+            -- フル表示＋アンダーライン
+            function()
+                -- tiny-inline-diagnosticを無効化
+                local ok, tiny_diag = pcall(require, 'tiny-inline-diagnostic')
+                if ok then
+                    tiny_diag.disable()
+                end
+                vim.diagnostic.config({
+                    virtual_text = {
+                        prefix = "●",
+                        source = "if_many",
+                        spacing = 2,
+                        format = function(diagnostic)
+                            local message = diagnostic.message
+                            if #message > 50 then
+                                message = message:sub(1, 47) .. "..."
+                            end
+                            local source = diagnostic.source and ("[" .. diagnostic.source .. "] ") or ""
+                            return source .. message
+                        end,
+                    },
+                    signs = true,
+                    underline = true,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+            end,
+            -- サインのみ
+            function()
+                -- tiny-inline-diagnosticを無効化
+                local ok, tiny_diag = pcall(require, 'tiny-inline-diagnostic')
+                if ok then
+                    tiny_diag.disable()
+                end
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+            end
+        }
+    },
     
     -- 自動ホバートグル（既存のToggleAutoHoverを置き換え）
     {
@@ -235,12 +301,12 @@ toggle.define_toggles({
     }
 })
 
--- プレフィックスモード設定（診断トグルを除外）
+-- プレフィックスモード設定（診断トグル復活）
 toggle.setup_prefix_mode('<LocalLeader>0', {
+    d = 'diagnostics',  -- 診断表示トグル復活
     r = 'readonly',
     p = 'paste_mode',
     h = 'auto_hover',
-    -- d = 'diagnostics',  -- tiny-inline-diagnostic専用のため削除
     c = 'colorizer',
     m = 'migemo',
     q = 'quickscope',
