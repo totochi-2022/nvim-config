@@ -164,3 +164,14 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     group = "VBSyntax",
     callback = set_vb_filetype,
 })
+
+-- markdownファイルで診断を無効化（バッファ単位）
+vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter", "FileType"}, {
+    pattern = {"*.md", "*.markdown", "markdown"},
+    callback = function()
+        local bufnr = vim.api.nvim_get_current_buf()
+        -- バッファ単位で診断のみ無効化（LSPクライアントは停止しない）
+        vim.diagnostic.disable(bufnr)
+    end,
+    desc = "Disable diagnostics in markdown files"
+})

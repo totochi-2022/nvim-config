@@ -234,6 +234,36 @@ keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '�
 -- EasyAlign
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })
 
+-- Dropbar（パンくずリスト）
+keymap('n', '<F2>', function()
+    require('dropbar.api').pick()
+end, { noremap = true, desc = 'パンくずリストメニューを開く' })
+
+-- Dial.nvim（数値・文字列増減）
+keymap('n', '+', function()
+    require("dial.map").manipulate("increment", "normal")
+end, { noremap = true, desc = '数値・文字列を増加' })
+
+keymap('n', '-', function()
+    require("dial.map").manipulate("decrement", "normal")
+end, { noremap = true, desc = '数値・文字列を減少' })
+
+keymap('v', '+', function()
+    require("dial.map").manipulate("increment", "visual")
+end, { noremap = true, desc = '数値・文字列を増加（ビジュアル）' })
+
+keymap('v', '-', function()
+    require("dial.map").manipulate("decrement", "visual")
+end, { noremap = true, desc = '数値・文字列を減少（ビジュアル）' })
+
+keymap('v', 'g+', function()
+    require("dial.map").manipulate("increment", "gvisual")
+end, { noremap = true, desc = '数値・文字列を連続増加' })
+
+keymap('v', 'g-', function()
+    require("dial.map").manipulate("decrement", "gvisual")
+end, { noremap = true, desc = '数値・文字列を連続減少' })
+
 -- EasyMotion
 keymap('n', '<LocalLeader><Space>', '<Plug>(easymotion-overwin-f2)', { noremap = true, desc = '2文字で画面内ジャンプ' })
 keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', { noremap = true, desc = '2文字でジャンプ' })

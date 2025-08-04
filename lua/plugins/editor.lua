@@ -82,13 +82,143 @@ return {
         end,
     },
 
+    -- 数値・文字列増減プラグイン
+    {
+        'monaqa/dial.nvim',
+        config = function()
+            local augend = require("dial.augend")
+            require("dial.config").augends:register_group{
+                default = {
+                    -- 基本的な数値
+                    augend.integer.alias.decimal,      -- 10進数
+                    augend.integer.alias.hex,          -- 16進数
+                    augend.integer.alias.binary,       -- 2進数
+                    
+                    -- 小数点
+                    augend.decimal_fraction.new{
+                        signed = true,
+                    },
+                    
+                    -- 日付関連
+                    augend.date.alias["%Y/%m/%d"],     -- 2024/01/01
+                    augend.date.alias["%Y-%m-%d"],     -- 2024-01-01
+                    augend.date.alias["%H:%M"],        -- 23:59
+                    
+                    -- ブール値・論理値
+                    augend.constant.alias.bool,        -- true/false
+                    augend.constant.alias.alpha,       -- a/b/c/...
+                    augend.constant.alias.Alpha,       -- A/B/C/...
+                    
+                    -- よく使う単語（実用的なもののみ）
+                    augend.constant.new{
+                        elements = {"yes", "no"},
+                        word = true,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"TRUE", "FALSE"},  -- C言語のdefine用
+                        word = true,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"ON", "OFF"},  -- Arduino用
+                        word = true,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"HIGH", "LOW"},  -- Arduino用
+                        word = true,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"True", "False"},  -- Python用
+                        word = true,
+                        cyclic = true,
+                    },
+                    
+                    -- 論理演算子
+                    augend.constant.new{
+                        elements = {"and", "or"},  -- Python/Shell用
+                        word = true,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"&&", "||"},  -- C/JavaScript用
+                        word = false,
+                        cyclic = true,
+                    },
+                    
+                    -- 比較演算子
+                    augend.constant.new{
+                        elements = {"==", "!="},
+                        word = false,
+                        cyclic = true,
+                    },
+                    augend.constant.new{
+                        elements = {"<", ">"},
+                        word = false,
+                        cyclic = true,
+                    },
+                    
+                    -- 括弧（開き）
+                    augend.constant.new{
+                        elements = {"(", "{", "["},
+                        word = false,
+                        cyclic = true,
+                    },
+                    -- 括弧（閉じ）
+                    augend.constant.new{
+                        elements = {")", "}", "]"},
+                        word = false,
+                        cyclic = true,
+                    },
+                    
+                    -- クォート
+                    augend.constant.new{
+                        elements = {"'", "\"", "`"},
+                        word = false,
+                        cyclic = true,
+                    },
+                    
+                    -- 色関連
+                    augend.hexcolor.new{
+                        case = "lower",
+                    },
+                    
+                    -- 曜日（日本語）
+                    augend.constant.new{
+                        elements = {"月", "火", "水", "木", "金", "土", "日"},
+                        word = true,
+                        cyclic = true,
+                    },
+                },
+            }
+        end,
+    },
+
     -- TreeSitter関連
     {
         'nvim-treesitter/nvim-treesitter',
         build = ":TSUpdate",
         dependencies = {
             'nvim-treesitter/nvim-treesitter-textobjects',
-            'nvim-treesitter/nvim-treesitter-context',
+            {
+                'nvim-treesitter/nvim-treesitter-context',
+                config = function()
+                    require('treesitter-context').setup({
+                        enable = true,
+                        max_lines = 3,  -- 最大3行までに制限
+                        min_window_height = 10,  -- 10行以下のウィンドウでは無効
+                        line_numbers = true,
+                        multiline_threshold = 20,  -- 20行以上の場合のみコンテキストを表示
+                        trim_scope = 'outer',  -- 外側のスコープを優先的に削除
+                        mode = 'cursor',  -- カーソル位置のコンテキストを表示
+                        separator = nil,  -- 区切り線なし（必要なら'-'などを設定）
+                        zindex = 20,
+                        on_attach = nil,  -- 特定のバッファで無効にしたい場合はここで関数を定義
+                    })
+                end,
+            },
             'JoosepAlviste/nvim-ts-context-commentstring',
             'RRethy/nvim-treesitter-endwise',
             {

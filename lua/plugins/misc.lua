@@ -264,6 +264,9 @@ return {
     -- コマンドライン改良
     {
         "VonHeikemen/fine-cmdline.nvim",
+        dependencies = {
+            "MunifTanjim/nui.nvim"
+        },
         config = function()
             require('fine-cmdline').setup({
                 cmdline = {
@@ -273,11 +276,12 @@ return {
                 },
                 popup = {
                     position = {
-                        row = '10%',
+                        row = '50%',  -- 画面中央に配置
                         col = '50%',
                     },
                     size = {
                         width = '60%',
+                        height = 1,
                     },
                     border = {
                         style = 'rounded',
