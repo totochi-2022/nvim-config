@@ -160,27 +160,29 @@ dap.configurations.javascript = {
 dap.configurations.typescript = dap.configurations.javascript
 
 -- For C/C++/Rust (lldb)
-dap.adapters.lldb = {
-    type = 'executable',
-    command = '/usr/bin/lldb-vscode', -- Adjust path as needed
-    name = 'lldb'
-}
+-- コメントアウト: C/C++/Rustを使用しない場合は不要
+-- dap.adapters.lldb = {
+--     type = 'executable',
+--     command = '/usr/bin/lldb-vscode', -- Adjust path as needed
+--     name = 'lldb'
+-- }
 
-dap.configurations.cpp = {
-    {
-        name = 'Launch',
-        type = 'lldb',
-        request = 'launch',
-        program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-        end,
-        cwd = '${workspaceFolder}',
-        stopOnEntry = false,
-        args = {},
-    },
-}
-dap.configurations.c = dap.configurations.cpp
-dap.configurations.rust = dap.configurations.cpp
+-- C/C++/Rust設定もコメントアウト
+-- dap.configurations.cpp = {
+--     {
+--         name = 'Launch',
+--         type = 'lldb',
+--         request = 'launch',
+--         program = function()
+--             return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+--         end,
+--         cwd = '${workspaceFolder}',
+--         stopOnEntry = false,
+--         args = {},
+--     },
+-- }
+-- dap.configurations.c = dap.configurations.cpp
+-- dap.configurations.rust = dap.configurations.cpp
 
 -- Visual indicators for breakpoints
 vim.fn.sign_define('DapBreakpoint', { text = '🔴', texthl = '', linehl = '', numhl = '' })

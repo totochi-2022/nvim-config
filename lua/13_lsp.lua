@@ -48,6 +48,7 @@ mason_lspconfig.setup({
 
         -- 基本言語
         "pyright",   -- Python
+        "ruff",      -- Python linter/formatter (LSP)
         "ruby_lsp",  -- Ruby (Shopify)
         "bashls",    -- Bash
         "marksman",  -- Markdown
@@ -60,7 +61,7 @@ mason_lspconfig.setup({
 local mason_null_ls = require("mason-null-ls")
 mason_null_ls.setup({
     ensure_installed = {
-        "ruff",  -- Python linter/formatter
+        -- フォーマッター・リンターはここに追加
     },
     automatic_installation = false,
 })
@@ -103,7 +104,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
 -- 手動でのLSP設定（omnisharpを除外して設定）
 local servers = {
     "lua_ls", "rust_analyzer", "html", "cssls",
-    "ts_ls", "jsonls", "pyright", "ruby_lsp", "bashls", "marksman"
+    "ts_ls", "jsonls", "pyright", "ruff", "ruby_lsp", "bashls", "marksman"
     -- omnisharpはここから除外（下で個別設定）
 }
 
@@ -300,13 +301,11 @@ cmp.setup.cmdline(':', {
     })
 })
 
--- none-ls設定（ruff対応）
+-- none-ls設定
 local null_ls = require("null-ls")
 null_ls.setup({
     sources = {
-        -- Python
-        null_ls.builtins.diagnostics.ruff,
-        null_ls.builtins.formatting.ruff,
+        -- 他のフォーマッター・リンターはここに追加
     },
     on_attach = on_attach,
 })

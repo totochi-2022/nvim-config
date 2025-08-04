@@ -53,7 +53,7 @@ keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモー�
 --- window{{{
 minor_mode.create('Disp', '<Leader>s').set_multi(
     {
-        { '-', '<C-w>-', '横幅を縮小' },
+        -- { '-', '<C-w>-', '横幅を縮小' },  -- 71行目と重複（正しくは高さを縮小）のため削除
         { '|', '<C-w>|', '最大幅にする' },
         { 'x', '<C-w>x', 'カレントと次のウィンドウを入れ替え' },
         { 'w', '<C-w>w', '次のウィンドウへ移動' },
@@ -94,7 +94,7 @@ minor_mode.create('Buf', '<LocalLeader>').set_multi(
 -- }}}
 
 --- tab
-minor_mode.create('Tab', '<LocalLeader>').set('t', 'gt', '次のタブへ移動')
+-- minor_mode.create('Tab', '<LocalLeader>').set('t', 'gt', '次のタブへ移動')  -- 翻訳機能と競合するため削除
 keymap('', '<LocalLeader>T', '<C-W>T', { noremap = true, desc = 'ウィンドウを新しいタブに移動' })
 
 -- NERDCommenter
@@ -133,7 +133,9 @@ keymap('', '<Leader><F1>', ':Telescope help_tags<CR>', { noremap = true, desc = 
 keymap('', '<Leader><F2>', ':Telescope man_pages<CR>', { noremap = true, desc = 'マニュアルページ検索' })
 keymap('', '<Leader>m', ':Telescope marks', { noremap = true, desc = 'マーク一覧' })
 keymap('', '<Leader>A', ':Telescope lsp_<Tab>', { noremap = true, desc = 'LSP機能一覧' })
-keymap('', '<Leader>g', ':Telescope live_grep<CR>', { noremap = true, desc = 'テキスト検索（Grep）' })
+keymap('', '<Leader>g', ':Telescope egrepify<CR>', { noremap = true, desc = 'テキスト検索（正規表現）' })
+keymap('', '<Leader>G', ':Telescope live_grep<CR>', { noremap = true, desc = 'テキスト検索（Grep）' })
+keymap('', '<Leader>a', ':Telescope<CR>', { noremap = true, desc = 'Telescopeセレクタ' })
 keymap('', '<Leader>q', ':Telescope quickfix<CR>', { noremap = true, desc = 'クイックフィックス一覧' })
 keymap('', '<Leader>Q', ':Telescope quickfixhistory<CR>', { noremap = true, desc = 'クイックフィックス履歴' })
 keymap('', '<Leader>i', ':Telescope ghq list<CR>', { noremap = true, desc = 'ghqリポジトリ一覧' })
@@ -158,11 +160,14 @@ keymap('', '<LocalLeader>e', ':e!<CR>', { noremap = true, desc = '再読み込�
 keymap('', '<LocalLeader>E', ':e .<CR>', { noremap = true, desc = 'カレントディレクトリを開く' })
 -- }}}
 
--- WhichKey 関連
-vim.keymap.set('n', '<Leader>?w', ':WhichKey "<C-w>"<CR>', { noremap = true, desc = 'ウィンドウ操作のヘルプ' })
-vim.keymap.set('n', '<Leader>?c', ':WhichKey "C-"<CR>', { noremap = true, desc = 'Ctrlキーのヘルプ' })
-vim.keymap.set('n', '<Leader>?a', ':WhichKey "M-"<CR>', { noremap = true, desc = 'Altキーのヘルプ' })
-vim.keymap.set('n', '<Leader>?', ':WhichKey<CR>', { noremap = true, desc = '全キーマップのヘルプ' })
+-- WhichKey 関連（<LocalLeader><F1>をヘルプキーとして使用）
+keymap('n', '<LocalLeader><F1><F1>', ':WhichKey<CR>', { noremap = true, desc = '全キーマップのヘルプ' })
+-- Ctrl/Altキーのヘルプ（初期検索語付き - 連続文字検索用）
+keymap('n', '<LocalLeader><F1>c', '<cmd>Telescope keymaps<CR>i<C-u><C-', { noremap = true, desc = 'Ctrlキーのヘルプ（<C- 検索）' })
+keymap('n', '<LocalLeader><F1>a', '<cmd>Telescope keymaps<CR>i<C-u><M-', { noremap = true, desc = 'Altキーのヘルプ（<M- 検索）' })
+keymap('n', '<LocalLeader><F1>w', ':WhichKey "<C-w>"<CR>', { noremap = true, desc = 'ウィンドウ操作のヘルプ' })
+keymap('n', '<LocalLeader><F1>s', ':WhichKey s<CR>', { noremap = true, desc = 'Leader(s)キーのヘルプ' })
+keymap('n', '<LocalLeader><F1><Space>', ':WhichKey "<Space>"<CR>', { noremap = true, desc = 'LocalLeader(Space)キーのヘルプ' })
 
 -- カレントディレクトリ関連
 keymap('n', '<F8>E', ':!explorer.exe .<CR>', { noremap = true, desc = 'エクスプローラでカレントディレクトリを開く' })
@@ -413,7 +418,7 @@ keymap('n', 'あ', 'a', { noremap = true, desc = '後に挿入（日本語）' }
 keymap('n', 'い', 'i', { noremap = true, desc = '前に挿入（日本語）' })
 
 -- 追加キーマップ
-minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>", "文字列の大文字小文字変換")
+-- minor_mode.create("ModeConvertCase", "<LocalLeader>").set("k", ":ConvertCaseLoop<CR>", "文字列の大文字小文字変換")  -- 215行目と重複のため削除
 
 -- レジスタ関連
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', { noremap = true, desc = 'クリップボードをレジスタqにコピー' })

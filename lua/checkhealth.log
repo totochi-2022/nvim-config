@@ -1,0 +1,680 @@
+
+==============================================================================
+dap:                                                                      1 ❌
+
+dap: Adapters ~
+
+dap.adapter: debugpy ~
+- Adapter is a function. Can't validate it
+
+dap.adapter: node2 ~
+- ✅ OK is executable: node
+
+dap.adapter: lldb ~
+- ❌ ERROR `command` is not executable. Check path and permissions. Use vim.fn.expand to handle ~ or $HOME:
+     /usr/bin/lldb-vscode
+
+dap.adapter: python ~
+- Adapter is a function. Can't validate it
+
+dap: Sessions ~
+- ✅ OK No active sessions
+
+==============================================================================
+lazy:                                                               2 ⚠️  1 ❌
+
+lazy.nvim ~
+- {lazy.nvim} version `11.17.1`
+- ✅ OK {git} `version 2.43.0`
+- ✅ OK no existing packages found by other package managers
+- ✅ OK packer_compiled.lua not found
+
+luarocks ~
+- checking `hererocks` installation
+- ✅ OK no plugins require `luarocks`, so you can ignore any warnings below
+- ✅ OK {python3} `Python 3.12.11`
+- ❌ ERROR {/home/motoki/.local/share/nvim/lazy-rocks/hererocks/bin/luarocks} not installed
+- ⚠️ WARNING {/home/motoki/.local/share/nvim/lazy-rocks/hererocks/bin/lua} version `5.1` not installed
+- ⚠️ WARNING Lazy won't be able to install plugins that require `luarocks`.
+  Here's what you can do:
+   - fix your `luarocks` installation
+   - disable *hererocks* with `opts.rocks.hererocks = false`
+   - disable `luarocks` support completely with `opts.rocks.enabled = false`
+
+==============================================================================
+lspconfig:                                                                  ✅
+
+- Skipped. This healthcheck is redundant with `:checkhealth vim.lsp`.
+
+==============================================================================
+mason:                                                                    6 ⚠️
+
+mason.nvim ~
+- ✅ OK mason.nvim version v2.0.1
+- ✅ OK PATH: prepend
+- ✅ OK Providers:
+    mason.providers.registry-api
+- ✅ OK neovim version >= 0.10.0
+
+mason.nvim [Registries] ~
+- ✅ OK Registry `github.com/mason-org/mason-registry version: 2025-08-03-formal-lock` is installed.
+
+mason.nvim [Core utils] ~
+- ✅ OK unzip: `UnZip 6.00 of 20 April 2009, by Debian. Original by Info-ZIP.`
+- ✅ OK wget: `GNU Wget 1.21.4, a non-interactive network retriever.`
+- ✅ OK curl: `curl 8.5.0 (x86_64-pc-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.7`
+- ✅ OK gzip: `gzip 1.12`
+- ✅ OK tar: `tar (GNU tar) 1.35`
+- ✅ OK bash: `GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)`
+- ✅ OK sh: `Ok`
+
+mason.nvim [Languages] ~
+- ⚠️ WARNING luarocks: not available
+  - ADVICE:
+    - spawn: luarocks failed with exit code - and signal -. Could not find executable "luarocks" in PATH.
+
+- ⚠️ WARNING Composer: not available
+  - ADVICE:
+    - spawn: composer failed with exit code - and signal -. Could not find executable "composer" in PATH.
+
+- ⚠️ WARNING PHP: not available
+  - ADVICE:
+    - spawn: php failed with exit code - and signal -. Could not find executable "php" in PATH.
+
+- ✅ OK RubyGem: `3.6.9`
+- ✅ OK Ruby: `ruby 3.4.5 (2025-07-16 revision 20cda200d3) +PRISM [x86_64-linux]`
+- ⚠️ WARNING javac: not available
+  - ADVICE:
+    - spawn: javac failed with exit code - and signal -. Could not find executable "javac" in PATH.
+
+- ⚠️ WARNING java: not available
+  - ADVICE:
+    - spawn: java failed with exit code - and signal -. Could not find executable "java" in PATH.
+
+- ⚠️ WARNING julia: not available
+  - ADVICE:
+    - spawn: julia failed with exit code - and signal -. Could not find executable "julia" in PATH.
+
+- ✅ OK cargo: `cargo 1.88.0 (873a06493 2025-05-10)`
+- ✅ OK Go: `go version go1.24.5 linux/amd64`
+- ✅ OK node: `v24.3.0`
+- ✅ OK npm: `11.4.2`
+- ✅ OK python: `Python 3.12.11`
+- ✅ OK pip: `pip 24.3.1 from /home/motoki/.local/share/mise/installs/python/3.12.11/lib/python3.12/site-packages/pip (python 3.12)`
+- ✅ OK python venv: `Ok`
+
+==============================================================================
+mason-lspconfig:                                                            ✅
+
+mason-lspconfig.nvim ~
+- ✅ OK Neovim v0.11
+- ✅ OK mason.nvim v2
+
+==============================================================================
+null-ls:                                                                    ✅
+
+- no sources registered
+
+==============================================================================
+nvim-treesitter:                                                          1 ⚠️
+
+Installation ~
+- ⚠️ WARNING `tree-sitter` executable not found (parser generator, only needed for :TSInstallFromGrammar, not required for :TSInstall)
+- ✅ OK `node` found v24.3.0 (only needed for :TSInstallFromGrammar)
+- ✅ OK `git` executable found.
+- ✅ OK `cc` executable found. Selected from { vim.NIL, "cc", "gcc", "clang", "cl", "zig" }
+  Version: cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+- ✅ OK Neovim was compiled with tree-sitter runtime ABI version 15 (required >=13). Parsers must be compatible with runtime ABI.
+
+OS Info:
+{
+  machine = "x86_64",
+  release = "6.6.87.2-microsoft-standard-WSL2",
+  sysname = "Linux",
+  version = "#1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025"
+} ~
+
+Parser/Features         H L F I J
+  - c                   ✓ ✓ ✓ ✓ ✓
+  - fish                ✓ ✓ ✓ ✓ ✓
+  - javascript          ✓ ✓ ✓ ✓ ✓
+  - lua                 ✓ ✓ ✓ ✓ ✓
+  - markdown            ✓ . ✓ ✓ ✓
+  - markdown_inline     ✓ . . . ✓
+  - python              ✓ ✓ ✓ ✓ ✓
+  - query               ✓ ✓ ✓ ✓ ✓
+  - typescript          ✓ ✓ ✓ ✓ ✓
+  - vim                 ✓ ✓ ✓ . ✓
+  - vimdoc              ✓ . . . ✓
+
+  Legend: H[ighlight], L[ocals], F[olds], I[ndents], In[j]ections
+         +) multiple parsers found, only one will be used
+         x) errors found in the query, try to run :TSUpdate {lang} ~
+
+==============================================================================
+telescope:                                                                  ✅
+
+Checking for required plugins ~
+- ✅ OK plenary installed.
+- ✅ OK nvim-treesitter installed.
+
+Checking external dependencies ~
+- ✅ OK rg: found ripgrep 14.1.1 (rev 4649aa9700)
+- ✅ OK fd: found fd 10.2.0
+
+===== Installed extensions ===== ~
+
+Telescope Extension: `command_palette` ~
+- No healthcheck provided
+
+Telescope Extension: `file_browser` ~
+- No healthcheck provided
+
+Telescope Extension: `frecency` ~
+- ✅ OK Neovim version is 0.10 or higher.
+- ✅ OK nvim-web-devicons installed.
+- ✅ OK ripgrep installed.
+
+Telescope Extension: `ghq` ~
+- No healthcheck provided
+
+Telescope Extension: `undo` ~
+- No healthcheck provided
+
+==============================================================================
+vim.deprecated:                                                           2 ⚠️
+
+ ~
+- ⚠️ WARNING vim.tbl_flatten is deprecated. Feature will be removed in Nvim 0.13
+  - ADVICE:
+    - use vim.iter(…):flatten():totable() instead.
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer/nvim.lua:96
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer.lua:588
+        /home/motoki/.config/nvim/lua/plugins/misc.lua:254
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer/nvim.lua:96
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer.lua:589
+        /home/motoki/.config/nvim/lua/plugins/misc.lua:254
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer/nvim.lua:96
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer.lua:591
+        /home/motoki/.config/nvim/lua/plugins/misc.lua:254
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer/nvim.lua:96
+        /home/motoki/.local/share/nvim/lazy/nvim-colorizer.lua/lua/colorizer.lua:617
+        /home/motoki/.config/nvim/lua/plugins/misc.lua:254
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+
+ ~
+- ⚠️ WARNING vim.validate is deprecated. Feature will be removed in Nvim 1.0
+  - ADVICE:
+    - use vim.validate(name, value, validator, optional_or_msg) instead.
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/lib/throttle.lua:20
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/render/init.lua:422
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/main.lua:58
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens.lua:73
+        /home/motoki/.config/nvim/lua/plugins/motion.lua:75
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/lib/debounce.lua:18
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/cmdline/init.lua:318
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens/main.lua:59
+        /home/motoki/.local/share/nvim/lazy/nvim-hlslens/lua/hlslens.lua:73
+        /home/motoki/.config/nvim/lua/plugins/motion.lua:75
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:380
+        [C]:-1
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/util.lua:135
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:395
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:362
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:197
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/core/loader.lua:127
+        /home/motoki/.local/share/nvim/lazy/lazy.nvim/lua/lazy/init.lua:112
+        /home/motoki/.config/nvim/lua/11_plugin.lua:49
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:11
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+    - stack traceback:
+        /home/motoki/.local/share/nvim/lazy/mason-null-ls.nvim/lua/mason-null-ls/settings.lua:46
+        /home/motoki/.local/share/nvim/lazy/mason-null-ls.nvim/lua/mason-null-ls/init.lua:82
+        /home/motoki/.config/nvim/lua/13_lsp.lua:62
+        [C]:-1
+        /home/motoki/.config/nvim/lua/00_loader.lua:15
+        [C]:-1
+        /home/motoki/.config/nvim/init.lua:10
+        vim/_editor.lua:0
+        vim/_editor.lua:0
+
+==============================================================================
+vim.health:                                                                 ✅
+
+Configuration ~
+- ✅ OK no issues found
+
+Runtime ~
+- ✅ OK $VIMRUNTIME: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/share/nvim/runtime
+
+Performance ~
+- ✅ OK Build type: Release
+
+Remote Plugins ~
+- ✅ OK Up to date
+
+terminal ~
+- key_backspace (kbs) terminfo entry: `key_backspace=\177`
+- key_dc (kdch1) terminfo entry: `key_dc=\E[3~`
+
+External Tools ~
+- ✅ OK ripgrep 14.1.1 (rev 4649aa9700) (/home/motoki/.local/share/mise/installs/rg/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl/rg)
+
+==============================================================================
+vim.lsp:                                                                    ✅
+
+- LSP log level : WARN
+- Log path: /home/motoki/.local/state/nvim/lsp.log
+- Log size: 19 KB
+
+vim.lsp: Active Clients ~
+- No active clients
+
+vim.lsp: Enabled Configurations ~
+- bashls:
+  - cmd: { "bash-language-server", "start" }
+  - filetypes: bash, sh
+  - root_markers: .git
+  - settings: {
+      bashIde = {
+        globPattern = "*@(.sh|.inc|.bash|.command)"
+      }
+    }
+
+- cssls:
+  - cmd: { "vscode-css-language-server", "--stdio" }
+  - filetypes: css, scss, less
+  - init_options: {
+      provideFormatter = true
+    }
+  - root_markers: package.json, .git
+  - settings: {
+      css = {
+        validate = true
+      },
+      less = {
+        validate = true
+      },
+      scss = {
+        validate = true
+      }
+    }
+
+- html:
+  - cmd: { "vscode-html-language-server", "--stdio" }
+  - filetypes: html, templ
+  - init_options: {
+      configurationSection = { "html", "css", "javascript" },
+      embeddedLanguages = {
+        css = true,
+        javascript = true
+      },
+      provideFormatter = true
+    }
+  - root_markers: package.json, .git
+  - settings: {}
+
+- jsonls:
+  - cmd: { "vscode-json-language-server", "--stdio" }
+  - filetypes: json, jsonc
+  - init_options: {
+      provideFormatter = true
+    }
+  - root_markers: .git
+
+- lua_ls:
+  - cmd: { "lua-language-server" }
+  - filetypes: lua
+  - root_markers: .luarc.json, .luarc.jsonc, .luacheckrc, .stylua.toml, stylua.toml, selene.toml, selene.yml, .git
+
+- marksman:
+  - cmd: { "marksman", "server" }
+  - filetypes: markdown, markdown.mdx
+  - root_markers: .marksman.toml, .git
+
+- omnisharp:
+  - capabilities: {
+      workspace = {
+        workspaceFolders = false
+      }
+    }
+  - cmd: { "OmniSharp", "-z", "--hostPID", "99816", "DotNet:enablePackageRestore=false", "--encoding", "utf-8", "--languageserver" }
+  - filetypes: cs, vb
+  - init_options: {}
+  - root_dir: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/omnisharp.lua:31>
+  - settings: {
+      FormattingOptions = {
+        EnableEditorConfigSupport = true
+      },
+      MsBuild = {},
+      RenameOptions = {},
+      RoslynExtensionsOptions = {},
+      Sdk = {
+        IncludePrereleases = true
+      }
+    }
+
+- pyright:
+  - cmd: { "pyright-langserver", "--stdio" }
+  - filetypes: python
+  - on_attach: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/pyright.lua:43>
+  - root_markers: pyproject.toml, setup.py, setup.cfg, requirements.txt, Pipfile, pyrightconfig.json, .git
+  - settings: {
+      python = {
+        analysis = {
+          autoSearchPaths = true,
+          diagnosticMode = "openFilesOnly",
+          useLibraryCodeForTypes = true
+        }
+      }
+    }
+
+- ruby_lsp:
+  - cmd: { "ruby-lsp" }
+  - filetypes: ruby, eruby
+  - init_options: {
+      formatter = "auto"
+    }
+  - root_markers: Gemfile, .git
+
+- ruff:
+  - cmd: { "ruff", "server" }
+  - filetypes: python
+  - root_markers: pyproject.toml, ruff.toml, .ruff.toml, .git
+  - settings: {}
+
+- rust_analyzer:
+  - before_init: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/rust_analyzer.lua:108>
+  - capabilities: {
+      experimental = {
+        serverStatusNotification = true
+      }
+    }
+  - cmd: { "rust-analyzer" }
+  - filetypes: rust
+  - on_attach: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/rust_analyzer.lua:114>
+  - root_dir: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/rust_analyzer.lua:57>
+
+- taplo:
+  - cmd: { "taplo", "lsp", "stdio" }
+  - filetypes: toml
+  - root_markers: .taplo.toml, taplo.toml, .git
+
+- ts_ls:
+  - cmd: { "typescript-language-server", "--stdio" }
+  - commands: {
+      ["editor.action.showReferences"] = <function 1>
+    }
+  - filetypes: javascript, javascriptreact, javascript.jsx, typescript, typescriptreact, typescript.tsx
+  - handlers: {
+      ["_typescript.rename"] = <function 1>
+    }
+  - init_options: {
+      hostInfo = "neovim"
+    }
+  - on_attach: <function @/home/motoki/.local/share/nvim/lazy/nvim-lspconfig/lsp/ts_ls.lua:89>
+  - root_markers: tsconfig.json, jsconfig.json, package.json, .git
+
+- vimls:
+  - cmd: { "vim-language-server", "--stdio" }
+  - filetypes: vim
+  - init_options: {
+      diagnostic = {
+        enable = true
+      },
+      indexes = {
+        count = 3,
+        gap = 100,
+        projectRootPatterns = { "runtime", "nvim", ".git", "autoload", "plugin" },
+        runtimepath = true
+      },
+      isNeovim = true,
+      iskeyword = "@,48-57,_,192-255,-#",
+      runtimepath = "",
+      suggest = {
+        fromRuntimepath = true,
+        fromVimruntime = true
+      },
+      vimruntime = ""
+    }
+  - root_markers: .git
+
+- yamlls:
+  - cmd: { "yaml-language-server", "--stdio" }
+  - filetypes: yaml, yaml.docker-compose, yaml.gitlab, yaml.helm-values
+  - root_markers: .git
+  - settings: {
+      redhat = {
+        telemetry = {
+          enabled = false
+        }
+      }
+    }
+
+
+vim.lsp: File Watcher ~
+- file watching "(workspace/didChangeWatchedFiles)" disabled on all clients
+
+vim.lsp: Position Encodings ~
+- No active clients
+
+==============================================================================
+vim.provider:                                                             2 ⚠️
+
+Clipboard (optional) ~
+- ✅ OK Clipboard tool found: xsel
+
+Node.js provider (optional) ~
+- Node.js: v24.3.0
+
+- Nvim node.js host: /home/motoki/.local/share/mise/installs/node/24.3.0/lib/node_modules/neovim/bin/cli.js
+- ✅ OK Latest "neovim" npm/yarn/pnpm package is installed: 5.3.0
+
+
+Perl provider (optional) ~
+- ⚠️ WARNING "Neovim::Ext" cpan module is not installed
+  - ADVICE:
+    - See :help |provider-perl| for more information.
+    - You can disable this provider (and warning) by adding `let g:loaded_perl_provider = 0` to your init.vim
+- ⚠️ WARNING No usable perl executable found
+
+Python 3 provider (optional) ~
+- `g:python3_host_prog` is not set. Searching for python3 in the environment.
+- Executable: /home/motoki/.local/share/mise/installs/python/3.12.11/bin/python3
+- Python version: 3.12.11
+- pynvim version: 0.5.2
+- ✅ OK Latest pynvim is installed.
+
+Python virtualenv ~
+- ✅ OK no $VIRTUAL_ENV
+
+Ruby provider (optional) ~
+- Ruby: ruby 3.4.5 (2025-07-16 revision 20cda200d3) +PRISM [x86_64-linux]
+- Host: /home/motoki/.local/share/mise/installs/ruby/3.4.5/bin/neovim-ruby-host
+- ✅ OK Latest "neovim" gem is installed: 0.10.0
+
+
+==============================================================================
+vim.treesitter:                                                             ✅
+
+Treesitter features ~
+- Treesitter ABI support: min 13, max 15
+- WASM parser support: false
+
+Treesitter parsers ~
+- ✅ OK Parser: c                    ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/c.so
+- ✅ OK Parser: fish                 ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/fish.so
+- ✅ OK Parser: javascript           ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/javascript.so
+- ✅ OK Parser: lua                  ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/lua.so
+- ✅ OK Parser: lua                  ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/lua.so
+- ✅ OK Parser: markdown             ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/markdown.so
+- ✅ OK Parser: markdown             ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/markdown.so
+- ✅ OK Parser: markdown_inline      ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/markdown_inline.so
+- ✅ OK Parser: markdown_inline      ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/markdown_inline.so
+- ✅ OK Parser: python               ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/python.so
+- ✅ OK Parser: query                ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/query.so
+- ✅ OK Parser: query                ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/query.so
+- ✅ OK Parser: typescript           ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/typescript.so
+- ✅ OK Parser: vim                  ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/vim.so
+- ✅ OK Parser: vim                  ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/vim.so
+- ✅ OK Parser: vimdoc               ABI: 14, path: /home/motoki/.local/share/mise/installs/neovim/stable/nvim-linux-x86_64/lib/nvim/parser/vimdoc.so
+- ✅ OK Parser: vimdoc               ABI: 14, path: /home/motoki/.local/share/nvim/lazy/nvim-treesitter/parser/vimdoc.so
+
+==============================================================================
+which-key:                                                               15 ⚠️
+
+- ✅ OK Most of these checks are for informational purposes only.
+  WARNINGS should be treated as a warning, and don't necessarily indicate a problem with your config.
+  Please |DON'T| report these warnings as an issue.
+
+Checking your config ~
+- ⚠️ WARNING |mini.icons| is not installed
+- ✅ OK |nvim-web-devicons| is installed
+
+Checking for issues with your mappings ~
+- ✅ OK No issues reported
+
+checking for overlapping keymaps ~
+- ⚠️ WARNING In mode `n`, <<Space>t> overlaps with <<Space>th>, <<Space>tp>, <<Space>tc>, <<Space>td>, <<Space>tq>, <<Space>tm>, <<Space>tr>, <<Space>tj>, <<Space>tw>:
+  - <<Space>t>: 次のタブへ移動
+  - <<Space>th>: H auto_hover
+  - <<Space>tp>: P paste_mode
+  - <<Space>tc>: C colorizer
+  - <<Space>td>: D diagnostics
+  - <<Space>tq>: Q quickscope
+  - <<Space>tm>: M migemo
+  - <<Space>tr>: R readonly
+  - <<Space>tj>: J jump_mode
+  - <<Space>tw>: W windows_path
+- ⚠️ WARNING In mode `n`, <s?> overlaps with <s?a>, <s?c>, <s?w>:
+  - <s?>: 全キーマップのヘルプ
+  - <s?a>: Altキーのヘルプ
+  - <s?c>: Ctrlキーのヘルプ
+  - <s?w>: ウィンドウ操作のヘルプ
+- ⚠️ WARNING In mode `n`, <<F7>r> overlaps with <<F7>rm>, <<F7>rr>:
+  - <<F7>r>: REPL表示
+  - <<F7>rm>: カーソル位置まで実行
+  - <<F7>rr>: 最後の実行を再開
+- ⚠️ WARNING In mode `n`, <gc> overlaps with <gcc>:
+  - <gc>: Toggle comment
+  - <gcc>: Toggle comment line
+- ⚠️ WARNING In mode `n`, <mr> overlaps with <mrf>:
+  - <mr>: リネーム
+  - <mrf>: 参照検索
+- ⚠️ WARNING In mode `n`, <mh> overlaps with <mh[>, <mh]>:
+  - <mh>: 関数シグネチャ表示
+  - <mh[>: 前のヒントへ
+  - <mh]>: 次のヒントへ
+- ⚠️ WARNING In mode `n`, <mi> overlaps with <mi[>, <mi]>:
+  - <mi>: 実装にジャンプ
+  - <mi[>: 前の情報へ
+  - <mi]>: 次の情報へ
+- ⚠️ WARNING In mode `n`, <me> overlaps with <me[>, <me]>:
+  - <me>: 診断情報を表示
+  - <me[>: 前のエラーへ
+  - <me]>: 次のエラーへ
+- ⚠️ WARNING In mode `n`, <\\> overlaps with <\\/>, <\\A>, <\\gS>, <\\\>:
+
+- ⚠️ WARNING In mode `x`, <ic> overlaps with <icx>:
+
+- ⚠️ WARNING In mode `x`, <\\> overlaps with <\\/>, <\\f>, <\\c>, <\\a>, <\\A>:
+
+- ⚠️ WARNING In mode `o`, <ic> overlaps with <icx>:
+
+- ✅ OK Overlapping keymaps are only reported for informational purposes.
+  This doesn't necessarily mean there is a problem with your config.
+
+Checking for duplicate mappings ~
+- ⚠️ WARNING Duplicates for <<LocalLeader>k> in mode `n`:
+  * 文字列の大文字小文字変換: `{}`
+  * 文字列の大文字小文字変換: `{}`
+- ⚠️ WARNING Duplicates for <<Leader>s-> in mode `n`:
+  * 高さを縮小: `{}`
+  * 横幅を縮小: `{}`
+- ✅ OK Duplicate mappings are only reported for informational purposes.
+  This doesn't necessarily mean there is a problem with your config.
+

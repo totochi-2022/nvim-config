@@ -10,6 +10,7 @@ return {
             'nvim-telescope/telescope-file-browser.nvim',
             'LinArcX/telescope-command-palette.nvim',
             'debugloop/telescope-undo.nvim',
+            'fdschmidt93/telescope-egrepify.nvim',
         },
         config = function()
             require('telescope').setup({
@@ -44,6 +45,19 @@ return {
                         },
                         entry_format = "state #$ID, $STAT, $TIME",
                         time_format = "",
+                    },
+                    egrepify = {
+                        -- AND operator for tokens in prompt
+                        AND = true, -- default: true
+                        -- invert toggle for include/exclude operators
+                        invert = false, -- default: false
+                        -- lnum toggle for line numbers
+                        lnum = true, -- default: true
+                        -- trim toggle for leading/trailing whitespace
+                        trim = true, -- default: true
+                        -- permutations toggle for tokens in prompt
+                        permutations = false, -- default: false
+                        -- デフォルトのキーマップを使用（明示的設定を削除）
                     }
                 },
                 pickers = {
@@ -64,6 +78,7 @@ return {
             require('telescope').load_extension('file_browser')
             require('telescope').load_extension('command_palette')
             require('telescope').load_extension('undo')
+            require('telescope').load_extension('egrepify')
         end,
     },
 

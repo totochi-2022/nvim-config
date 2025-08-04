@@ -314,20 +314,21 @@ toggle.setup_prefix_mode('<LocalLeader>0', {
 })
 
 -- 追加のプレフィックスモード（カテゴリ別）
-toggle.setup_prefix_mode('<LocalLeader>t', {
-    d = 'diagnostics',
-    h = 'auto_hover',
-    r = 'readonly',
-    p = 'paste_mode',
-    c = 'colorizer',
-    m = 'migemo',
-    q = 'quickscope',
-    j = 'jump_mode',
-    w = 'windows_path',
-}, {
-    title = '🎛️ All Toggles',
-    persistent = true
-})
+-- <LocalLeader>tは翻訳機能で使用するためコメントアウト
+-- toggle.setup_prefix_mode('<LocalLeader>t', {
+--     d = 'diagnostics',
+--     h = 'auto_hover',
+--     r = 'readonly',
+--     p = 'paste_mode',
+--     c = 'colorizer',
+--     m = 'migemo',
+--     q = 'quickscope',
+--     j = 'jump_mode',
+--     w = 'windows_path',
+-- }, {
+--     title = '🎛️ All Toggles',
+--     persistent = true
+-- })
 
 -- lualine用のセレクターをセットアップ
 local lualine_selector = toggle.setup_lualine_selector()

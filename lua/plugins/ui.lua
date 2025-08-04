@@ -144,6 +144,8 @@ return {
                     { "s", mode = { "n", "v" } },     -- リーダーキー
                     { "<space>", mode = { "n", "v" } }, -- ローカルリーダー
                     { "m", mode = { "n", "v" } },     -- LSP用
+                    { "<C-", mode = { "n", "v" } },   -- Ctrlキー
+                    { "<M-", mode = { "n", "v" } },   -- Alt/Metaキー
                 },
             })
         end,
