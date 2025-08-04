@@ -228,8 +228,8 @@ minor_mode.create('ModeExpandRegion', '<LocalLeader>', 'x').set_multi({
 })
 
 -- 翻訳
-keymap('x', '<LocalLeader>t', ':Translate<CR>', { noremap = true, desc = '選択テキストを翻訳' })
-keymap('n', '<LocalLeader>t', ':Translate<CR>', { noremap = true, desc = 'カーソル下の単語を翻訳' })
+keymap('x', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '選択テキストを翻訳' })
+keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = 'カーソル下の単語を翻訳' })
 
 -- EasyAlign
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })

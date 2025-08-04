@@ -287,11 +287,12 @@ return {
                     },
                 },
             })
-        end
+        end,
     },
 
-    -- 翻訳
-    { "skanehira/denops-translate.vim" },
+    -- 翻訳（denops必須）
+    { "vim-denops/denops.vim" },
+    { "skanehira/denops-translate.vim", dependencies = { "vim-denops/denops.vim" } },
 
     -- ブラウザ
     { "tyru/open-browser.vim" },
