@@ -406,7 +406,7 @@ toggle.setup_prefix_mode('<LocalLeader>0', {
     j = 'jump_mode',
     w = 'windows_path',
     n = 'noice_cmdline', -- Noice コマンドライントグル
-    l = 'lsp_progress',  -- LSP進捗表示トグル
+    i = 'lsp_progress',  -- LSP進捗表示トグル（lからiに変更）
 }, {
     title = '🔀 Toggle Mode',
     persistent = true,
