@@ -76,6 +76,7 @@ function M.define_mode(config)
     local exit_keys = options.exit_keys or { '<Esc>', 'q' } -- デフォルトで q と Esc
     local use_desc = options.use_desc ~= false              -- デフォルトtrue
     local show_help_key = options.show_help_key or '?'      -- デフォルトで ? でヘルプ
+    local change_timeout = options.change_timeout ~= false  -- デフォルトtrue（後方互換性のため）
 
     -- <Plug>マッピング名を生成
     -- pending: モード継続用、before_hook: モード開始用、after_hook: モード終了用
@@ -92,8 +93,10 @@ function M.define_mode(config)
     -- モード開始/終了フックの設定
     -- タイムアウト値を変更してキー入力待ち時間を延長
     local enter_hook_with_timeout = function()
-        timeoutlen = vim.opt.timeoutlen
-        vim.opt.timeoutlen = 10000
+        if change_timeout then
+            timeoutlen = vim.opt.timeoutlen
+            vim.opt.timeoutlen = 10000
+        end
         print("-- MODE:" .. namespace .. " --")
         -- ユーザー定義のenter_hookがあれば実行
         if hooks.enter then
@@ -102,7 +105,9 @@ function M.define_mode(config)
     end
 
     local exit_hook_with_timeout = function()
-        vim.opt.timeoutlen = timeoutlen
+        if change_timeout then
+            vim.opt.timeoutlen = timeoutlen
+        end
         print("exit minor mode")
         -- ユーザー定義のexit_hookがあれば実行
         if hooks.exit then
