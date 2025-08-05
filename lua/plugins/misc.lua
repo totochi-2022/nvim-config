@@ -261,9 +261,10 @@ return {
     -- コマンド出力キャプチャ
     { "tyru/capture.vim" },
 
-    -- コマンドライン改良
+    -- コマンドライン改良（noice.nvimに置き換えのため無効化）
     {
         "VonHeikemen/fine-cmdline.nvim",
+        enabled = false,  -- noice.nvimと競合するため無効化
         dependencies = {
             "MunifTanjim/nui.nvim"
         },

@@ -298,6 +298,99 @@ toggle.define_toggles({
                 vim.keymap.set('n', '<C-i>', ':FileJumpForward<CR>', { noremap = true })
             end
         }
+    },
+    
+    -- Noice コマンドライン トグル
+    {
+        name = 'noice_cmdline',
+        type = 'boolean',
+        initial_state = true,
+        desc = 'Noice コマンドライン トグル',
+        icons = { 'C', 'C' },
+        colors = { 'NonText', 'Visual' },
+        callbacks = {
+            function()
+                -- コマンドライン無効化
+                local ok, noice = pcall(require, 'noice')
+                if ok then
+                    require('noice.config').options.cmdline.enabled = false
+                    vim.notify("Noice コマンドライン無効化", vim.log.levels.INFO)
+                end
+            end,
+            function()
+                -- コマンドライン有効化
+                local ok, noice = pcall(require, 'noice')
+                if ok then
+                    require('noice.config').options.cmdline.enabled = true
+                    vim.notify("Noice コマンドライン有効化", vim.log.levels.INFO)
+                end
+            end
+        }
+    },
+    
+    -- LSP進捗表示トグル（2段階切り替え）
+    {
+        name = 'lsp_progress',
+        type = 'boolean',
+        initial_state = true,
+        desc = 'LSP進捗表示トグル',
+        icons = { 'L', 'L' },
+        colors = { 'NonText', 'Visual' },
+        messages = {
+            '下部通知のみ（LSP進捗無効）',
+            '上部通知＋下部LSP進捗（デフォルト）'
+        },
+        callbacks = {
+            -- LSP進捗無効化（下部通知のみ）
+            function()
+                local ok, noice = pcall(require, 'noice')
+                if ok then
+                    require('noice.config').options.lsp.progress.enabled = false
+                    -- 通知を下部表示に変更
+                    require("notify").setup({
+                        top_down = false,  -- 下から上に表示
+                        timeout = 3000,
+                        render = "wrapped-compact",
+                        max_width = function() 
+                            return math.min(math.floor(vim.o.columns * 0.4), 50)
+                        end,
+                        max_height = 10,
+                        wrap = true,
+                        level_timeout = {
+                            [vim.log.levels.ERROR] = 5000,
+                            [vim.log.levels.WARN] = 4000,  
+                            [vim.log.levels.INFO] = 3000,
+                        },
+                    })
+                    vim.notify("下部通知のみ", vim.log.levels.INFO)
+                end
+            end,
+            -- LSP進捗有効化（上部通知＋下部LSP進捗・デフォルト）
+            function()
+                local ok, noice = pcall(require, 'noice')
+                if ok then
+                    require('noice.config').options.lsp.progress.enabled = true
+                    require('noice.config').options.lsp.progress.view = "mini"
+                    -- 通知を上部表示に変更
+                    require("notify").setup({
+                        top_down = true,  -- 上から下に表示
+                        timeout = 3000,
+                        render = "wrapped-compact",
+                        max_width = function() 
+                            return math.min(math.floor(vim.o.columns * 0.4), 50)
+                        end,
+                        max_height = 10,
+                        wrap = true,
+                        level_timeout = {
+                            [vim.log.levels.ERROR] = 5000,
+                            [vim.log.levels.WARN] = 4000,  
+                            [vim.log.levels.INFO] = 3000,
+                        },
+                    })
+                    vim.notify("上部通知＋下部LSP進捗", vim.log.levels.INFO)
+                end
+            end
+        }
     }
 })
 
@@ -312,6 +405,8 @@ toggle.setup_prefix_mode('<LocalLeader>0', {
     q = 'quickscope',
     j = 'jump_mode',
     w = 'windows_path',
+    n = 'noice_cmdline', -- Noice コマンドライントグル
+    l = 'lsp_progress',  -- LSP進捗表示トグル
 }, {
     title = '🔀 Toggle Mode',
     persistent = true,

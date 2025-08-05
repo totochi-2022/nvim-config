@@ -512,6 +512,23 @@ keymap('n', '<LocalLeader>0s', '<cmd>lua require("rc.toggle").save_states()<CR>'
 keymap('n', '<LocalLeader>0o', '<cmd>lua require("rc.toggle").load_states()<CR>', { noremap = true, desc = 'トグル状態読み込み' })
 -- }}}
 
+--- Noice.nvim キーマップ{{{
+-- コマンドライン
+keymap('', ';', ':', { noremap = true, desc = 'コマンドラインモード' })
+keymap('n', '<LocalLeader>nn', '<cmd>Noice<CR>', { noremap = true, desc = 'Noice メイン画面' })
+keymap('n', '<LocalLeader>nl', '<cmd>lua require("noice").cmd("last")<CR>', { noremap = true, desc = '最後のメッセージ表示' })
+keymap('n', '<LocalLeader>nh', '<cmd>lua require("noice").cmd("history")<CR>', { noremap = true, desc = 'メッセージ履歴' })
+keymap('n', '<LocalLeader>nd', '<cmd>lua require("noice").cmd("dismiss")<CR>', { noremap = true, desc = '通知を消す' })
+keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { noremap = true, desc = 'エラーメッセージ' })
+
+-- }}}
+
+--- Dropbar.nvim キーマップ{{{
+-- ドロップバーの選択
+keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })
+-- }}}
+
+
 -- ナビゲーション
 keymap('n', '<C-,>', '<Plug>(milfeulle-prev)', { noremap = true, desc = '前の位置に移動' })
 keymap('n', '<C-.>', '<Plug>(milfeulle-next)', { noremap = true, desc = '次の位置に移動' })

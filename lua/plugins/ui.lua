@@ -114,10 +114,10 @@ return {
         "nvim-lualine/lualine.nvim",
         dependencies = {
             'nvim-tree/nvim-web-devicons',
-            'j-hui/fidget.nvim',
+            -- 'j-hui/fidget.nvim',  -- noice.nvimのLSP進捗表示を使うため無効化
         },
         config = function()
-            require('fidget').setup {}
+            -- require('fidget').setup {}  -- noice.nvimのLSP進捗表示を使うため無効化
             require('lualine').setup {
                 options = {
                     disabled_filetypes = {
@@ -266,10 +266,10 @@ return {
         end,
     },
 
-    -- パンくずリスト（breadcrumb）（fine-cmdlineと競合するため無効化）
+    -- パンくずリスト（breadcrumb）（noice.nvimと競合するため無効化）
     {
         'Bekaboo/dropbar.nvim',
-        enabled = false,  -- fine-cmdlineと競合するため無効化
+        enabled = false,  -- noice.nvimと競合するため無効化
         dependencies = {
             'nvim-telescope/telescope.nvim'
         },
@@ -292,6 +292,7 @@ return {
                         'help', 'alpha', 'dashboard', 'neo-tree', 'Trouble', 'lazy',
                         'mason', 'notify', 'toggleterm', 'lazyterm', 'oil',
                         'prompt', 'TelescopePrompt', 'FineCmdlinePrompt', 'cmdline',
+                        'noice',  -- noice関連を追加
                         ''  -- 空のfiletypeも除外
                     }
                     
@@ -340,11 +341,10 @@ return {
                     keymaps = {
                         ['<LeftMouse>'] = function()
                             local menu = require('dropbar.menu')
-                            local utils = require('dropbar.utils')
                             if menu.current then
                                 menu.current:close()
                             end
-                            utils.bar.pick()
+                            require('dropbar.api').pick()
                         end,
                         ['q'] = function()
                             local menu = require('dropbar.menu')
@@ -534,6 +534,155 @@ return {
                     ale = false, -- Requires ALE
                 },
             })
+        end,
+    },
+
+    -- 通知・コマンドライン・メッセージUI
+    {
+        "folke/noice.nvim",
+        event = "VeryLazy",
+        dependencies = {
+            "MunifTanjim/nui.nvim",
+            "rcarriga/nvim-notify",
+        },
+        config = function()
+            require("noice").setup({
+                -- LSP設定（進捗表示を有効化）
+                lsp = {
+                    progress = {
+                        enabled = true,
+                        view = "mini",  -- LSP進捗はminiのまま
+                    },
+                },
+                -- コマンドライン設定（有効化）
+                cmdline = {
+                    enabled = true,
+                    view = "cmdline_popup",
+                },
+                -- メッセージ設定（有効化）
+                messages = {
+                    enabled = true,
+                    view = "notify",  -- 通知で表示
+                    view_error = "notify",  -- エラーのみ通知
+                    view_warn = "notify",   -- 警告のみ通知
+                    view_history = "messages",  -- :messagesで履歴表示
+                },
+                -- ポップアップメニューも最小限に
+                popupmenu = {
+                    enabled = false,  -- まずは無効化
+                },
+                -- 通知は有効化
+                notify = {
+                    enabled = true,
+                    view = "notify",
+                },
+                -- プリセットは使わない（最小限のため）
+                presets = {
+                    bottom_search = false,
+                    command_palette = false,
+                    long_message_to_split = false,
+                    inc_rename = false,
+                    lsp_doc_border = false,
+                },
+                -- ルート設定（メッセージ表示の振り分け）
+                routes = {
+                    -- 「空間がない」系のエラーを無視
+                    {
+                        filter = {
+                            event = "msg_show",
+                            kind = "emsg",  -- エラーメッセージ
+                            any = {
+                                { find = "Not enough space" },
+                                { find = "E36:" },  -- Vim error code for "Not enough room"
+                                { find = "not enough space" },
+                            },
+                        },
+                        opts = { skip = true },  -- 完全に無視
+                    },
+                    -- 一般的な出力メッセージは通知で表示（Outputラベル付き）
+                    {
+                        filter = {
+                            event = "msg_show",
+                            kind = "",  -- 通常のメッセージ
+                        },
+                        view = "notify",
+                        opts = {
+                            timeout = 5000,  -- 5秒
+                            title = "Command Buffer",  -- タイトルをCommand Bufferに
+                            icon = "",  -- ターミナルアイコン
+                        },
+                    },
+                    -- エラー・警告は通知で表示（デフォルトのタイトル）
+                    {
+                        filter = {
+                            event = "msg_show",
+                            kind = {"error", "warn"},
+                        },
+                        view = "notify",
+                    },
+                },
+                -- ビューの設定（カーソル位置基準）
+                views = {
+                    cmdline_popup = {
+                        relative = "cursor",  -- カーソル位置基準
+                        position = {
+                            row = 3,   -- カーソルの3行下
+                            col = 5,   -- カーソルから右に5列
+                        },
+                        size = {
+                            width = 60,  -- 固定幅60文字
+                            height = "auto",
+                        },
+                        border = {
+                            style = "rounded",
+                        },
+                        win_options = {
+                            winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
+                        },
+                    },
+                    -- LSP進捗表示の位置調整
+                    mini = {
+                        position = {
+                            row = -2,  -- 画面下から2行上（lualineの上）
+                            col = "100%",  -- 右端
+                        },
+                        size = {
+                            width = "auto",
+                            height = "auto",
+                        },
+                        border = {
+                            style = "none",  -- ボーダーなし
+                        },
+                        win_options = {
+                            winblend = 10,  -- 少し透明に
+                        },
+                    },
+                },
+            })
+            
+            -- nvim-notifyの基本設定
+            require("notify").setup({
+                stages = "fade_in_slide_out",
+                timeout = 3000,  -- デフォルトタイムアウト
+                render = "wrapped-compact",  -- wrapped-compactで改行対応
+                max_width = function() 
+                    -- 画面幅の40%と50文字の小さい方
+                    return math.min(math.floor(vim.o.columns * 0.4), 50)
+                end,
+                max_height = 10,  -- 最大10行
+                wrap = true,  -- テキストの折り返しを有効
+                -- レベル別タイムアウト設定
+                level_timeout = {
+                    [vim.log.levels.ERROR] = 5000,  -- エラーは5秒
+                    [vim.log.levels.WARN] = 4000,   -- 警告は4秒  
+                    [vim.log.levels.INFO] = 3000,   -- 情報は3秒
+                },
+                -- 通知位置を画面上部に設定（デフォルト）
+                top_down = true,  -- 上から下に表示
+            })
+            
+            -- vim.notifyをnvim-notifyで置き換え
+            vim.notify = require("notify")
         end,
     },
 
