@@ -140,7 +140,7 @@ return {
                         'encoding',
                         'fileformat',
                         'filetype',
-                        -- Toggle状態表示
+                        -- Toggle状態表示（mainブランチ方式）
                         {
                             function()
                                 local ok, toggle = pcall(require, 'rc.toggle')

@@ -289,7 +289,7 @@ function M.setup()
     end
 end
 
--- lualine用コンポーネント
+-- lualine用コンポーネント（色付きテキストを返す）
 function M.get_lualine_component()
     return function()
         local toggle_defs = require('22_toggle')
@@ -309,6 +309,7 @@ function M.get_lualine_component()
             local current_state = def.get_state()
             local state_index = 1
             
+            -- 現在の状態のインデックスを取得
             for i, state in ipairs(def.states) do
                 if state == current_state then
                     state_index = i
@@ -316,11 +317,16 @@ function M.get_lualine_component()
                 end
             end
             
-            local display_text = string.upper(key)
-            table.insert(parts, display_text)
+            -- 状態に応じた色を取得
+            local color_name = def.colors[state_index] or 'Normal'
+            local text = string.upper(key)
+            
+            -- mainブランチ方式：%#ハイライトグループ#テキスト%#Normal#
+            local colored_text = string.format('%%#%s#%s%%#Normal#', color_name, text)
+            table.insert(parts, colored_text)
         end
         
-        return table.concat(parts) -- 括弧無しで連結
+        return table.concat(parts, '') -- スペースなしで連結
     end
 end
 
@@ -332,9 +338,8 @@ function M.debug_lualine()
     end
     
     print("\n=== Component Output ===")
-    local component_fn = M.get_lualine_component()
-    local result = component_fn()
-    print("Result:", vim.inspect(result))
+    local components = M.get_lualine_components()
+    print("Components:", vim.inspect(components))
 end
 
 return M

@@ -19,11 +19,43 @@
 
 local M = {}
 
+-- カスタムハイライトグループを作成
+local function create_toggle_highlights()
+    local color_mappings = {
+        DiagnosticError = 'ToggleError',
+        DiagnosticWarn = 'ToggleWarn', 
+        DiagnosticInfo = 'ToggleInfo',
+        DiagnosticHint = 'ToggleHint',
+        MoreMsg = 'ToggleGreen',
+        NonText = 'ToggleGray',
+        Visual = 'ToggleVisual',
+    }
+    
+    for original, custom in pairs(color_mappings) do
+        local hl = vim.api.nvim_get_hl(0, { name = original })
+        vim.api.nvim_set_hl(0, custom, {
+            fg = '#000000',  -- 黒文字
+            bg = hl.fg or hl.bg or '#808080',  -- 元の前景色を背景に
+            bold = true
+        })
+    end
+end
+
+-- 初期化時にハイライトグループを作成
+vim.defer_fn(create_toggle_highlights, 100)
+
+-- カラースキーム変更時にもハイライトグループを再作成
+vim.api.nvim_create_autocmd('ColorScheme', {
+    callback = function()
+        vim.defer_fn(create_toggle_highlights, 50)
+    end
+})
+
 M.definitions = {
     d = {  -- キー = D (diagnostics)
         name = 'diagnostics',
         states = {'cursor_only', 'full_with_underline', 'signs_only'},
-        colors = {'DiagnosticHint', 'DiagnosticWarn', 'DiagnosticError'},
+        colors = {'ToggleHint', 'ToggleWarn', 'ToggleError'},
         default_state = 'cursor_only',
         desc = '診断表示モード',
         get_state = function()
@@ -85,7 +117,7 @@ M.definitions = {
     r = {  -- キー = R (readonly)
         name = 'readonly',
         states = {'off', 'on'},
-        colors = {'NonText', 'Visual'},
+        colors = {'ToggleGray', 'ToggleVisual'},
         default_state = 'off',
         desc = '読み取り専用モード',
         get_state = function() 
@@ -99,7 +131,7 @@ M.definitions = {
     p = {  -- キー = P (paste_mode)
         name = 'paste_mode',
         states = {'off', 'on'},
-        colors = {'NonText', 'Visual'},
+        colors = {'ToggleGray', 'ToggleVisual'},
         default_state = 'off',
         desc = 'ペーストモード',
         get_state = function() 
@@ -113,7 +145,7 @@ M.definitions = {
     h = {  -- キー = H (auto_hover)
         name = 'auto_hover',
         states = {'off', 'on'},
-        colors = {'NonText', 'MoreMsg'},
+        colors = {'ToggleGray', 'ToggleGreen'},
         default_state = 'off',
         desc = '自動ホバー表示',
         get_state = function() 
@@ -137,7 +169,7 @@ M.definitions = {
     c = {  -- キー = C (colorizer)
         name = 'colorizer',
         states = {'off', 'on'},
-        colors = {'NonText', 'DiagnosticInfo'},
+        colors = {'ToggleGray', 'ToggleInfo'},
         default_state = 'on',
         desc = 'カラー表示',
         get_state = function()
@@ -180,7 +212,7 @@ M.definitions = {
     m = {  -- キー = M (migemo)
         name = 'migemo',
         states = {'off', 'on'},
-        colors = {'NonText', 'DiagnosticWarn'},
+        colors = {'ToggleGray', 'ToggleWarn'},
         default_state = 'off',
         desc = 'Migemo検索',
         get_state = function()
@@ -204,7 +236,7 @@ M.definitions = {
     t = {  -- キー = T (quickscope) - qから変更
         name = 'quickscope',
         states = {'off', 'on'},
-        colors = {'NonText', 'Visual'},
+        colors = {'ToggleGray', 'ToggleVisual'},
         default_state = 'on',
         desc = 'QuickScope',
         get_state = function()
@@ -220,7 +252,7 @@ M.definitions = {
     j = {  -- キー = J (jump_mode)
         name = 'jump_mode',
         states = {'global', 'file_local'},
-        colors = {'DiagnosticInfo', 'MoreMsg'},
+        colors = {'ToggleInfo', 'ToggleGreen'},
         default_state = 'file_local',
         desc = 'ジャンプモード',
         get_state = function()
@@ -242,7 +274,7 @@ M.definitions = {
     w = {  -- キー = W (windows_path)
         name = 'windows_path',
         states = {'off', 'on'},
-        colors = {'NonText', 'DiagnosticWarn'},
+        colors = {'ToggleGray', 'ToggleWarn'},
         default_state = 'off',
         desc = 'Windowsパス変換',
         get_state = function()
@@ -278,7 +310,7 @@ M.definitions = {
     n = {  -- キー = N (noice_cmdline)
         name = 'noice_cmdline',
         states = {'off', 'on'},
-        colors = {'NonText', 'DiagnosticInfo'},
+        colors = {'ToggleGray', 'ToggleInfo'},
         default_state = 'on',
         desc = 'Noiceコマンドライン',
         get_state = function()
@@ -305,7 +337,7 @@ M.definitions = {
     i = {  -- キー = I (lsp_progress)
         name = 'lsp_progress',
         states = {'off', 'on'},
-        colors = {'NonText', 'DiagnosticInfo'},
+        colors = {'ToggleGray', 'ToggleInfo'},
         default_state = 'on',
         desc = 'LSP進捗表示',
         get_state = function()

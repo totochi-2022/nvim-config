@@ -34,7 +34,7 @@ end
 
 function RandomScheme(silent)
     -- Colorschemes変数の存在確認
-    if not Colorschemes or #Colorschemes == 0 then
+    if not Colorschemes or type(Colorschemes) ~= 'table' or #Colorschemes == 0 then
         if not silent then
             print("Error: No colorschemes available!")
         end

@@ -8,7 +8,7 @@ toggle.setup({
     save_state = true,
     restore_state = true,
     persist_file = vim.fn.stdpath('config') .. '/data/setting/toggle/states.json',
-    
+
     -- アイコン設定
     icons = {
         boolean = { '❌', '✅' },
@@ -103,7 +103,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     -- 自動ホバートグル（既存のToggleAutoHoverを置き換え）
     {
         name = 'auto_hover',
@@ -128,7 +128,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     -- Windowsパス変換トグル（既存のToggleAutoWindowsPathModeを置き換え）
     {
         name = 'windows_path',
@@ -151,15 +151,15 @@ toggle.define_toggles({
             function()
                 vim.g.auto_windows_path_mode = true
                 -- autocmdを作成
-                vim.g.auto_path_autocmd_id = vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+                vim.g.auto_path_autocmd_id = vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
                     callback = function()
                         local line = vim.api.nvim_get_current_line()
-                        
+
                         -- 空行や改行を含む行は無視
                         if line == "" or line:find('\n') then
                             return
                         end
-                        
+
                         -- Windowsパスかどうかチェック（関数は03_function.luaで定義済み）
                         if IsWindowsPath and IsWindowsPath(line) then
                             local converted_path = ConvertWindowsPath and ConvertWindowsPath(line)
@@ -174,7 +174,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     -- Vimオプション系トグル
     {
         name = 'readonly',
@@ -185,7 +185,7 @@ toggle.define_toggles({
         icons = { 'R', 'R' },
         colors = { 'NonText', 'Visual' }
     },
-    
+
     {
         name = 'paste_mode',
         type = 'vim_option',
@@ -195,7 +195,7 @@ toggle.define_toggles({
         icons = { 'P', 'P' },
         colors = { 'NonText', 'Visual' }
     },
-    
+
     -- プラグイン系トグル（コマンド実行タイプ）
     {
         name = 'colorizer',
@@ -205,16 +205,16 @@ toggle.define_toggles({
         desc = 'カラー表示トグル',
         icons = { 'C', 'C' },
         colors = { 'NonText', 'Visual' },
-        skip_initial_callback = true,  -- 初期化時はコールバック実行をスキップ
+        skip_initial_callback = true, -- 初期化時はコールバック実行をスキップ
         callbacks = {
-            function() 
+            function()
                 if vim.fn.exists(':ColorizerDetachFromBuffer') == 2 then
                     vim.cmd('ColorizerDetachFromBuffer')
                 elseif vim.fn.exists(':ColorizerToggle') == 2 then
                     vim.cmd('ColorizerToggle')
                 end
             end,
-            function() 
+            function()
                 if vim.fn.exists(':ColorizerAttachToBuffer') == 2 then
                     vim.cmd('ColorizerAttachToBuffer')
                 elseif vim.fn.exists(':ColorizerToggle') == 2 then
@@ -223,7 +223,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     {
         name = 'migemo',
         type = 'boolean',
@@ -250,7 +250,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     {
         name = 'quickscope',
         type = 'boolean',
@@ -261,19 +261,19 @@ toggle.define_toggles({
         colors = { 'NonText', 'Visual' },
         skip_initial_callback = true,
         callbacks = {
-            function() 
+            function()
                 if vim.fn.exists(':QuickScopeToggle') == 2 then
                     vim.cmd('QuickScopeToggle')
                 end
             end,
-            function() 
+            function()
                 if vim.fn.exists(':QuickScopeToggle') == 2 then
                     vim.cmd('QuickScopeToggle')
                 end
             end
         }
     },
-    
+
     {
         name = 'jump_mode',
         type = 'boolean',
@@ -299,7 +299,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     -- Noice コマンドライン トグル
     {
         name = 'noice_cmdline',
@@ -327,7 +327,7 @@ toggle.define_toggles({
             end
         }
     },
-    
+
     -- LSP進捗表示トグル（2段階切り替え）
     {
         name = 'lsp_progress',
@@ -348,17 +348,17 @@ toggle.define_toggles({
                     require('noice.config').options.lsp.progress.enabled = false
                     -- 通知を下部表示に変更
                     require("notify").setup({
-                        top_down = false,  -- 下から上に表示
+                        top_down = false, -- 下から上に表示
                         timeout = 3000,
                         render = "wrapped-compact",
-                        max_width = function() 
+                        max_width = function()
                             return math.min(math.floor(vim.o.columns * 0.4), 50)
                         end,
                         max_height = 10,
                         wrap = true,
                         level_timeout = {
                             [vim.log.levels.ERROR] = 5000,
-                            [vim.log.levels.WARN] = 4000,  
+                            [vim.log.levels.WARN] = 4000,
                             [vim.log.levels.INFO] = 3000,
                         },
                     })
@@ -373,17 +373,17 @@ toggle.define_toggles({
                     require('noice.config').options.lsp.progress.view = "mini"
                     -- 通知を上部表示に変更
                     require("notify").setup({
-                        top_down = true,  -- 上から下に表示
+                        top_down = true, -- 上から下に表示
                         timeout = 3000,
                         render = "wrapped-compact",
-                        max_width = function() 
+                        max_width = function()
                             return math.min(math.floor(vim.o.columns * 0.4), 50)
                         end,
                         max_height = 10,
                         wrap = true,
                         level_timeout = {
                             [vim.log.levels.ERROR] = 5000,
-                            [vim.log.levels.WARN] = 4000,  
+                            [vim.log.levels.WARN] = 4000,
                             [vim.log.levels.INFO] = 3000,
                         },
                     })
@@ -394,26 +394,49 @@ toggle.define_toggles({
     }
 })
 
--- プレフィックスモード設定（診断トグル復活）
-toggle.setup_prefix_mode('<LocalLeader>0', {
-    d = 'diagnostics',  -- 診断表示トグル復活
-    r = 'readonly',
-    p = 'paste_mode',
-    h = 'auto_hover',
-    c = 'colorizer',
-    m = 'migemo',
-    q = 'quickscope',
-    j = 'jump_mode',
-    w = 'windows_path',
-    n = 'noice_cmdline', -- Noice コマンドライントグル
-    i = 'lsp_progress',  -- LSP進捗表示トグル（lからiに変更）
-}, {
-    title = '🔀 Toggle Mode',
-    persistent = true,
-    show_current_state = true,
-    show_icons = true,
-    footer = 'ESC: exit, 連続切り替え可能'
-})
+-- プレフィックスモード設定（動的マッピング対応）
+local function setup_dynamic_prefix_mode()
+    local selector = toggle.setup_prefix_mapping_selector('<LocalLeader>0')
+    local saved_mappings = selector.load_mappings()
+
+    -- 保存されたマッピングがある場合はそれを使用、なければデフォルト
+    local mappings = saved_mappings or {
+        d = 'diagnostics', -- 診断表示トグル復活
+        r = 'readonly',
+        p = 'paste_mode',
+        h = 'auto_hover',
+        c = 'colorizer',
+        m = 'migemo',
+        q = 'quickscope',
+        j = 'jump_mode',
+        w = 'windows_path',
+        n = 'noice_cmdline', -- Noice コマンドライントグル
+        i = 'lsp_progress',  -- LSP進捗表示トグル（lからiに変更）
+    }
+
+    -- 逆マッピング（トグル名→キー）を作成してマッピング情報を表示
+    local reverse_mappings = {}
+    for key, toggle_name in pairs(mappings) do
+        reverse_mappings[toggle_name] = key
+    end
+
+    toggle.setup_prefix_mode('<LocalLeader>0', mappings, {
+        title = '🔀 Toggle Mode',
+        persistent = true,
+        show_current_state = true,
+        show_icons = true,
+        footer = 'ESC: exit, 連続切り替え可能, C=config mappings'
+    })
+
+    -- マッピング設定用のキーを追加
+    vim.defer_fn(function()
+        vim.keymap.set('n', '<LocalLeader>0C', '<cmd>ToggleMappingConfig<CR>',
+            { noremap = true, desc = 'トグルキーマッピング設定' })
+    end, 100)
+end
+
+-- 動的プレフィックスモードを設定
+setup_dynamic_prefix_mode()
 
 -- lualine用のセレクターをセットアップ
 local lualine_selector = toggle.setup_lualine_selector()
@@ -422,3 +445,4 @@ local lualine_selector = toggle.setup_lualine_selector()
 toggle.lualine_component = lualine_selector.get_component()
 
 return toggle
+
