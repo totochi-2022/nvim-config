@@ -23,6 +23,9 @@ require '15_dap'
 -- 21_Keymap.lua
 require '21_keymap'
 
+-- 22_toggle.lua (新トグルシステム)
+require '22_toggle'
+
 -- 31_startup.lua (最終起動処理)
 require '31_startup'
 

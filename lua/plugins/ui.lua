@@ -140,13 +140,15 @@ return {
                         'encoding',
                         'fileformat',
                         'filetype',
-                        -- Toggle状態を表示（OFF時は背景色ベース、ON時はVisual色）
+                        -- Toggle状態表示
                         {
                             function()
-                                -- toggle_configが読み込まれているかチェック
-                                local ok, toggle = pcall(require, '12_toggle')
-                                if ok and toggle.lualine_component then
-                                    return toggle.lualine_component()
+                                local ok, toggle = pcall(require, 'rc.toggle')
+                                if ok and toggle.get_lualine_component then
+                                    local component_fn = toggle.get_lualine_component()
+                                    if type(component_fn) == 'function' then
+                                        return component_fn() or ''
+                                    end
                                 end
                                 return ''
                             end,
@@ -176,6 +178,10 @@ return {
                 preset = "classic",
                 delay = 300,
                 -- spec = require("plugins.which-key-spec"), -- 一時的に無効化
+                spec = {
+                    { "<space>0", function() require("rc.toggle").show_toggle_menu() end, desc = "トグルメニュー", mode = "n" },
+                    { "<space>0d", function() require("rc.toggle").debug_lualine() end, desc = "トグルlualineデバッグ", mode = "n" },
+                },
                 triggers = {
                     { "<auto>", mode = "nxsotc" },
                     { "s", mode = { "n", "v" } },     -- リーダーキー

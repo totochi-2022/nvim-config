@@ -9,15 +9,6 @@ local minor_mode = require('rc/minor_mode')
 
 -- 21_keymap.luaファイルの先頭付近に追加
 local notify_level = vim.log.levels.WARN
--- vim.notify = function(msg, level, opts)
---     -- which-keyの特定のワーニングメッセージをフィルタリング
---     if level == notify_level and msg:match("which%-key") then
---         return
---     end
---     -- 元の通知関数を呼び出す
---     require("vim.notify")(msg, level, opts)
--- end
-
 
 --- initialize{{{
 -- keymap('', 's', '', noremap)  -- which-keyで管理するのでコメントアウト
@@ -249,7 +240,7 @@ minor_mode.define_mode({
         { key = 'k', action = '<Plug>(expand_region_shrink)', desc = '選択範囲を狭める' },
     },
     options = {
-        mode = {'n', 'x'}  -- ノーマルモードとビジュアルモード対応
+        mode = { 'n', 'x' } -- ノーマルモードとビジュアルモード対応
     }
 })
 
@@ -388,70 +379,6 @@ keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc 
 -- エラージャンプモード（新しいdefine_complete_mode使用）
 local minor_mode = require('rc/minor_mode')
 
--- フック関数：モード開始時に全エラー表示に切り替え
-local function diag_mode_enter()
-    vim.diagnostic.config({
-        virtual_text = {
-            prefix = "●",
-            source = "if_many",
-            spacing = 2,
-        },
-        signs = true,
-        underline = true,
-        update_in_insert = false,
-        severity_sort = true,
-    })
-    -- tiny-inline-diagnosticを無効化
-    local ok, tiny = pcall(require, "tiny-inline-diagnostic")
-    if ok then
-        tiny.disable()
-    end
-    print("-- DIAGNOSTIC MODE: 全エラー表示 --")
-end
-
--- フック関数：モード終了時に元の表示に戻す
-local function diag_mode_exit()
-    -- トグル設定を復元（単純に診断トグルの現在状態を再適用）
-    local ok, toggle = pcall(require, '12_toggle')
-    if ok and toggle then
-        -- 現在の診断トグル状態を取得
-        local current_state = toggle.get_state('diagnostics')
-        if current_state then
-            -- 状態に応じて適切な診断設定を復元
-            if current_state == 'cursor_only' then
-                -- tiny-inline-diagnosticに戻す
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,
-                    underline = false,
-                    update_in_insert = false,
-                    severity_sort = true,
-                })
-                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-                if tiny_ok then
-                    tiny.enable()
-                end
-            elseif current_state == 'full_with_underline' then
-                -- 全表示（既に設定済みなので何もしない）
-            elseif current_state == 'signs_only' then
-                -- サインのみに戻す
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,
-                    underline = false,
-                    update_in_insert = false,
-                    severity_sort = true,
-                })
-                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-                if tiny_ok then
-                    tiny.disable()
-                end
-            end
-        end
-    end
-    print("診断表示を元に戻しました")
-end
-
 -- 新しいdefine_modeを使用
 minor_mode.define_mode({
     namespace = 'DIAGNOSTIC',
@@ -472,8 +399,8 @@ minor_mode.define_mode({
         { key = '.', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', desc = '次のHINT' },
     },
     hooks = {
-        enter = diag_mode_enter,
-        exit = diag_mode_exit
+        enter = DiagModeEnter,  -- 03_function.luaで定義されたグローバル関数を参照
+        exit = DiagModeExit     -- 03_function.luaで定義されたグローバル関数を参照
     },
     options = {
         persistent = true
@@ -505,11 +432,13 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 -- Load toggle configuration (automatically registers minor_mode mappings)
 -- require('12_toggle') -- 番号順で自動読み込みされるのでコメントアウト
 
--- 追加の管理機能キーマップ
-keymap('n', '<LocalLeader>0l', '<cmd>lua require("rc.toggle").list_toggles()<CR>', { noremap = true, desc = 'トグル一覧表示' })
-keymap('n', '<LocalLeader>0L', ':ToggleLualineSelect<CR>', { noremap = true, desc = 'lualine表示切り替え' })
-keymap('n', '<LocalLeader>0s', '<cmd>lua require("rc.toggle").save_states()<CR>', { noremap = true, desc = 'トグル状態保存' })
-keymap('n', '<LocalLeader>0o', '<cmd>lua require("rc.toggle").load_states()<CR>', { noremap = true, desc = 'トグル状態読み込み' })
+-- 新トグルシステム
+-- <Space>0 でトグルメニュー（which-keyにも登録済み）
+vim.keymap.set('n', '<Space>0', function()
+    require("rc.toggle").show_toggle_menu()
+end, { noremap = true, silent = true, nowait = true, desc = '統合トグルメニュー' })
+-- デバッグ用
+keymap('n', '<LocalLeader>0d', function() require("rc.toggle").debug_lualine() end, { noremap = true, desc = 'トグルlualineデバッグ' })
 -- }}}
 
 --- Noice.nvim キーマップ{{{

@@ -6,18 +6,11 @@
 
 -- Legacy function - redirects to new toggle library
 function ToggleDiagDisp(toggle, show_message)
-    local toggle_lib = require('rc.toggle')
-    return toggle_lib.toggle('diagnostics')
+    -- Deprecated: Use new toggle system (<LocalLeader>0 → d)
+    print("Use new toggle system: <LocalLeader>0 → d")
 end
 
--- Initialize diagnostics to full display mode via toggle library
-vim.defer_fn(function()
-    local toggle_lib = require('rc.toggle')
-    if toggle_lib.get_state('diagnostics') then
-        -- Already initialized by toggle library
-        return
-    end
-end, 100)
+-- NOTE: Initialization is now handled in 22_toggle.lua
 
 --}}}
 --- ToggleAutoHover   cmpの自動ホバー表示のトグル{{{
@@ -35,8 +28,8 @@ end, 100)
 -- NOTE: This function has been replaced by the toggle library
 -- Legacy function - redirects to new toggle library
 function ToggleAutoHover()
-    local toggle_lib = require('rc.toggle')
-    return toggle_lib.toggle('auto_hover')
+    -- Deprecated: Use new toggle system (<LocalLeader>0 → h)
+    print("Use new toggle system: <LocalLeader>0 → h")
 end
 
 function RandomScheme(silent)
@@ -592,8 +585,8 @@ local auto_path_autocmd_id = nil
 -- NOTE: This function has been replaced by the toggle library
 -- Legacy function - redirects to new toggle library
 function ToggleAutoWindowsPathMode()
-    local toggle_lib = require('rc.toggle')
-    return toggle_lib.toggle('windows_path')
+    -- Deprecated: Use new toggle system (<LocalLeader>0 → w)
+    print("Use new toggle system: <LocalLeader>0 → w")
 end
 
 -- input()を使ったWindowsパス入力コマンド（存在チェック付き）
@@ -638,4 +631,69 @@ if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
             end
         end
     })
+end
+
+-- 診断モード用フック関数
+-- モード開始時に全エラー表示に切り替え
+function DiagModeEnter()
+    vim.diagnostic.config({
+        virtual_text = {
+            prefix = "●",
+            source = "if_many",
+            spacing = 2,
+        },
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+    })
+    -- tiny-inline-diagnosticを無効化
+    local ok, tiny = pcall(require, "tiny-inline-diagnostic")
+    if ok then
+        tiny.disable()
+    end
+    print("-- DIAGNOSTIC MODE: 全エラー表示 --")
+end
+
+-- モード終了時に元の表示に戻す
+function DiagModeExit()
+    -- トグル設定を復元（単純に診断トグルの現在状態を再適用）
+    local ok, toggle = pcall(require, '22_toggle')
+    if ok and toggle and toggle.definitions and toggle.definitions.d then
+        -- 現在の診断トグル状態を取得
+        local current_state = toggle.definitions.d.get_state()
+        if current_state then
+            -- 状態に応じて適切な診断設定を復元
+            if current_state == 'cursor_only' then
+                -- tiny-inline-diagnosticに戻す
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+                if tiny_ok then
+                    tiny.enable()
+                end
+            elseif current_state == 'full_with_underline' then
+                -- 全表示（既に設定済みなので何もしない）
+            elseif current_state == 'signs_only' then
+                -- サインのみに戻す
+                vim.diagnostic.config({
+                    virtual_text = false,
+                    signs = true,
+                    underline = false,
+                    update_in_insert = false,
+                    severity_sort = true,
+                })
+                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+                if tiny_ok then
+                    tiny.disable()
+                end
+            end
+        end
+    end
+    print("診断表示を元に戻しました")
 end
