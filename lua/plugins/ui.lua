@@ -143,7 +143,9 @@ return {
                         -- Toggle状態表示（mainブランチ方式）
                         {
                             function()
-                                local ok, toggle = pcall(require, 'rc.toggle')
+                                local use_new = vim.g.toggle_use_new_plugin or false
+                                local module_name = use_new and 'rc.toggle-manager' or 'rc.toggle'
+                                local ok, toggle = pcall(require, module_name)
                                 if ok and toggle.get_lualine_component then
                                     local component_fn = toggle.get_lualine_component()
                                     if type(component_fn) == 'function' then
@@ -179,7 +181,14 @@ return {
                 delay = 300,
                 -- spec = require("plugins.which-key-spec"), -- 一時的に無効化
                 spec = {
-                    { "<space>0", function() require("rc.toggle").show_toggle_menu() end, desc = "トグルメニュー", mode = "n" },
+                    { "<space>0", function() 
+                        local use_new = vim.g.toggle_use_new_plugin or false
+                        if use_new then
+                            require("rc.toggle-manager").show_toggle_menu()
+                        else
+                            require("rc.toggle").show_toggle_menu()
+                        end
+                    end, desc = "トグルメニュー", mode = "n" },
                 },
                 triggers = {
                     { "<auto>", mode = "nxsotc" },

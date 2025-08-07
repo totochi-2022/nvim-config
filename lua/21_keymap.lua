@@ -435,7 +435,13 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 -- 新トグルシステム
 -- <Space>0 でトグルメニュー（which-keyにも登録済み）
 vim.keymap.set('n', '<Space>0', function()
-    require("rc.toggle").show_toggle_menu()
+    -- 22_toggle.luaの設定に応じて新旧システムを切り替え
+    local use_new = vim.g.toggle_use_new_plugin or false
+    if use_new then
+        require("rc.toggle-manager").show_toggle_menu()
+    else
+        require("rc.toggle").show_toggle_menu()
+    end
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
 -- デバッグ用キーマップは削除済み
 -- }}}

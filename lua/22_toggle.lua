@@ -21,10 +21,26 @@
 --]]
 
 local M = {}
-local toggle_lib = require('rc.toggle')
+
+-- ========== ライブラリ切り替え設定 ==========
+local USE_NEW_PLUGIN = true  -- true: 新プラグイン使用, false: 従来システム使用
+
+-- グローバル変数として設定（他のモジュールから参照可能）
+vim.g.toggle_use_new_plugin = USE_NEW_PLUGIN
+
+local toggle_lib
+if USE_NEW_PLUGIN then
+    toggle_lib = require('rc.toggle-manager')
+else
+    toggle_lib = require('rc.toggle')
+end
 
 -- ハイライト機能をライブラリから取得
-M.get_or_create_highlight = toggle_lib.get_or_create_highlight
+if USE_NEW_PLUGIN then
+    M.get_or_create_highlight = toggle_lib.get_or_create_highlight
+else
+    M.get_or_create_highlight = toggle_lib.get_or_create_highlight
+end
 
 M.definitions = {
     d = {  -- キー = D (diagnostics)
@@ -394,17 +410,25 @@ M.definitions = {
 
 -- 初期化を遅延実行
 vim.defer_fn(function()
-    -- トグル定義を登録
-    toggle_lib.register_definitions(M.definitions)
-    
-    -- ハイライトシステムを初期化
-    toggle_lib.init_highlights()
-    
-    -- トグル定義を初期化
-    toggle_lib.initialize_toggles()
-    
-    -- rc/toggle.luaのUI機能を初期化
-    toggle_lib.setup()
+    if USE_NEW_PLUGIN then
+        -- 新プラグイン使用時
+        toggle_lib.setup({
+            definitions = M.definitions
+        })
+    else
+        -- 従来システム使用時
+        -- トグル定義を登録
+        toggle_lib.register_definitions(M.definitions)
+        
+        -- ハイライトシステムを初期化
+        toggle_lib.init_highlights()
+        
+        -- トグル定義を初期化
+        toggle_lib.initialize_toggles()
+        
+        -- rc/toggle.luaのUI機能を初期化
+        toggle_lib.setup()
+    end
 end, 100)
 
 return M
