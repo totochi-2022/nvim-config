@@ -3,6 +3,7 @@ return {
     -- Minor Mode Plugin
     {
         "totochi-2022/minor-mode.nvim",
+        tag = "v1.0.0", -- 安定版を使用
         config = false, -- 設定不要、そのまま使用
     },
     
