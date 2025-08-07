@@ -69,11 +69,40 @@ local function get_or_create_highlight(color_def, toggle_name, state_index)
     elseif type(color_def) == 'table' then
         -- fg/bgが指定されている場合、動的にハイライトグループを作成
         local hl_name = string.format('Toggle_%s_%d', toggle_name, state_index)
-        vim.api.nvim_set_hl(0, hl_name, {
-            fg = color_def.fg or '#000000',
-            bg = color_def.bg or '#808080',
-            bold = color_def.bold ~= false  -- デフォルトはtrue
-        })
+        local hl_opts = { bold = color_def.bold ~= false }  -- デフォルトはtrue
+        
+        -- fgの処理
+        if color_def.fg then
+            if type(color_def.fg) == 'string' then
+                if color_def.fg:match('^#') then
+                    hl_opts.fg = color_def.fg  -- 直値の場合
+                else
+                    -- ハイライトグループから色を取得
+                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.fg })
+                    hl_opts.fg = src_hl.fg and string.format('#%06x', src_hl.fg) or '#000000'
+                end
+            end
+        else
+            hl_opts.fg = '#000000'  -- デフォルト
+        end
+        
+        -- bgの処理
+        if color_def.bg then
+            if type(color_def.bg) == 'string' then
+                if color_def.bg:match('^#') then
+                    hl_opts.bg = color_def.bg  -- 直値の場合
+                else
+                    -- ハイライトグループから色を取得（前景色を背景色として使用）
+                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.bg })
+                    hl_opts.bg = src_hl.fg and string.format('#%06x', src_hl.fg) or 
+                               (src_hl.bg and string.format('#%06x', src_hl.bg) or '#808080')
+                end
+            end
+        else
+            hl_opts.bg = '#808080'  -- デフォルト
+        end
+        
+        vim.api.nvim_set_hl(0, hl_name, hl_opts)
         return hl_name
     end
     return 'Normal'
@@ -197,8 +226,8 @@ M.definitions = {
         name = 'auto_hover',
         states = {'off', 'on'},
         colors = {
-            { fg = '#A9A9A9', bg = '#4F4F4F' },  -- off: ダークグレー文字/ディムグレー背景
-            { fg = '#00FA9A', bg = '#FF4500' }   -- on: ミディアムスプリンググリーン文字/オレンジレッド背景
+            { fg = 'NonText' },  -- off: NonTextの色を使用
+            { fg = 'MoreMsg', bg = 'WarningMsg' }   -- on: MoreMsgの前景色、WarningMsgの前景色を背景に
         },
         default_state = 'off',
         desc = '自動ホバー表示',
