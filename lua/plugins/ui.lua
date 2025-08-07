@@ -180,7 +180,6 @@ return {
                 -- spec = require("plugins.which-key-spec"), -- 一時的に無効化
                 spec = {
                     { "<space>0", function() require("rc.toggle").show_toggle_menu() end, desc = "トグルメニュー", mode = "n" },
-                    { "<space>0d", function() require("rc.toggle").debug_lualine() end, desc = "トグルlualineデバッグ", mode = "n" },
                 },
                 triggers = {
                     { "<auto>", mode = "nxsotc" },

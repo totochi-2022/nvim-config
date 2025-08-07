@@ -437,8 +437,7 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 vim.keymap.set('n', '<Space>0', function()
     require("rc.toggle").show_toggle_menu()
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
--- デバッグ用
-keymap('n', '<LocalLeader>0d', function() require("rc.toggle").debug_lualine() end, { noremap = true, desc = 'トグルlualineデバッグ' })
+-- デバッグ用キーマップは削除済み
 -- }}}
 
 --- Noice.nvim キーマップ{{{

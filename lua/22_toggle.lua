@@ -21,114 +21,19 @@
 --]]
 
 local M = {}
+local toggle_lib = require('rc.toggle')
 
--- プリセットのハイライトグループを作成
-local function create_preset_highlights()
-    local presets = {
-        -- 既存の色から作成
-        ToggleError = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' })
-            return { fg = '#000000', bg = hl.fg or '#FF0000', bold = true }
-        end,
-        ToggleWarn = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' })
-            return { fg = '#000000', bg = hl.fg or '#FFAA00', bold = true }
-        end,
-        ToggleInfo = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' })
-            return { fg = '#000000', bg = hl.fg or '#0088FF', bold = true }
-        end,
-        ToggleHint = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticHint' })
-            return { fg = '#000000', bg = hl.fg or '#888888', bold = true }
-        end,
-        ToggleGreen = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'MoreMsg' })
-            return { fg = '#000000', bg = hl.fg or '#00AA00', bold = true }
-        end,
-        ToggleGray = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'NonText' })
-            return { fg = '#000000', bg = hl.fg or '#808080', bold = true }
-        end,
-        ToggleVisual = function()
-            local hl = vim.api.nvim_get_hl(0, { name = 'Visual' })
-            return { fg = '#000000', bg = hl.bg or '#4444AA', bold = true }
-        end,
-    }
-    
-    for name, get_colors in pairs(presets) do
-        vim.api.nvim_set_hl(0, name, get_colors())
-    end
-end
-
--- 動的にハイライトグループを作成または取得
-local function get_or_create_highlight(color_def, toggle_name, state_index)
-    if type(color_def) == 'string' then
-        -- 既存のハイライトグループ名を使用
-        return color_def
-    elseif type(color_def) == 'table' then
-        -- fg/bgが指定されている場合、動的にハイライトグループを作成
-        local hl_name = string.format('Toggle_%s_%d', toggle_name, state_index)
-        local hl_opts = { bold = color_def.bold ~= false }  -- デフォルトはtrue
-        
-        -- fgの処理
-        if color_def.fg then
-            if type(color_def.fg) == 'string' then
-                if color_def.fg:match('^#') then
-                    hl_opts.fg = color_def.fg  -- 直値の場合
-                else
-                    -- ハイライトグループから色を取得
-                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.fg })
-                    hl_opts.fg = src_hl.fg and string.format('#%06x', src_hl.fg) or '#000000'
-                end
-            end
-        else
-            hl_opts.fg = '#000000'  -- デフォルト
-        end
-        
-        -- bgの処理
-        if color_def.bg then
-            if type(color_def.bg) == 'string' then
-                if color_def.bg:match('^#') then
-                    hl_opts.bg = color_def.bg  -- 直値の場合
-                else
-                    -- ハイライトグループから色を取得（前景色を背景色として使用）
-                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.bg })
-                    hl_opts.bg = src_hl.fg and string.format('#%06x', src_hl.fg) or 
-                               (src_hl.bg and string.format('#%06x', src_hl.bg) or '#808080')
-                end
-            end
-        else
-            hl_opts.bg = '#808080'  -- デフォルト
-        end
-        
-        vim.api.nvim_set_hl(0, hl_name, hl_opts)
-        return hl_name
-    end
-    return 'Normal'
-end
-
--- 初期化時にプリセットハイライトを作成
-vim.defer_fn(create_preset_highlights, 100)
-
--- カラースキーム変更時にもハイライトグループを再作成
-vim.api.nvim_create_autocmd('ColorScheme', {
-    callback = function()
-        vim.defer_fn(create_preset_highlights, 50)
-    end
-})
-
--- エクスポート用：動的ハイライト作成関数
-M.get_or_create_highlight = get_or_create_highlight
+-- ハイライト機能をライブラリから取得
+M.get_or_create_highlight = toggle_lib.get_or_create_highlight
 
 M.definitions = {
     d = {  -- キー = D (diagnostics)
         name = 'diagnostics',
         states = {'cursor_only', 'full_with_underline', 'signs_only'},
         colors = {
-            { fg = '#00FFFF', bg = '#4B0082' },  -- cursor_only: シアン文字/インディゴ背景
-            { fg = '#FFFF00', bg = '#FF1493' },  -- full_with_underline: 黄文字/ディープピンク背景
-            { fg = '#00FF00', bg = '#FF0000' }   -- signs_only: 緑文字/赤背景
+            { fg = 'DiagnosticHint' },           -- cursor_only: DiagnosticHintの色を使用
+            { fg = 'DiagnosticWarn' },           -- full_with_underline: DiagnosticWarnの色を使用
+            { fg = 'Normal', bg = 'DiagnosticError' }  -- signs_only: Normal文字/DiagnosticError背景
         },
         default_state = 'cursor_only',
         desc = '診断表示モード',
@@ -192,8 +97,8 @@ M.definitions = {
         name = 'readonly',
         states = {'off', 'on'},
         colors = {
-            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
-            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'WarningMsg', bg = 'Visual' }  -- on: WarningMsg文字/Visual背景
         },
         default_state = 'off',
         desc = '読み取り専用モード',
@@ -209,8 +114,8 @@ M.definitions = {
         name = 'paste_mode',
         states = {'off', 'on'},
         colors = {
-            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
-            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'MoreMsg' }    -- on: Normal文字/MoreMsg背景
         },
         default_state = 'off',
         desc = 'ペーストモード',
@@ -253,8 +158,8 @@ M.definitions = {
         name = 'colorizer',
         states = {'off', 'on'},
         colors = {
-            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
-            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticInfo' }  -- on: Normal文字/DiagnosticInfo背景
         },
         default_state = 'on',
         desc = 'カラー表示',
@@ -299,8 +204,8 @@ M.definitions = {
         name = 'migemo',
         states = {'off', 'on'},
         colors = {
-            { fg = '#B0B0B0', bg = '#404040' },  -- off: ライトグレー文字/ダークグレー背景
-            { fg = '#FFA500', bg = '#4169E1' }   -- on: オレンジ文字/ロイヤルブルー背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticWarn' }  -- on: Normal文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = 'Migemo検索',
@@ -326,8 +231,8 @@ M.definitions = {
         name = 'quickscope',
         states = {'off', 'on'},
         colors = {
-            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
-            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'MoreMsg' }     -- on: Normal文字/MoreMsg背景
         },
         default_state = 'on',
         desc = 'QuickScope',
@@ -345,8 +250,8 @@ M.definitions = {
         name = 'jump_mode',
         states = {'global', 'file_local'},
         colors = {
-            { fg = '#1E90FF', bg = '#FF6347' },  -- global: ドッジャーブルー文字/トマト背景
-            { fg = '#32CD32', bg = '#9370DB' }   -- file_local: ライムグリーン文字/ミディアムパープル背景
+            { fg = 'Normal', bg = 'DiagnosticInfo' },  -- global: Normal文字/DiagnosticInfo背景
+            { fg = 'Normal', bg = 'MoreMsg' }         -- file_local: Normal文字/MoreMsg背景
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
@@ -370,8 +275,8 @@ M.definitions = {
         name = 'windows_path',
         states = {'off', 'on'},
         colors = {
-            { fg = '#B0B0B0', bg = '#404040' },  -- off: ライトグレー文字/ダークグレー背景
-            { fg = '#FFA500', bg = '#4169E1' }   -- on: オレンジ文字/ロイヤルブルー背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticWarn' }  -- on: Normal文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = 'Windowsパス変換',
@@ -409,8 +314,8 @@ M.definitions = {
         name = 'noice_cmdline',
         states = {'off', 'on'},
         colors = {
-            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
-            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticInfo' }  -- on: Normal文字/DiagnosticInfo背景
         },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
@@ -439,8 +344,8 @@ M.definitions = {
         name = 'lsp_progress',
         states = {'off', 'on'},
         colors = {
-            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
-            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticInfo' }  -- on: Normal文字/DiagnosticInfo背景
         },
         default_state = 'on',
         desc = 'LSP進捗表示',
@@ -487,45 +392,19 @@ M.definitions = {
     }
 }
 
--- 初期化処理
-local function initialize_toggles()
-    -- 保存されたデフォルト状態を読み込み
-    local defaults_file = vim.fn.stdpath('config') .. '/data/setting/toggle/defaults.json'
-    local file = io.open(defaults_file, 'r')
-    if file then
-        local content = file:read('*a')
-        file:close()
-        local ok, saved_defaults = pcall(vim.fn.json_decode, content)
-        if ok and type(saved_defaults) == 'table' then
-            -- 保存されたデフォルト状態を適用
-            for key, state in pairs(saved_defaults) do
-                if M.definitions[key] then
-                    local set_ok, err = pcall(M.definitions[key].set_state, state)
-                    if not set_ok then
-                        print("Warning: Failed to set toggle '" .. key .. "': " .. tostring(err))
-                    end
-                end
-            end
-        end
-    else
-        -- 初回起動時は各トグルのdefault_stateを適用
-        for key, def in pairs(M.definitions) do
-            local set_ok, err = pcall(def.set_state, def.default_state)
-            if not set_ok then
-                print("Warning: Failed to initialize toggle '" .. key .. "': " .. tostring(err))
-            end
-        end
-    end
-end
-
 -- 初期化を遅延実行
 vim.defer_fn(function()
-    initialize_toggles()
-    -- rc/toggle.luaも初期化
-    local ok, rc_toggle = pcall(require, 'rc.toggle')
-    if ok and rc_toggle.setup then
-        rc_toggle.setup()
-    end
+    -- トグル定義を登録
+    toggle_lib.register_definitions(M.definitions)
+    
+    -- ハイライトシステムを初期化
+    toggle_lib.init_highlights()
+    
+    -- トグル定義を初期化
+    toggle_lib.initialize_toggles()
+    
+    -- rc/toggle.luaのUI機能を初期化
+    toggle_lib.setup()
 end, 100)
 
 return M

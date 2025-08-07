@@ -3,6 +3,155 @@
 
 local M = {}
 
+-- ========== ハイライト管理機能 ==========
+
+-- プリセットのハイライトグループを作成
+local function create_preset_highlights()
+    local presets = {
+        -- 既存の色から作成
+        ToggleError = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' })
+            return { fg = '#000000', bg = hl.fg or '#FF0000', bold = true }
+        end,
+        ToggleWarn = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' })
+            return { fg = '#000000', bg = hl.fg or '#FFAA00', bold = true }
+        end,
+        ToggleInfo = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' })
+            return { fg = '#000000', bg = hl.fg or '#0088FF', bold = true }
+        end,
+        ToggleHint = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticHint' })
+            return { fg = '#000000', bg = hl.fg or '#888888', bold = true }
+        end,
+        ToggleGreen = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'MoreMsg' })
+            return { fg = '#000000', bg = hl.fg or '#00AA00', bold = true }
+        end,
+        ToggleGray = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'NonText' })
+            return { fg = '#000000', bg = hl.fg or '#808080', bold = true }
+        end,
+        ToggleVisual = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'Visual' })
+            return { fg = '#000000', bg = hl.bg or '#4444AA', bold = true }
+        end,
+    }
+    
+    for name, get_colors in pairs(presets) do
+        vim.api.nvim_set_hl(0, name, get_colors())
+    end
+end
+
+-- 動的にハイライトグループを作成または取得
+function M.get_or_create_highlight(color_def, toggle_name, state_index)
+    if type(color_def) == 'string' then
+        -- 既存のハイライトグループ名を使用
+        return color_def
+    elseif type(color_def) == 'table' then
+        -- fg/bgが指定されている場合、動的にハイライトグループを作成
+        local hl_name = string.format('Toggle_%s_%d', toggle_name, state_index)
+        local hl_opts = { bold = color_def.bold ~= false }  -- デフォルトはtrue
+        
+        -- fgの処理
+        if color_def.fg then
+            if type(color_def.fg) == 'string' then
+                if color_def.fg:match('^#') then
+                    hl_opts.fg = color_def.fg  -- 直値の場合
+                else
+                    -- ハイライトグループから色を取得
+                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.fg })
+                    hl_opts.fg = src_hl.fg and string.format('#%06x', src_hl.fg) or '#000000'
+                end
+            end
+        else
+            hl_opts.fg = '#000000'  -- デフォルト
+        end
+        
+        -- bgの処理
+        if color_def.bg then
+            if type(color_def.bg) == 'string' then
+                if color_def.bg:match('^#') then
+                    hl_opts.bg = color_def.bg  -- 直値の場合
+                else
+                    -- ハイライトグループから色を取得（前景色を背景色として使用）
+                    local src_hl = vim.api.nvim_get_hl(0, { name = color_def.bg })
+                    hl_opts.bg = src_hl.fg and string.format('#%06x', src_hl.fg) or 
+                               (src_hl.bg and string.format('#%06x', src_hl.bg) or '#808080')
+                end
+            end
+        else
+            hl_opts.bg = '#808080'  -- デフォルト
+        end
+        
+        vim.api.nvim_set_hl(0, hl_name, hl_opts)
+        return hl_name
+    end
+    return 'Normal'
+end
+
+-- ハイライト初期化
+function M.init_highlights()
+    -- 初期化時にプリセットハイライトを作成
+    vim.defer_fn(create_preset_highlights, 100)
+    
+    -- カラースキーム変更時にもハイライトグループを再作成
+    vim.api.nvim_create_autocmd('ColorScheme', {
+        callback = function()
+            vim.defer_fn(create_preset_highlights, 50)
+        end
+    })
+end
+
+-- ========== トグル定義管理 ==========
+
+-- 登録されたトグル定義を保持
+local toggle_definitions = {}
+
+-- トグル定義を登録
+function M.register_definitions(definitions)
+    toggle_definitions = definitions
+end
+
+-- トグル定義を取得
+function M.get_definitions()
+    return toggle_definitions
+end
+
+-- トグル初期化処理
+function M.initialize_toggles()
+    -- 保存されたデフォルト状態を読み込み
+    local defaults_file = vim.fn.stdpath('config') .. '/data/setting/toggle/defaults.json'
+    local file = io.open(defaults_file, 'r')
+    if file then
+        local content = file:read('*a')
+        file:close()
+        local ok, saved_defaults = pcall(vim.fn.json_decode, content)
+        if ok and type(saved_defaults) == 'table' then
+            -- 保存されたデフォルト状態を適用
+            for key, state in pairs(saved_defaults) do
+                if toggle_definitions[key] then
+                    local set_ok, err = pcall(toggle_definitions[key].set_state, state)
+                    if not set_ok then
+                        print("Warning: Failed to set toggle '" .. key .. "': " .. tostring(err))
+                    end
+                end
+            end
+        end
+    else
+        -- 初回起動時は各トグルのdefault_stateを適用
+        for key, def in pairs(toggle_definitions) do
+            local set_ok, err = pcall(def.set_state, def.default_state)
+            if not set_ok then
+                print("Warning: Failed to initialize toggle '" .. key .. "': " .. tostring(err))
+            end
+        end
+    end
+end
+
+-- ========== 既存の機能 ==========
+
 -- 設定ファイルパス
 local defaults_file = vim.fn.stdpath('config') .. '/data/setting/toggle/defaults.json'
 local lualine_display_file = vim.fn.stdpath('config') .. '/data/setting/toggle/lualine_display.json'
@@ -38,10 +187,15 @@ end
 
 -- デフォルト状態を保存
 local function save_defaults()
-    local toggle_defs = require('22_toggle')
     local current_defaults = {}
     
-    for key, def in pairs(toggle_defs.definitions) do
+    -- toggle_definitionsが空の場合はスキップ
+    if not toggle_definitions or vim.tbl_isempty(toggle_definitions) then
+        print('⚠️  No toggle definitions found!')
+        return
+    end
+    
+    for key, def in pairs(toggle_definitions) do
         local current_state = def.get_state()
         current_defaults[key] = current_state
     end
@@ -62,7 +216,11 @@ end
 
 -- フローティングウィンドウUI
 function M.show_toggle_menu()
-    local toggle_defs = require('22_toggle')
+    -- toggle_definitionsが空の場合はエラーメッセージを表示
+    if not toggle_definitions or vim.tbl_isempty(toggle_definitions) then
+        print('⚠️  Toggle definitions not loaded yet!')
+        return
+    end
     
     -- 元のバッファを記憶
     local original_buf = vim.api.nvim_get_current_buf()
@@ -79,13 +237,13 @@ function M.show_toggle_menu()
         
         -- アルファベット順にソート
         local sorted_keys = {}
-        for key, _ in pairs(toggle_defs.definitions) do
+        for key, _ in pairs(toggle_definitions) do
             table.insert(sorted_keys, key)
         end
         table.sort(sorted_keys)
         
         for _, key in ipairs(sorted_keys) do
-            local def = toggle_defs.definitions[key]
+            local def = toggle_definitions[key]
             -- 常に最新の状態を取得
             local current_state = def.get_state()
             local state_index = 1
@@ -148,7 +306,7 @@ function M.show_toggle_menu()
         local ns_id = vim.api.nvim_create_namespace('toggle_ui')
         for i, key in ipairs(sorted_keys) do
             local line_num = i + 3  -- ヘッダー行を考慮
-            local def = toggle_defs.definitions[key]
+            local def = toggle_definitions[key]
             -- 常に最新の状態を取得
             local current_state = def.get_state()
             local state_index = 1
@@ -161,7 +319,7 @@ function M.show_toggle_menu()
             end
             
             -- 状態に応じた色を取得（動的ハイライト対応）
-            local toggle_defs_module = require('22_toggle')
+            local toggle_defs_module = M
             local color_def = def.colors[state_index]
             local color_name
             
@@ -201,7 +359,7 @@ function M.show_toggle_menu()
     -- キーマッピングを設定
     local function setup_keymaps(current_buf, current_win)
         -- 小文字キー（状態切り替え）
-        for key, def in pairs(toggle_defs.definitions) do
+        for key, def in pairs(toggle_definitions) do
             -- バッファごとの設定は変更不可（表示のみ）
             local buffer_only_toggles = {'r', 'p', 'c'}
             local is_buffer_only = vim.tbl_contains(buffer_only_toggles, key)
@@ -297,8 +455,7 @@ function M.setup()
     load_lualine_display_state()
     
     -- デフォルトでは全て非表示
-    local toggle_defs = require('22_toggle')
-    for key, _ in pairs(toggle_defs.definitions) do
+    for key, _ in pairs(toggle_definitions) do
         if lualine_display_state[key] == nil then
             lualine_display_state[key] = false
         end
@@ -308,20 +465,31 @@ end
 -- lualine用コンポーネント（色付きテキストを返す）
 function M.get_lualine_component()
     return function()
-        local toggle_defs = require('22_toggle')
+        -- 実行時に直接toggle_definitionsを参照
+        if not toggle_definitions or vim.tbl_isempty(toggle_definitions) then
+            return ''  -- 定義がない場合は空文字を返す
+        end
+        
         local parts = {}
         
         -- アルファベット順に並べる
         local sorted_keys = {}
-        for key, _ in pairs(toggle_defs.definitions) do
+        local visible_count = 0
+        for key, _ in pairs(toggle_definitions) do
             if lualine_display_state[key] then
                 table.insert(sorted_keys, key)
+                visible_count = visible_count + 1
             end
         end
         table.sort(sorted_keys)
         
+        -- 表示される要素がない場合は空文字
+        if visible_count == 0 then
+            return ''
+        end
+        
         for _, key in ipairs(sorted_keys) do
-            local def = toggle_defs.definitions[key]
+            local def = toggle_definitions[key]
             local current_state = def.get_state()
             local state_index = 1
             
@@ -339,8 +507,8 @@ function M.get_lualine_component()
             
             if color_def then
                 -- get_or_create_highlight関数を使用
-                if toggle_defs.get_or_create_highlight then
-                    color_name = toggle_defs.get_or_create_highlight(color_def, def.name, state_index)
+                if M.get_or_create_highlight then
+                    color_name = M.get_or_create_highlight(color_def, def.name, state_index)
                 else
                     -- フォールバック
                     color_name = type(color_def) == 'string' and color_def or 'Normal'
