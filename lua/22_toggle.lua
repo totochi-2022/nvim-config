@@ -2,60 +2,105 @@
 -- 新トグルシステムの設定ファイル
 
 --[[
-使用可能な色名:
-- DiagnosticError (赤系)
-- DiagnosticWarn (黄系) 
-- DiagnosticInfo (青系)
-- DiagnosticHint (灰系)
-- ErrorMsg (赤系)
-- WarningMsg (黄系)
-- MoreMsg (緑系)
-- ModeMsg (モードメッセージ)
-- Normal (通常)
-- Visual (選択時の背景)
-- Cursor (カーソル)
-- NonText (非テキスト)
+トグル定義での色設定方法:
+
+1. colors配列方式（従来互換）:
+   colors = {'ToggleGray', 'ToggleGreen'}
+   
+2. fg/bg指定方式（新方式）:
+   colors = {
+       { fg = '#FFFFFF', bg = '#808080' },  -- 状態1: 白文字/灰背景
+       { fg = '#000000', bg = '#00FF00' }   -- 状態2: 黒文字/緑背景
+   }
+   
+3. 混在方式:
+   colors = {
+       'ToggleGray',                        -- 状態1: 定義済みハイライト使用
+       { fg = '#FFFFFF', bg = '#FF0000' }   -- 状態2: カスタム色
+   }
 --]]
 
 local M = {}
 
--- カスタムハイライトグループを作成
-local function create_toggle_highlights()
-    local color_mappings = {
-        DiagnosticError = 'ToggleError',
-        DiagnosticWarn = 'ToggleWarn', 
-        DiagnosticInfo = 'ToggleInfo',
-        DiagnosticHint = 'ToggleHint',
-        MoreMsg = 'ToggleGreen',
-        NonText = 'ToggleGray',
-        Visual = 'ToggleVisual',
+-- プリセットのハイライトグループを作成
+local function create_preset_highlights()
+    local presets = {
+        -- 既存の色から作成
+        ToggleError = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' })
+            return { fg = '#000000', bg = hl.fg or '#FF0000', bold = true }
+        end,
+        ToggleWarn = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' })
+            return { fg = '#000000', bg = hl.fg or '#FFAA00', bold = true }
+        end,
+        ToggleInfo = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' })
+            return { fg = '#000000', bg = hl.fg or '#0088FF', bold = true }
+        end,
+        ToggleHint = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'DiagnosticHint' })
+            return { fg = '#000000', bg = hl.fg or '#888888', bold = true }
+        end,
+        ToggleGreen = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'MoreMsg' })
+            return { fg = '#000000', bg = hl.fg or '#00AA00', bold = true }
+        end,
+        ToggleGray = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'NonText' })
+            return { fg = '#000000', bg = hl.fg or '#808080', bold = true }
+        end,
+        ToggleVisual = function()
+            local hl = vim.api.nvim_get_hl(0, { name = 'Visual' })
+            return { fg = '#000000', bg = hl.bg or '#4444AA', bold = true }
+        end,
     }
     
-    for original, custom in pairs(color_mappings) do
-        local hl = vim.api.nvim_get_hl(0, { name = original })
-        vim.api.nvim_set_hl(0, custom, {
-            fg = '#000000',  -- 黒文字
-            bg = hl.fg or hl.bg or '#808080',  -- 元の前景色を背景に
-            bold = true
-        })
+    for name, get_colors in pairs(presets) do
+        vim.api.nvim_set_hl(0, name, get_colors())
     end
 end
 
--- 初期化時にハイライトグループを作成
-vim.defer_fn(create_toggle_highlights, 100)
+-- 動的にハイライトグループを作成または取得
+local function get_or_create_highlight(color_def, toggle_name, state_index)
+    if type(color_def) == 'string' then
+        -- 既存のハイライトグループ名を使用
+        return color_def
+    elseif type(color_def) == 'table' then
+        -- fg/bgが指定されている場合、動的にハイライトグループを作成
+        local hl_name = string.format('Toggle_%s_%d', toggle_name, state_index)
+        vim.api.nvim_set_hl(0, hl_name, {
+            fg = color_def.fg or '#000000',
+            bg = color_def.bg or '#808080',
+            bold = color_def.bold ~= false  -- デフォルトはtrue
+        })
+        return hl_name
+    end
+    return 'Normal'
+end
+
+-- 初期化時にプリセットハイライトを作成
+vim.defer_fn(create_preset_highlights, 100)
 
 -- カラースキーム変更時にもハイライトグループを再作成
 vim.api.nvim_create_autocmd('ColorScheme', {
     callback = function()
-        vim.defer_fn(create_toggle_highlights, 50)
+        vim.defer_fn(create_preset_highlights, 50)
     end
 })
+
+-- エクスポート用：動的ハイライト作成関数
+M.get_or_create_highlight = get_or_create_highlight
 
 M.definitions = {
     d = {  -- キー = D (diagnostics)
         name = 'diagnostics',
         states = {'cursor_only', 'full_with_underline', 'signs_only'},
-        colors = {'ToggleHint', 'ToggleWarn', 'ToggleError'},
+        colors = {
+            { fg = '#00FFFF', bg = '#4B0082' },  -- cursor_only: シアン文字/インディゴ背景
+            { fg = '#FFFF00', bg = '#FF1493' },  -- full_with_underline: 黄文字/ディープピンク背景
+            { fg = '#00FF00', bg = '#FF0000' }   -- signs_only: 緑文字/赤背景
+        },
         default_state = 'cursor_only',
         desc = '診断表示モード',
         get_state = function()
@@ -117,7 +162,10 @@ M.definitions = {
     r = {  -- キー = R (readonly)
         name = 'readonly',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleVisual'},
+        colors = {
+            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
+            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+        },
         default_state = 'off',
         desc = '読み取り専用モード',
         get_state = function() 
@@ -131,7 +179,10 @@ M.definitions = {
     p = {  -- キー = P (paste_mode)
         name = 'paste_mode',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleVisual'},
+        colors = {
+            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
+            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+        },
         default_state = 'off',
         desc = 'ペーストモード',
         get_state = function() 
@@ -145,7 +196,10 @@ M.definitions = {
     h = {  -- キー = H (auto_hover)
         name = 'auto_hover',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleGreen'},
+        colors = {
+            { fg = '#A9A9A9', bg = '#4F4F4F' },  -- off: ダークグレー文字/ディムグレー背景
+            { fg = '#00FA9A', bg = '#FF4500' }   -- on: ミディアムスプリンググリーン文字/オレンジレッド背景
+        },
         default_state = 'off',
         desc = '自動ホバー表示',
         get_state = function() 
@@ -169,7 +223,10 @@ M.definitions = {
     c = {  -- キー = C (colorizer)
         name = 'colorizer',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleInfo'},
+        colors = {
+            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
+            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+        },
         default_state = 'on',
         desc = 'カラー表示',
         get_state = function()
@@ -212,7 +269,10 @@ M.definitions = {
     m = {  -- キー = M (migemo)
         name = 'migemo',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleWarn'},
+        colors = {
+            { fg = '#B0B0B0', bg = '#404040' },  -- off: ライトグレー文字/ダークグレー背景
+            { fg = '#FFA500', bg = '#4169E1' }   -- on: オレンジ文字/ロイヤルブルー背景
+        },
         default_state = 'off',
         desc = 'Migemo検索',
         get_state = function()
@@ -236,7 +296,10 @@ M.definitions = {
     t = {  -- キー = T (quickscope) - qから変更
         name = 'quickscope',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleVisual'},
+        colors = {
+            { fg = '#808080', bg = '#2F2F2F' },  -- off: グレー文字/ダークグレー背景
+            { fg = '#FFD700', bg = '#8B008B' }   -- on: ゴールド文字/ダークマゼンタ背景
+        },
         default_state = 'on',
         desc = 'QuickScope',
         get_state = function()
@@ -252,7 +315,10 @@ M.definitions = {
     j = {  -- キー = J (jump_mode)
         name = 'jump_mode',
         states = {'global', 'file_local'},
-        colors = {'ToggleInfo', 'ToggleGreen'},
+        colors = {
+            { fg = '#1E90FF', bg = '#FF6347' },  -- global: ドッジャーブルー文字/トマト背景
+            { fg = '#32CD32', bg = '#9370DB' }   -- file_local: ライムグリーン文字/ミディアムパープル背景
+        },
         default_state = 'file_local',
         desc = 'ジャンプモード',
         get_state = function()
@@ -274,7 +340,10 @@ M.definitions = {
     w = {  -- キー = W (windows_path)
         name = 'windows_path',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleWarn'},
+        colors = {
+            { fg = '#B0B0B0', bg = '#404040' },  -- off: ライトグレー文字/ダークグレー背景
+            { fg = '#FFA500', bg = '#4169E1' }   -- on: オレンジ文字/ロイヤルブルー背景
+        },
         default_state = 'off',
         desc = 'Windowsパス変換',
         get_state = function()
@@ -310,7 +379,10 @@ M.definitions = {
     n = {  -- キー = N (noice_cmdline)
         name = 'noice_cmdline',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleInfo'},
+        colors = {
+            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
+            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+        },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
         get_state = function()
@@ -337,7 +409,10 @@ M.definitions = {
     i = {  -- キー = I (lsp_progress)
         name = 'lsp_progress',
         states = {'off', 'on'},
-        colors = {'ToggleGray', 'ToggleInfo'},
+        colors = {
+            { fg = '#778899', bg = '#2F4F4F' },  -- off: ライトスレートグレー文字/ダークスレートグレー背景
+            { fg = '#FF00FF', bg = '#00CED1' }   -- on: マゼンタ文字/ダークターコイズ背景
+        },
         default_state = 'on',
         desc = 'LSP進捗表示',
         get_state = function()

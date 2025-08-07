@@ -160,7 +160,23 @@ function M.show_toggle_menu()
                 end
             end
             
-            local color_name = def.colors[state_index] or 'Normal'
+            -- 状態に応じた色を取得（動的ハイライト対応）
+            local toggle_defs_module = require('22_toggle')
+            local color_def = def.colors[state_index]
+            local color_name
+            
+            if color_def then
+                -- get_or_create_highlight関数を使用
+                if toggle_defs_module.get_or_create_highlight then
+                    color_name = toggle_defs_module.get_or_create_highlight(color_def, def.name, state_index)
+                else
+                    -- フォールバック
+                    color_name = type(color_def) == 'string' and color_def or 'Normal'
+                end
+            else
+                color_name = 'Normal'
+            end
+            
             -- 状態部分のみをハイライト（文字列の位置を正確に計算）
             local line_text = lines[line_num + 1]  -- linesは1-indexedだがline_numは0-indexed
             if line_text then
@@ -317,8 +333,22 @@ function M.get_lualine_component()
                 end
             end
             
-            -- 状態に応じた色を取得
-            local color_name = def.colors[state_index] or 'Normal'
+            -- 状態に応じた色を取得（動的ハイライト対応）
+            local color_def = def.colors[state_index]
+            local color_name
+            
+            if color_def then
+                -- get_or_create_highlight関数を使用
+                if toggle_defs.get_or_create_highlight then
+                    color_name = toggle_defs.get_or_create_highlight(color_def, def.name, state_index)
+                else
+                    -- フォールバック
+                    color_name = type(color_def) == 'string' and color_def or 'Normal'
+                end
+            else
+                color_name = 'Normal'
+            end
+            
             local text = string.upper(key)
             
             -- mainブランチ方式：%#ハイライトグループ#テキスト%#Normal#
