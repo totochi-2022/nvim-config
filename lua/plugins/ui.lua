@@ -144,7 +144,7 @@ return {
                         {
                             function()
                                 local use_new = vim.g.toggle_use_new_plugin or false
-                                local module_name = use_new and 'rc.toggle-manager' or 'rc.toggle'
+                                local module_name = use_new and 'toggle-manager' or 'rc.toggle'  -- GitHub版
                                 local ok, toggle = pcall(require, module_name)
                                 if ok and toggle.get_lualine_component then
                                     local component_fn = toggle.get_lualine_component()
@@ -184,7 +184,7 @@ return {
                     { "<space>0", function() 
                         local use_new = vim.g.toggle_use_new_plugin or false
                         if use_new then
-                            require("rc.toggle-manager").show_toggle_menu()
+                            require("toggle-manager").show_toggle_menu()  -- GitHub版
                         else
                             require("rc.toggle").show_toggle_menu()
                         end
@@ -709,4 +709,16 @@ return {
     --     main = "ibl",
     --     opts = {}
     -- },
+
+    -- Toggle Manager Plugin
+    {
+        "totochi-2022/toggle-manager.nvim",
+        -- tag = "v1.0.0", -- 安定版を使いたい場合
+        config = function()
+            local toggle_definitions = require('22_toggle')
+            require('toggle-manager').setup({
+                definitions = toggle_definitions.definitions
+            })
+        end,
+    },
 }
