@@ -201,7 +201,7 @@ local function map(mode, lhs, rhs, opts)
 end
 
 -- Create a minor mode for debugging using your minor_mode.lua
-local minor_mode = require('rc/minor_mode')
+local minor_mode = require('minor-mode')
 
 minor_mode.define_mode({
     namespace = 'Debug',

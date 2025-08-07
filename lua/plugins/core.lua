@@ -1,5 +1,11 @@
 -- plugins/core.lua - 基本ライブラリ
 return {
+    -- Minor Mode Plugin
+    {
+        "totochi-2022/minor-mode.nvim",
+        config = false, -- 設定不要、そのまま使用
+    },
+    
     -- コアライブラリ
     { "tpope/vim-repeat" },
     { "nvim-lua/popup.nvim" },

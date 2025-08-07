@@ -3,7 +3,7 @@ local noremap = { noremap = true, desc = nil }
 -- local remap = { remap = true, desc = nil } -- remapに変更
 local keymap = vim.keymap.set
 
-local minor_mode = require('rc/minor_mode')
+local minor_mode = require('minor-mode')
 -- }}}
 
 
@@ -377,7 +377,7 @@ keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
 keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc = 'QuickRunセッション終了' })
 
 -- エラージャンプモード（新しいdefine_complete_mode使用）
-local minor_mode = require('rc/minor_mode')
+local minor_mode = require('minor-mode')
 
 -- 新しいdefine_modeを使用
 minor_mode.define_mode({
