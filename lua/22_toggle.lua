@@ -91,22 +91,22 @@ M.definitions = {
         end
     },
 
-    r = { -- キー = R (readonly)
-        name = 'readonly',
-        states = { 'off', 'on' },
-        colors = {
-            { fg = 'NonText' },                  -- off: NonTextの色を使用
-            { fg = 'WarningMsg', bg = 'Visual' } -- on: WarningMsg文字/Visual背景
-        },
-        default_state = 'off',
-        desc = '読み取り専用モード',
-        get_state = function()
-            return vim.opt.readonly:get() and 'on' or 'off'
-        end,
-        set_state = function(state)
-            vim.opt.readonly = (state == 'on')
-        end
-    },
+    -- r = { -- キー = R (readonly)
+    --     name = 'readonly',
+    --     states = { 'off', 'on' },
+    --     colors = {
+    --         { fg = 'NonText' },                  -- off: NonTextの色を使用
+    --         { fg = 'WarningMsg', bg = 'Visual' } -- on: WarningMsg文字/Visual背景
+    --     },
+    --     default_state = 'off',
+    --     desc = '読み取り専用モード',
+    --     get_state = function()
+    --         return vim.opt.readonly:get() and 'on' or 'off'
+    --     end,
+    --     set_state = function(state)
+    --         vim.opt.readonly = (state == 'on')
+    --     end
+    -- },
 
     p = { -- キー = P (paste_mode)
         name = 'paste_mode',
@@ -208,19 +208,43 @@ M.definitions = {
         default_state = 'off',
         desc = 'Migemo検索',
         get_state = function()
-            return vim.g.incsearch_use_migemo == 1 and 'on' or 'off'
+            return vim.g.migemo_enabled and 'on' or 'off'
         end,
         set_state = function(state)
-            if state == 'on' then
-                vim.g.incsearch_use_migemo = 1
-                if vim.fn.exists('<Plug>(incsearch-migemo-?)') then
-                    vim.keymap.set('', '?', '<Plug>(incsearch-migemo-?)')
-                    vim.keymap.set('', '/', '<Plug>(incsearch-migemo-/)')
-                end
+            -- incsearch-migemo.nvimプラグインを使用
+            local ok, migemo = pcall(require, 'incsearch-migemo')
+            if not ok then
+                vim.notify('incsearch-migemo.nvim not found', vim.log.levels.ERROR)
+                return
+            end
+            
+            if state == 'on' and migemo.has_migemo() then
+                -- 標準の検索をmigemo検索に置き換え
+                vim.keymap.set('n', '/', migemo.forward, { desc = 'Migemo forward search' })
+                vim.keymap.set('n', '?', migemo.backward, { desc = 'Migemo backward search' })
+                vim.keymap.set('n', 'g/', migemo.stay, { desc = 'Migemo stay search' })
+                -- EasyMotionのmigemoも有効化
+                vim.g.EasyMotion_use_migemo = 1
+                -- 別の方法でEasyMotion再初期化を試行
+                pcall(function()
+                    -- lazy.nvim経由で再読み込み
+                    local lazy = require('lazy')
+                    lazy.reload({plugins = {'vim-easymotion'}})
+                end)
+                vim.g.migemo_enabled = true
             else
-                vim.g.incsearch_use_migemo = 0
-                vim.keymap.set('', '?', '<Plug>(incsearch-backward)')
-                vim.keymap.set('', '/', '<Plug>(incsearch-forward)')
+                -- 標準の検索に戻す
+                vim.keymap.del('n', '/')
+                vim.keymap.del('n', '?')
+                vim.keymap.del('n', 'g/')
+                -- EasyMotionのmigemoも無効化
+                vim.g.EasyMotion_use_migemo = 0
+                -- lazy.nvim経由で再読み込み
+                pcall(function()
+                    local lazy = require('lazy')
+                    lazy.reload({plugins = {'vim-easymotion'}})
+                end)
+                vim.g.migemo_enabled = false
             end
         end
     },

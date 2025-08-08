@@ -3,8 +3,15 @@ return {
     -- Minor Mode Plugin
     {
         "totochi-2022/minor-mode.nvim",
-        tag = "v1.0.0", -- 安定版を使用
         config = false, -- 設定不要、そのまま使用
+    },
+    
+    -- Incremental Migemo Search
+    {
+        "totochi-2022/incsearch-migemo.nvim",
+        config = function()
+            require('incsearch-migemo').setup()
+        end,
     },
     
     -- コアライブラリ
