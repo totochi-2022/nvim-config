@@ -9,7 +9,7 @@ return {
         "kyoz/purify",
         rtp = 'vim'
     },
-    
+
     -- 新しく追加するカラースキーム
     {
         "catppuccin/nvim",
@@ -43,8 +43,8 @@ return {
     -- スタート画面（デバッグ用）
     {
         'nvimdev/dashboard-nvim',
-        lazy = false,  -- 強制的に即座読み込み
-        priority = 1000,  -- 最高優先度
+        lazy = false,    -- 強制的に即座読み込み
+        priority = 1000, -- 最高優先度
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         config = function()
             require('dashboard').setup({
@@ -62,7 +62,7 @@ return {
                         { desc = ' Quit', group = 'DiagnosticError', action = 'qa', key = 'q' },
                     },
                     project = {
-                        enable = false,  -- プロジェクト表示を無効化
+                        enable = false, -- プロジェクト表示を無効化
                     },
                     mru = {
                         limit = 10,
@@ -72,7 +72,7 @@ return {
                     },
                 },
             })
-            
+
             -- 起動時の自動表示は21_keymap.luaで処理
         end,
     },
@@ -143,8 +143,7 @@ return {
                         -- Toggle状態表示（mainブランチ方式）
                         {
                             function()
-                                local use_new = vim.g.toggle_use_new_plugin or false
-                                local module_name = use_new and 'toggle-manager' or 'rc.toggle'  -- GitHub版
+                                local module_name = 'toggle-manager'
                                 local ok, toggle = pcall(require, module_name)
                                 if ok and toggle.get_lualine_component then
                                     local component_fn = toggle.get_lualine_component()
@@ -180,23 +179,23 @@ return {
                 preset = "classic",
                 delay = 300,
                 -- spec = require("plugins.which-key-spec"), -- 一時的に無効化
-                spec = {
-                    { "<space>0", function() 
-                        local use_new = vim.g.toggle_use_new_plugin or false
-                        if use_new then
-                            require("toggle-manager").show_toggle_menu()  -- GitHub版
-                        else
-                            require("rc.toggle").show_toggle_menu()
-                        end
-                    end, desc = "トグルメニュー", mode = "n" },
-                },
+                -- spec = {
+                --     { "<space>0", function()
+                --         local use_new = vim.g.toggle_use_new_plugin or false
+                --         if use_new then
+                --             require("toggle-manager").show_toggle_menu()  -- GitHub版
+                --         else
+                --             require("rc.toggle").show_toggle_menu()
+                --         end
+                --     end, desc = "トグルメニュー", mode = "n" },
+                -- },
                 triggers = {
-                    { "<auto>", mode = "nxsotc" },
-                    { "s", mode = { "n", "v" } },     -- リーダーキー
+                    { "<auto>",  mode = "nxsotc" },
+                    { "s",       mode = { "n", "v" } }, -- リーダーキー
                     { "<space>", mode = { "n", "v" } }, -- ローカルリーダー
-                    { "m", mode = { "n", "v" } },     -- LSP用
-                    { "<C-", mode = { "n", "v" } },   -- Ctrlキー
-                    { "<M-", mode = { "n", "v" } },   -- Alt/Metaキー
+                    { "m",       mode = { "n", "v" } }, -- LSP用
+                    { "<C-",     mode = { "n", "v" } }, -- Ctrlキー
+                    { "<M-",     mode = { "n", "v" } }, -- Alt/Metaキー
                 },
             })
         end,
@@ -272,10 +271,10 @@ return {
             require('smear_cursor').setup({
                 -- Neovide設定に近づける
                 cursor_color = '#ffffff',
-                trail_size = 8,           -- neovide_cursor_trail_size = 0.8 相当
-                trail_timeout = 30,       -- neovide_cursor_animation_length = 0.03 相当
+                trail_size = 8,          -- neovide_cursor_trail_size = 0.8 相当
+                trail_timeout = 30,      -- neovide_cursor_animation_length = 0.03 相当
                 distance_stop_animating = 0.5,
-                hide_target_hack = true,  -- ターミナルでのちらつき軽減
+                hide_target_hack = true, -- ターミナルでのちらつき軽減
             })
         end,
     },
@@ -283,7 +282,7 @@ return {
     -- パンくずリスト（breadcrumb）（noice.nvimと競合するため無効化）
     {
         'Bekaboo/dropbar.nvim',
-        enabled = false,  -- noice.nvimと競合するため無効化
+        enabled = false, -- noice.nvimと競合するため無効化
         dependencies = {
             'nvim-telescope/telescope.nvim'
         },
@@ -295,32 +294,32 @@ return {
                     if vim.api.nvim_win_get_height(win) < 5 then
                         return false
                     end
-                    
+
                     -- フローティングウィンドウでは無効化
                     if vim.api.nvim_win_get_config(win).relative ~= '' then
                         return false
                     end
-                    
+
                     -- 特定のファイルタイプでは無効化
                     local disabled_filetypes = {
                         'help', 'alpha', 'dashboard', 'neo-tree', 'Trouble', 'lazy',
                         'mason', 'notify', 'toggleterm', 'lazyterm', 'oil',
                         'prompt', 'TelescopePrompt', 'FineCmdlinePrompt', 'cmdline',
-                        'noice',  -- noice関連を追加
-                        ''  -- 空のfiletypeも除外
+                        'noice', -- noice関連を追加
+                        ''       -- 空のfiletypeも除外
                     }
-                    
+
                     -- 問題のあるbuftype は全て無効化
                     local disabled_buftypes = { 'nofile', 'prompt', 'popup', 'help', 'quickfix' }
                     if vim.tbl_contains(disabled_buftypes, vim.bo[buf].buftype) then
                         return false
                     end
-                    
+
                     -- ウィンドウタイプをチェック
                     if vim.fn.win_gettype(win) ~= '' then
                         return false
                     end
-                    
+
                     return not vim.tbl_contains(disabled_filetypes, vim.bo[buf].filetype)
                         and vim.bo[buf].buftype == ''
                         and vim.api.nvim_buf_get_name(buf) ~= ''
@@ -348,7 +347,7 @@ return {
                         },
                     },
                 },
-                
+
                 -- メニュー設定
                 menu = {
                     -- クイック移動用のキーマップ
@@ -382,13 +381,13 @@ return {
                         style = 'minimal',
                     },
                 },
-                
+
                 -- バー設定
                 bar = {
                     hover = true,
                     -- ピック用のキー設定
                     pick = {
-                        pivots = '1234567890',  -- 数字キーで分かりやすく
+                        pivots = '1234567890', -- 数字キーで分かりやすく
                     },
                     sources = function(buf, _)
                         local sources = require('dropbar.sources')
@@ -429,8 +428,8 @@ return {
                 show = true,
                 show_in_active_only = false,
                 set_highlights = true,
-                folds = 1000, -- handle folds, set to number to disable folds if no. of lines in buffer exceeds this
-                max_lines = false, -- disables if no. of lines in buffer exceeds this
+                folds = 1000,                -- handle folds, set to number to disable folds if no. of lines in buffer exceeds this
+                max_lines = false,           -- disables if no. of lines in buffer exceeds this
                 hide_if_all_visible = false, -- Hides everything if all lines are visible
                 throttle_ms = 100,
                 handle = {
@@ -544,8 +543,8 @@ return {
                     diagnostic = true,
                     gitsigns = true, -- Requires gitsigns
                     handle = true,
-                    search = true, -- Requires hlslens
-                    ale = false, -- Requires ALE
+                    search = true,   -- Requires hlslens
+                    ale = false,     -- Requires ALE
                 },
             })
         end,
@@ -565,7 +564,7 @@ return {
                 lsp = {
                     progress = {
                         enabled = true,
-                        view = "mini",  -- LSP進捗はminiのまま
+                        view = "mini", -- LSP進捗はminiのまま
                     },
                 },
                 -- コマンドライン設定（有効化）
@@ -576,14 +575,14 @@ return {
                 -- メッセージ設定（有効化）
                 messages = {
                     enabled = true,
-                    view = "notify",  -- 通知で表示
-                    view_error = "notify",  -- エラーのみ通知
-                    view_warn = "notify",   -- 警告のみ通知
-                    view_history = "messages",  -- :messagesで履歴表示
+                    view = "notify",           -- 通知で表示
+                    view_error = "notify",     -- エラーのみ通知
+                    view_warn = "notify",      -- 警告のみ通知
+                    view_history = "messages", -- :messagesで履歴表示
                 },
                 -- ポップアップメニューも最小限に
                 popupmenu = {
-                    enabled = false,  -- まずは無効化
+                    enabled = false, -- まずは無効化
                 },
                 -- 通知は有効化
                 notify = {
@@ -604,33 +603,33 @@ return {
                     {
                         filter = {
                             event = "msg_show",
-                            kind = "emsg",  -- エラーメッセージ
+                            kind = "emsg", -- エラーメッセージ
                             any = {
                                 { find = "Not enough space" },
-                                { find = "E36:" },  -- Vim error code for "Not enough room"
+                                { find = "E36:" }, -- Vim error code for "Not enough room"
                                 { find = "not enough space" },
                             },
                         },
-                        opts = { skip = true },  -- 完全に無視
+                        opts = { skip = true }, -- 完全に無視
                     },
                     -- 一般的な出力メッセージは通知で表示（Outputラベル付き）
                     {
                         filter = {
                             event = "msg_show",
-                            kind = "",  -- 通常のメッセージ
+                            kind = "", -- 通常のメッセージ
                         },
                         view = "notify",
                         opts = {
-                            timeout = 5000,  -- 5秒
-                            title = "Command Buffer",  -- タイトルをCommand Bufferに
-                            icon = "",  -- ターミナルアイコン
+                            timeout = 5000,           -- 5秒
+                            title = "Command Buffer", -- タイトルをCommand Bufferに
+                            icon = "",                -- ターミナルアイコン
                         },
                     },
                     -- エラー・警告は通知で表示（デフォルトのタイトル）
                     {
                         filter = {
                             event = "msg_show",
-                            kind = {"error", "warn"},
+                            kind = { "error", "warn" },
                         },
                         view = "notify",
                     },
@@ -638,13 +637,13 @@ return {
                 -- ビューの設定（カーソル位置基準）
                 views = {
                     cmdline_popup = {
-                        relative = "cursor",  -- カーソル位置基準
+                        relative = "cursor", -- カーソル位置基準
                         position = {
-                            row = 3,   -- カーソルの3行下
-                            col = 5,   -- カーソルから右に5列
+                            row = 3,         -- カーソルの3行下
+                            col = 5,         -- カーソルから右に5列
                         },
                         size = {
-                            width = 60,  -- 固定幅60文字
+                            width = 60, -- 固定幅60文字
                             height = "auto",
                         },
                         border = {
@@ -657,44 +656,44 @@ return {
                     -- LSP進捗表示の位置調整
                     mini = {
                         position = {
-                            row = -2,  -- 画面下から2行上（lualineの上）
-                            col = "100%",  -- 右端
+                            row = -2,     -- 画面下から2行上（lualineの上）
+                            col = "100%", -- 右端
                         },
                         size = {
                             width = "auto",
                             height = "auto",
                         },
                         border = {
-                            style = "none",  -- ボーダーなし
+                            style = "none", -- ボーダーなし
                         },
                         win_options = {
-                            winblend = 10,  -- 少し透明に
+                            winblend = 10, -- 少し透明に
                         },
                     },
                 },
             })
-            
+
             -- nvim-notifyの基本設定
             require("notify").setup({
                 stages = "fade_in_slide_out",
-                timeout = 3000,  -- デフォルトタイムアウト
-                render = "wrapped-compact",  -- wrapped-compactで改行対応
-                max_width = function() 
+                timeout = 3000,             -- デフォルトタイムアウト
+                render = "wrapped-compact", -- wrapped-compactで改行対応
+                max_width = function()
                     -- 画面幅の40%と50文字の小さい方
                     return math.min(math.floor(vim.o.columns * 0.4), 50)
                 end,
-                max_height = 10,  -- 最大10行
-                wrap = true,  -- テキストの折り返しを有効
+                max_height = 10, -- 最大10行
+                wrap = true,     -- テキストの折り返しを有効
                 -- レベル別タイムアウト設定
                 level_timeout = {
-                    [vim.log.levels.ERROR] = 5000,  -- エラーは5秒
-                    [vim.log.levels.WARN] = 4000,   -- 警告は4秒  
-                    [vim.log.levels.INFO] = 3000,   -- 情報は3秒
+                    [vim.log.levels.ERROR] = 5000, -- エラーは5秒
+                    [vim.log.levels.WARN] = 4000,  -- 警告は4秒
+                    [vim.log.levels.INFO] = 3000,  -- 情報は3秒
                 },
                 -- 通知位置を画面上部に設定（デフォルト）
-                top_down = true,  -- 上から下に表示
+                top_down = true, -- 上から下に表示
             })
-            
+
             -- vim.notifyをnvim-notifyで置き換え
             vim.notify = require("notify")
         end,

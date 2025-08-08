@@ -399,8 +399,8 @@ minor_mode.define_mode({
         { key = '.', action = '<cmd>lua vim.diagnostic.goto_next({severity = vim.diagnostic.severity.HINT})<CR>', desc = '次のHINT' },
     },
     hooks = {
-        enter = DiagModeEnter,  -- 03_function.luaで定義されたグローバル関数を参照
-        exit = DiagModeExit     -- 03_function.luaで定義されたグローバル関数を参照
+        enter = DiagModeEnter, -- 03_function.luaで定義されたグローバル関数を参照
+        exit = DiagModeExit    -- 03_function.luaで定義されたグローバル関数を参照
     },
     options = {
         persistent = true
@@ -437,11 +437,7 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 vim.keymap.set('n', '<Space>0', function()
     -- 22_toggle.luaの設定に応じて新旧システムを切り替え
     local use_new = vim.g.toggle_use_new_plugin or false
-    if use_new then
-        require("toggle-manager").show_toggle_menu()  -- GitHub版
-    else
-        require("rc.toggle").show_toggle_menu()
-    end
+    require("toggle-manager").show_toggle_menu() -- GitHub版
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
 -- デバッグ用キーマップは削除済み
 -- }}}
