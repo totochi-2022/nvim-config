@@ -9,6 +9,9 @@
   - Windows側: `/mnt/c/Users/tanaka/AppData/Local/nvim/`
   - Linux側: `/home/motoki/.config/nvim/` (同期されている)
 - **プラグインマネージャー**: lazy.nvim
+- **lazy.nvimプラグイン保存場所**: `~/.local/share/nvim/lazy/`
+  - 各プラグインはこのディレクトリ配下にgitリポジトリとして保存される
+  - 例: `~/.local/share/nvim/lazy/incsearch.vim/`
 
 ## ディレクトリ構造
 

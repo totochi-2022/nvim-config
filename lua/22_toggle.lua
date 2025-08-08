@@ -217,7 +217,7 @@ M.definitions = {
                 vim.notify('incsearch-migemo.nvim not found', vim.log.levels.ERROR)
                 return
             end
-            
+
             if state == 'on' and migemo.has_migemo() then
                 -- 標準の検索をmigemo検索に置き換え
                 vim.keymap.set('n', '/', migemo.forward, { desc = 'Migemo forward search' })
@@ -229,7 +229,7 @@ M.definitions = {
                 pcall(function()
                     -- lazy.nvim経由で再読み込み
                     local lazy = require('lazy')
-                    lazy.reload({plugins = {'vim-easymotion'}})
+                    lazy.reload({ plugins = { 'vim-easymotion' } })
                 end)
                 vim.g.migemo_enabled = true
             else
@@ -242,7 +242,7 @@ M.definitions = {
                 -- lazy.nvim経由で再読み込み
                 pcall(function()
                     local lazy = require('lazy')
-                    lazy.reload({plugins = {'vim-easymotion'}})
+                    lazy.reload({ plugins = { 'vim-easymotion' } })
                 end)
                 vim.g.migemo_enabled = false
             end

@@ -23,6 +23,26 @@ vim.g.maplocalleader = ' '
 
 -- which-key設定は plugins/which-key-spec.lua に移行済み
 
+--- vim.on_key() テスト用キーマップ{{{
+-- mq プレフィックスで各テストを実行
+keymap('n', 'mq1', function() require('test_vim_on_key').test1_basic_listener() end, 
+       { noremap = true, desc = 'vim.on_key テスト1: 基本動作' })
+keymap('n', 'mq2', function() require('test_vim_on_key').test2_key_consumption() end, 
+       { noremap = true, desc = 'vim.on_key テスト2: キー消費' })
+keymap('n', 'mq3', function() require('test_vim_on_key').test3_namespace_override() end, 
+       { noremap = true, desc = 'vim.on_key テスト3: namespace上書き' })
+keymap('n', 'mq4', function() require('test_vim_on_key').test4_multiple_namespaces() end, 
+       { noremap = true, desc = 'vim.on_key テスト4: 複数namespace' })
+keymap('n', 'mq5', function() require('test_vim_on_key').test5_clever_f_simulation() end, 
+       { noremap = true, desc = 'vim.on_key テスト5: clever-f風動作' })
+keymap('n', 'mqs', function() require('test_vim_on_key').stop_all_tests() end, 
+       { noremap = true, desc = 'vim.on_key テスト: 全停止' })
+keymap('n', 'mqc', function() require('test_vim_on_key').check_status() end, 
+       { noremap = true, desc = 'vim.on_key テスト: 状態確認' })
+keymap('n', 'mqm', function() require('test_vim_on_key').show_menu() end, 
+       { noremap = true, desc = 'vim.on_key テスト: メニュー表示' })
+-- }}}
+
 --- split window{{{
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
 keymap('n', '<LocalLeader>vv', ':<C-u>vs<CR>', { noremap = true, desc = '画面を垂直分割' })

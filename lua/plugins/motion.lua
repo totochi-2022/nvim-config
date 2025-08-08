@@ -70,6 +70,7 @@ return {
         end
     },
 
+    -- 元のclever-f.vim（競合あり）
     -- {
     --     "rhysd/clever-f.vim",
     --     config = function()
@@ -80,6 +81,23 @@ return {
     --         vim.g.clever_f_timeout_ms = 0  -- タイムアウト無効化でNoiceとの競合回避
     --     end
     -- },
+    
+    -- 新しいNeovim版clever-f（ローカル開発）
+    {
+        dir = "/home/motoki/work/repo/clever-f.nvim",
+        name = "clever-f.nvim",
+        enabled = true,  -- テスト有効
+        config = function()
+            vim.g.clever_f_setup_called = true  -- setup呼び出しフラグ
+            require('clever-f').setup({
+                across_no_line = false,  -- false = 行またぎ有効
+                smart_case = true,
+                use_migemo = true,
+                fix_key_direction = true,
+                timeout_ms = 0,
+            })
+        end
+    },
 
     {
         "skanehira/jumpcursor.vim",
@@ -89,6 +107,7 @@ return {
 
     {
         "unblevable/quick-scope",
+        enabled = false,  -- トグルのバグでクリア問題の原因になるため無効化
         config = function()
             vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
             vim.g.qs_enable = 1  -- デフォルトで有効
