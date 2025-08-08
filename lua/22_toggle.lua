@@ -249,7 +249,7 @@ M.definitions = {
         end
     },
 
-    t = { -- キー = T (quickscope) - qから変更
+    f = { -- キー = F (quickscope)
         name = 'quickscope',
         states = { 'off', 'on' },
         colors = {
@@ -259,11 +259,13 @@ M.definitions = {
         default_state = 'on',
         desc = 'QuickScope',
         get_state = function()
-            return vim.g.qs_enable and 'on' or 'off'
+            return (vim.g.qs_enable == 1) and 'on' or 'off'
         end,
         set_state = function(state)
-            if vim.fn.exists(':QuickScopeToggle') == 2 then
-                vim.cmd('QuickScopeToggle')
+            if state == 'on' then
+                vim.g.qs_enable = 1
+            else
+                vim.g.qs_enable = 0
             end
         end
     },

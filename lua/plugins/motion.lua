@@ -70,15 +70,16 @@ return {
         end
     },
 
-    {
-        "rhysd/clever-f.vim",
-        config = function()
-            vim.g.clever_f_across_no_line = 1
-            vim.g.clever_f_smart_case = 1
-            vim.g.clever_f_use_migemo = 1
-            vim.g.clever_f_fix_key_direction = 1
-        end
-    },
+    -- {
+    --     "rhysd/clever-f.vim",
+    --     config = function()
+    --         vim.g.clever_f_across_no_line = 1
+    --         vim.g.clever_f_smart_case = 1
+    --         vim.g.clever_f_use_migemo = 1
+    --         vim.g.clever_f_fix_key_direction = 1
+    --         vim.g.clever_f_timeout_ms = 0  -- タイムアウト無効化でNoiceとの競合回避
+    --     end
+    -- },
 
     {
         "skanehira/jumpcursor.vim",
@@ -86,12 +87,12 @@ return {
 
     { "rbtnn/vim-jumptoline" },
 
-    -- コメントアウトされたプラグイン
-    -- {
-    --     "unblevable/quick-scope",
-    --     config = function()
-    --         vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
-    --     end
-    -- },
+    {
+        "unblevable/quick-scope",
+        config = function()
+            vim.g.qs_highlight_on_keys = { 'f', 'F', 't', 'T' }
+            vim.g.qs_enable = 1  -- デフォルトで有効
+        end
+    },
 }
 
