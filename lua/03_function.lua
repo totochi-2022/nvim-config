@@ -110,32 +110,6 @@ endfunction
 command! VmodeToggle call s:vmode_toggle()
 ]]
 --}}}
---MigemoToggle {{{
- vim.cmd [[
- function! s:migemo_mapping(verbose)
-   if g:incsearch_use_migemo == 0
-     map ?  <Plug>(incsearch-backward)
-     map /  <Plug>(incsearch-forward)
-     if a:verbose
-       echo 'incsearch no use migemo.'
-     end
-   else
-     map ?  <Plug>(incsearch-migemo-?)
-     map /  <Plug>(incsearch-migemo-/)
-     if a:verbose
-        echo 'incsearch use migemo.'
-     end
-   endif
- endfunction
-
- function! s:migemo_toggle()
-   let g:incsearch_use_migemo = (g:incsearch_use_migemo == 0 ? 1 : 0)
-     call s:migemo_mapping(1)
-   endfunction
- call s:migemo_mapping(0)
- command! MigemoToggle call s:migemo_toggle()
- ]]
---}}}
 
 --- FileLocalJumpList ファイル内ジャンプ履歴{{{
 -- ファイル内のジャンプ履歴を管理する
