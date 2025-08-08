@@ -287,13 +287,8 @@ keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', { noremap = true
 -- keymap('n', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字で画面内ジャンプ' })
 -- keymap('x', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字でジャンプ' })
 
--- Migemo Search (incsearch-migemo.nvim)
-local migemo_ok, migemo = pcall(require, 'incsearch-migemo')
-if migemo_ok and migemo.has_migemo() then
-    keymap('n', 'm/', migemo.forward, { noremap = true, desc = 'Migemo前方検索' })
-    keymap('n', 'm?', migemo.backward, { noremap = true, desc = 'Migemo後方検索' })
-    keymap('n', 'mg/', migemo.stay, { noremap = true, desc = 'Migemoステイ検索' })
-end
+-- Migemo Search - moved to toggle system (22_toggle.lua)
+-- Use <leader>t -> m to toggle migemo search on/off
 
 -- VisualModeトグル
 keymap('v', 'v', ':<C-u>VmodeToggle<CR>', { noremap = true, desc = 'ビジュアルモード切替' })
