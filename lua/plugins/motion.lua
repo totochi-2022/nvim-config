@@ -60,14 +60,8 @@ return {
         end
     },
 
-    { "haya14busa/incsearch-migemo.vim" },
-
-    {
-        "haya14busa/incsearch.vim",
-        config = function()
-            vim.g.incsearch_use_migemo = 1
-        end
-    },
+    -- 古いincsearchプラグインを削除
+    -- → totochi-2022/incsearch-migemo.nvim に移行済み
 
     {
         "kevinhwang91/nvim-hlslens",
