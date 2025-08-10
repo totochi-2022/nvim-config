@@ -720,4 +720,15 @@ return {
             })
         end,
     },
+    -- ローカル開発用
+    -- {
+    --     dir = "/home/motoki/work/repo/nvim-plugin/toggle-manager.nvim",
+    --     name = "toggle-manager.nvim",
+    --     config = function()
+    --         local toggle_definitions = require('22_toggle')
+    --         require('toggle-manager').setup({
+    --             definitions = toggle_definitions.definitions
+    --         })
+    --     end,
+    -- },
 }

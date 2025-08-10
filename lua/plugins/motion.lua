@@ -82,9 +82,26 @@ return {
     --     end
     -- },
     
-    -- 新しいNeovim版clever-f（ローカル開発）
+    -- 新しいNeovim版clever-f
+    -- GitHub版
+    -- {
+    --     "totochi-2022/clever-f.nvim",
+    --     enabled = true,
+    --     config = function()
+    --         vim.g.clever_f_setup_called = true  -- setup呼び出しフラグ
+    --         require('clever-f').setup({
+    --             across_no_line = false,  -- false = 行またぎ有効
+    --             smart_case = true,
+    --             fix_key_direction = true,
+    --             chars_lowercase = nil,
+    --             use_migemo = false,
+    --             use_vimtex = false,
+    --         })
+    --     end,
+    -- },
+    -- ローカル開発用
     {
-        dir = "/home/motoki/work/repo/clever-f.nvim",
+        dir = "/home/motoki/work/repo/nvim-plugin/clever-f.nvim",
         name = "clever-f.nvim",
         enabled = true,  -- テスト有効
         config = function()

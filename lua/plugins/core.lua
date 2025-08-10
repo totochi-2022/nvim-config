@@ -5,6 +5,12 @@ return {
         "totochi-2022/minor-mode.nvim",
         config = false, -- 設定不要、そのまま使用
     },
+    -- ローカル開発用
+    -- {
+    --     dir = "/home/motoki/work/repo/nvim-plugin/minor-mode.nvim",
+    --     name = "minor-mode.nvim",
+    --     config = false,
+    -- },
     
     -- Incremental Migemo Search
     {
@@ -13,6 +19,14 @@ return {
             require('incsearch-migemo').setup()
         end,
     },
+    -- ローカル開発用
+    -- {
+    --     dir = "/home/motoki/work/repo/nvim-plugin/incsearch-migemo.nvim",
+    --     name = "incsearch-migemo.nvim",
+    --     config = function()
+    --         require('incsearch-migemo').setup()
+    --     end,
+    -- },
     
     -- コアライブラリ
     { "tpope/vim-repeat" },
