@@ -37,6 +37,7 @@ local definitions = {
         },
         default_state = 'cursor_only',
         desc = '診断表示モード',
+        display_char = '⚠ ',  -- lualineで表示する文字（スペース付き）
         get_state = function()
             -- 現在の診断設定から状態を判定
             local config = vim.diagnostic.config()
@@ -168,6 +169,7 @@ local definitions = {
         },
         default_state = 'all',
         desc = 'カラー表示',
+        display_char = '🎨 ',  -- lualineで表示する文字（スペース付き）
         get_state = function()
             -- グローバル変数でカラー表示の状態を管理
             if vim.g.color_highlighting_mode == nil then
@@ -236,6 +238,7 @@ local definitions = {
         },
         default_state = 'off',
         desc = 'Migemo検索',
+        display_char = 'み ',  -- lualineで表示する文字（スペース付き）
         get_state = function()
             return vim.g.migemo_enabled and 'on' or 'off'
         end,
@@ -287,6 +290,7 @@ local definitions = {
         },
         default_state = 'on',
         desc = 'QuickScope',
+        display_char = '🔍',  -- lualineで表示する文字
         get_state = function()
             return (vim.g.qs_enable == 1) and 'on' or 'off'
         end,
