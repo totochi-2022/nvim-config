@@ -711,7 +711,8 @@ return {
 
     -- Toggle Manager Plugin
     {
-        "totochi-2022/toggle-manager.nvim",
+        "totochi-2022/toggle-manager.nvim",  -- GitHub版
+        -- dir = "/home/motoki/work/repo/nvim_plugin/toggle-manager.nvim",  -- ローカル開発版
         -- tag = "v1.0.0", -- 安定版を使いたい場合
         config = function()
             local toggle_definitions = require('22_toggle')
@@ -720,15 +721,96 @@ return {
             })
         end,
     },
-    -- ローカル開発用
-    -- {
-    --     dir = "/home/motoki/work/repo/nvim-plugin/toggle-manager.nvim",
-    --     name = "toggle-manager.nvim",
-    --     config = function()
-    --         local toggle_definitions = require('22_toggle')
-    --         require('toggle-manager').setup({
-    --             definitions = toggle_definitions.definitions
-    --         })
-    --     end,
-    -- },
+
+    -- ハイライトグループの色を可視化
+    {
+        "brenoprata10/nvim-highlight-colors",
+        config = function()
+            require('nvim-highlight-colors').setup({
+                render = 'virtual',  -- 'background' または 'virtual'
+                enable_named_colors = true,
+                enable_tailwind = true,  -- Tailwind CSSの色を有効化
+                virtual_symbol = '■',  -- virtual表示時のシンボル
+                virtual_symbol_prefix = ' ',
+                virtual_symbol_suffix = '',
+                virtual_symbol_position = 'inline',  -- 'inline' または 'eol'
+            })
+            
+            -- 初期状態の設定
+            if vim.g.color_highlighting_mode == 'off' then
+                require('nvim-highlight-colors').turnOff()
+            elseif vim.g.color_highlighting_mode ~= nil then
+                require('nvim-highlight-colors').turnOn()
+            else
+                -- デフォルトはall（すべて有効）
+                require('nvim-highlight-colors').turnOn()
+            end
+        end,
+    },
+
+    -- ハイライトグループの確認・編集
+    {
+        "echasnovski/mini.hipatterns",
+        version = false,
+        config = function()
+            local hipatterns = require('mini.hipatterns')
+            
+            -- ハイライトグループパターンを関数で動的生成
+            local function get_vim_highlight_pattern()
+                return {
+                    pattern = function(buf_id)
+                        -- カラーモードをチェック
+                        if vim.g.color_highlighting_mode ~= 'all' then
+                            return nil  -- allモード以外では無効
+                        end
+                        
+                        -- Vimファイルまたは設定ファイルでのみ有効
+                        local ft = vim.bo[buf_id].filetype
+                        if ft == 'vim' or ft == 'lua' then
+                            return '%f[%w]()[%w_]+()%f[^%w_]'
+                        end
+                    end,
+                    group = function(_, match)
+                        -- マッチした文字列がハイライトグループ名かチェック
+                        local hl_exists, _ = pcall(vim.api.nvim_get_hl, 0, { name = match })
+                        if hl_exists then
+                            return match
+                        end
+                    end,
+                }
+            end
+            
+            hipatterns.setup({
+                highlighters = {
+                    vim_highlight = get_vim_highlight_pattern(),
+                },
+            })
+            
+            -- パターン更新用のグローバル関数を作成
+            vim.g.update_hipatterns = function()
+                -- すべてのバッファで無効化
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    if vim.api.nvim_buf_is_valid(buf) then
+                        pcall(hipatterns.disable, buf)
+                    end
+                end
+                
+                vim.schedule(function()
+                    -- 新しいパターンで再設定
+                    hipatterns.setup({
+                        highlighters = {
+                            vim_highlight = get_vim_highlight_pattern(),
+                        },
+                    })
+                    
+                    -- すべてのバッファで有効化
+                    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                        if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == '' then
+                            pcall(hipatterns.enable, buf)
+                        end
+                    end
+                end)
+            end
+        end,
+    },
 }

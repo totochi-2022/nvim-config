@@ -12,6 +12,9 @@
 - **lazy.nvimプラグイン保存場所**: `~/.local/share/nvim/lazy/`
   - 各プラグインはこのディレクトリ配下にgitリポジトリとして保存される
   - 例: `~/.local/share/nvim/lazy/incsearch.vim/`
+- **ローカル開発プラグイン場所**: `~/work/repo/`
+  - 開発中のNeovimプラグインリポジトリを配置
+  - lazy.nvimで `dir = "/home/motoki/work/repo/プラグイン名"` として参照
 
 ## ディレクトリ構造
 

@@ -247,13 +247,6 @@ return {
     -- バイナリエディタ
     { "Shougo/vinarise" },
 
-    -- 色表示
-    {
-        "norcalli/nvim-colorizer.lua",
-        config = function()
-            require('colorizer').setup()
-        end
-    },
 
     -- マルチカーソル
     { "mg979/vim-visual-multi" },

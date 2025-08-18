@@ -73,6 +73,7 @@ return {
     -- 元のclever-f.vim（競合あり）
     -- {
     --     "rhysd/clever-f.vim",
+    --     -- dir = "/home/motoki/work/repo/nvim_plugin/clever-f.vim",  -- ローカル版（Vim script）
     --     config = function()
     --         vim.g.clever_f_across_no_line = 1
     --         vim.g.clever_f_smart_case = 1
@@ -101,7 +102,7 @@ return {
     -- },
     -- ローカル開発用
     {
-        dir = "/home/motoki/work/repo/nvim-plugin/clever-f.nvim",
+        dir = "/home/motoki/work/repo/nvim_plugin/clever-f.nvim",
         name = "clever-f.nvim",
         enabled = true,  -- テスト有効
         config = function()

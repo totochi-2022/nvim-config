@@ -3,6 +3,7 @@ return {
     -- Minor Mode Plugin
     {
         "totochi-2022/minor-mode.nvim",
+        -- dir = "/home/motoki/work/repo/nvim_plugin/minor-mode.nvim",  -- ローカル版
         config = false, -- 設定不要、そのまま使用
     },
     -- ローカル開発用
@@ -15,6 +16,7 @@ return {
     -- Incremental Migemo Search
     {
         "totochi-2022/incsearch-migemo.nvim",
+        -- dir = "/home/motoki/work/repo/nvim_plugin/incsearch-migemo.nvim",  -- ローカル版
         config = function()
             require('incsearch-migemo').setup()
         end,

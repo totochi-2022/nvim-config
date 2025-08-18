@@ -164,6 +164,7 @@ keymap('', '<Leader>d', ':Telescope diagnostics<CR>', { noremap = true, desc = '
 keymap('', '<Leader>f', ':Telescope fd<CR>', { noremap = true, desc = 'ファイル検索' })
 keymap('', '<Leader>e', ':Telescope file_browser path=%:p:h<CR>', { noremap = true, desc = 'ファイルブラウザ（現在のディレクトリ）' })
 keymap('', '<Leader>J', ':Telescope jumplist<CR>', { noremap = true, desc = 'ジャンプリスト' })
+keymap('', '<Leader>c', ':Telescope highlights<CR>', { noremap = true, desc = 'ハイライトグループ一覧' })
 keymap('', '<Leader>S', ':SearchSession<CR>', { noremap = true, desc = 'セッション検索' })
 keymap('n', '<Leader>u', ':Telescope undo<CR>', { noremap = true, desc = '変更履歴（Telescope）' })
 keymap('n', '<Leader>t', ':terminal<CR>', { noremap = true, desc = 'ターミナル起動' })

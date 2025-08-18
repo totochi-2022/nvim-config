@@ -91,22 +91,21 @@ M.definitions = {
         end
     },
 
-    -- r = { -- キー = R (readonly)
-    --     name = 'readonly',
-    --     states = { 'off', 'on' },
-    --     colors = {
-    --         { fg = 'NonText' },                  -- off: NonTextの色を使用
-    --         { fg = 'WarningMsg', bg = 'Visual' } -- on: WarningMsg文字/Visual背景
-    --     },
-    --     default_state = 'off',
-    --     desc = '読み取り専用モード',
-    --     get_state = function()
-    --         return vim.opt.readonly:get() and 'on' or 'off'
-    --     end,
-    --     set_state = function(state)
-    --         vim.opt.readonly = (state == 'on')
-    --     end
-    -- },
+    r = { -- キー = R (readonly) - 表示のみの例
+        name = 'readonly',
+        states = { 'off', 'on' },
+        colors = {
+            { fg = 'NonText' },                  -- off: NonTextの色を使用
+            { fg = 'WarningMsg', bg = 'Visual' } -- on: WarningMsg文字/Visual背景
+        },
+        default_state = 'off',
+        desc = '読み取り専用モード',
+        readonly = true, -- このフラグで表示のみになる
+        get_state = function()
+            return vim.opt.readonly:get() and 'on' or 'off'
+        end,
+        -- set_stateは定義しない（表示のみなので）
+    },
 
     p = { -- キー = P (paste_mode)
         name = 'paste_mode',
@@ -152,48 +151,71 @@ M.definitions = {
         end
     },
 
-    c = { -- キー = C (colorizer)
-        name = 'colorizer',
-        states = { 'off', 'on' },
+    c = { -- キー = C (color highlighting)
+        name = 'colors',
+        states = { 'off', 'hex', 'all' },
         colors = {
-            { fg = 'NonText' },                      -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticInfo' } -- on: Normal文字/DiagnosticInfo背景
+            { fg = 'NonText' },                       -- off: NonTextの色を使用
+            { fg = 'Normal', bg = 'DiagnosticWarn' }, -- hex: HEXカラーのみ
+            { fg = 'Normal', bg = 'DiagnosticInfo' }  -- all: すべてのカラー表示
         },
-        default_state = 'on',
+        default_state = 'all',
         desc = 'カラー表示',
         get_state = function()
-            -- colorizerが利用可能かチェック
-            local ok, colorizer = pcall(require, 'colorizer')
-            if not ok then
-                return 'off'
+            -- グローバル変数でカラー表示の状態を管理
+            if vim.g.color_highlighting_mode == nil then
+                vim.g.color_highlighting_mode = 'all' -- デフォルトはall
             end
-
-            local buf = vim.api.nvim_get_current_buf()
-
-            -- colorizerの内部状態をチェック（エラーハンドリング付き）
-            if colorizer and colorizer.get_buffer_options then
-                local buffer_ok, buffer_options = pcall(colorizer.get_buffer_options, buf)
-                if buffer_ok and buffer_options then
-                    return 'on'
-                end
-            end
-
-            -- フォールバック: バッファ変数をチェック
-            return vim.b[buf].colorizer_attached and 'on' or 'off'
+            return vim.g.color_highlighting_mode
         end,
         set_state = function(state)
-            if state == 'on' then
-                if vim.fn.exists(':ColorizerAttachToBuffer') == 2 then
-                    vim.cmd('ColorizerAttachToBuffer')
-                elseif vim.fn.exists(':ColorizerToggle') == 2 then
-                    vim.cmd('ColorizerToggle')
+            vim.g.color_highlighting_mode = state
+
+            -- nvim-highlight-colorsの設定
+            local highlight_colors_ok, highlight_colors = pcall(require, 'nvim-highlight-colors')
+            if highlight_colors_ok then
+                if state == 'off' then
+                    highlight_colors.turnOff()
+                else
+                    -- 状態に応じて設定を変更
+                    if state == 'hex' then
+                        -- HEXカラーのみ有効
+                        highlight_colors.setup({
+                            render = 'virtual',
+                            enable_hex = true,
+                            enable_short_hex = true,
+                            enable_rgb = false,
+                            enable_hsl = false,
+                            enable_named_colors = false,
+                            enable_tailwind = false,
+                            virtual_symbol = '■',
+                            virtual_symbol_prefix = ' ',
+                            virtual_symbol_suffix = '',
+                            virtual_symbol_position = 'inline',
+                        })
+                    else -- all
+                        -- すべてのカラー形式を有効
+                        highlight_colors.setup({
+                            render = 'virtual',
+                            enable_hex = true,
+                            enable_short_hex = true,
+                            enable_rgb = true,
+                            enable_hsl = true,
+                            enable_named_colors = true,
+                            enable_tailwind = true,
+                            virtual_symbol = '■',
+                            virtual_symbol_prefix = ' ',
+                            virtual_symbol_suffix = '',
+                            virtual_symbol_position = 'inline',
+                        })
+                    end
+                    highlight_colors.turnOn()
                 end
-            else
-                if vim.fn.exists(':ColorizerDetachFromBuffer') == 2 then
-                    vim.cmd('ColorizerDetachFromBuffer')
-                elseif vim.fn.exists(':ColorizerToggle') == 2 then
-                    vim.cmd('ColorizerToggle')
-                end
+            end
+
+            -- mini.hipatternsのトグル（パターンを完全に再設定）
+            if vim.g.update_hipatterns then
+                vim.g.update_hipatterns()
             end
         end
     },
