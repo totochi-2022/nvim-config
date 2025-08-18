@@ -466,13 +466,17 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 -- require('12_toggle') -- 番号順で自動読み込みされるのでコメントアウト
 
 -- 新トグルシステム
--- <Space>0 でトグルメニュー（which-keyにも登録済み）
-vim.keymap.set('n', '<Space>0', function()
+-- <LocalLeader>0 でトグルメニュー（<Space>0と同じ）
+vim.keymap.set('n', '<LocalLeader>0', function()
     -- 22_toggle.luaの設定に応じて新旧システムを切り替え
     local use_new = vim.g.toggle_use_new_plugin or false
-    require("toggle-manager").show_toggle_menu() -- GitHub版
+    require("toggle-manager").show_toggle_menu()
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
--- デバッグ用キーマップは削除済み
+
+-- デバッグ用（同じ動作）
+vim.keymap.set('n', '<LocalLeader>1', function()
+    require("toggle-manager").show_menu()
+end, { noremap = true, desc = 'Toggle menu (debug)' })
 -- }}}
 
 --- Noice.nvim キーマップ{{{
@@ -489,7 +493,7 @@ keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { 
 --- Dropbar.nvim キーマップ{{{
 -- ドロップバーの選択
 -- keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })  -- dropbar無効化のためコメントアウト
-keymap('n', '<LocalLeader>1', function() require('toggle-manager').show_menu() end, { noremap = true, desc = 'Toggle menu' })
+-- Toggle menuの<LocalLeader>1は上部のトグル設定セクションに移動済み
 -- }}}
 
 

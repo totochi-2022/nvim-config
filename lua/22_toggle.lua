@@ -20,11 +20,13 @@
    }
 --]]
 
-local M = {}
+-- Toggle System Configuration
+-- 新トグルシステムの設定ファイル
+-- このファイルはいつ呼ばれても動作する自己完結型
 
 -- ========== トグル定義設定 ==========
 
-M.definitions = {
+local definitions = {
     d = { -- キー = D (diagnostics)
         name = 'diagnostics',
         states = { 'cursor_only', 'full_with_underline', 'signs_only' },
@@ -443,7 +445,34 @@ M.definitions = {
     }
 }
 
--- ========== キーマップ設定 ==========
--- キーマップは21_keymap.luaで定義済み
+-- ========== セットアップ実行 ==========
 
-return M
+-- toggle-managerプラグインのセットアップ
+-- プラグインが利用可能な場合のみ実行
+local function setup_toggle_manager()
+    local ok, toggle_manager = pcall(require, 'toggle-manager')
+    if not ok then
+        -- プラグインがまだ読み込まれていない場合は何もしない
+        return false
+    end
+    
+    -- セットアップ実行
+    toggle_manager.setup({
+        definitions = definitions
+    })
+    
+    -- キーマップは21_keymap.luaで設定
+    
+    return true
+end
+
+-- 即座に試行
+if not setup_toggle_manager() then
+    -- 失敗した場合は、VimEnterで再試行
+    vim.api.nvim_create_autocmd("VimEnter", {
+        callback = function()
+            setup_toggle_manager()
+        end,
+        once = true,
+    })
+end

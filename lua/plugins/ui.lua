@@ -713,13 +713,9 @@ return {
     {
         -- "totochi-2022/toggle-manager.nvim",  -- GitHub版
         dir = "/home/motoki/work/repo/nvim_plugin/toggle-manager.nvim",  -- ローカル開発版
-        -- tag = "v1.0.0", -- 安定版を使いたい場合
-        config = function()
-            local toggle_definitions = require('22_toggle')
-            require('toggle-manager').setup({
-                definitions = toggle_definitions.definitions
-            })
-        end,
+        lazy = false,  -- 起動時に読み込み
+        priority = 100,  -- 早めに読み込む（22_toggle.luaが使えるように）
+        -- setupは22_toggle.luaで行うのでconfigは不要
     },
 
     -- ハイライトグループの色を可視化
