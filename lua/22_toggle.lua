@@ -141,6 +141,7 @@ local definitions = {
         },
         default_state = 'off',
         desc = '自動ホバー表示',
+        display_char = '🎈',  -- lualineで表示する文字
         get_state = function()
             return vim.g.toggle_auto_hover == 1 and 'on' or 'off'
         end,
@@ -312,6 +313,7 @@ local definitions = {
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
+        display_char = '⚡',  -- lualineで表示する文字
         get_state = function()
             return vim.g.jump_mode_file_local and 'file_local' or 'global'
         end,
@@ -376,6 +378,7 @@ local definitions = {
         },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
+        display_char = '💬',  -- lualineで表示する文字
         get_state = function()
             local ok, noice = pcall(require, 'noice')
             if ok then
