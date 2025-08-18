@@ -201,7 +201,16 @@ keymap('n', '<F8>c', ':Lazy clean<CR>', { noremap = true, desc = 'プラグイ�
 keymap('n', '<F8>u', ':Lazy update<CR>', { noremap = true, desc = 'プラグイン更新' })
 keymap('n', '<F8>m', ':Mason<CR>', { noremap = true, desc = 'Mason（LSP管理）を開く' })
 keymap('n', '<F8>t', ':TSUpdate<CR>', { noremap = true, desc = 'Treesitter更新' })
-keymap('n', '<F8>r', '<cmd>lua RandomScheme()<CR>', { noremap = true, desc = 'ランダムカラースキーム' })
+-- カラースキーム変更のminor mode
+minor_mode.define_mode({
+    namespace = 'ColorScheme',
+    entries = {
+        { key = '<F8>r', action = '<cmd>lua RandomScheme()<CR>', desc = 'ランダムカラースキーム+カラーモード開始' }
+    },
+    actions = {
+        { key = 'r', action = '<cmd>lua RandomScheme()<CR>', desc = 'ランダムカラースキーム' },
+    }
+})
 
 -- LSP関連
 keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', { noremap = true, desc = 'ホバー情報表示' })
