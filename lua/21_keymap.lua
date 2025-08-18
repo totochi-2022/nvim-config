@@ -488,7 +488,8 @@ keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { 
 
 --- Dropbar.nvim キーマップ{{{
 -- ドロップバーの選択
-keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })
+-- keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })  -- dropbar無効化のためコメントアウト
+keymap('n', '<LocalLeader>1', function() require('toggle-manager').show_menu() end, { noremap = true, desc = 'Toggle menu' })
 -- }}}
 
 

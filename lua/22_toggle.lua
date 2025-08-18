@@ -29,21 +29,26 @@ M.definitions = {
         name = 'diagnostics',
         states = { 'cursor_only', 'full_with_underline', 'signs_only' },
         colors = {
-            { fg = 'DiagnosticHint' },                -- cursor_only: DiagnosticHintの色を使用
-            { fg = 'DiagnosticWarn' },                -- full_with_underline: DiagnosticWarnの色を使用
-            { fg = 'Normal', bg = 'DiagnosticError' } -- signs_only: Normal文字/DiagnosticError背景
+            { fg = 'Normal', bg = 'Normal' },          -- cursor_only: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- full_with_underline: 黒文字/DiagnosticWarn背景
+            { fg = '#000000', bg = 'DiagnosticError' } -- signs_only: 黒文字/DiagnosticError背景
         },
         default_state = 'cursor_only',
         desc = '診断表示モード',
         get_state = function()
             -- 現在の診断設定から状態を判定
             local config = vim.diagnostic.config()
-            if not config.virtual_text and not config.signs then
-                return 'signs_only'
-            elseif config.virtual_text then
+            -- tiny-inline-diagnosticが有効かチェック
+            local ok, tiny_diag = pcall(require, 'tiny-inline-diagnostic')
+            local tiny_enabled = ok and tiny_diag.is_enabled and tiny_diag.is_enabled()
+
+            if config.virtual_text then
                 return 'full_with_underline'
-            else
+            elseif tiny_enabled or (not config.virtual_text and config.signs and not config.underline) then
+                -- tiny-inline-diagnosticが有効、またはvirtual_textなし、signsあり、underlineなし
                 return 'cursor_only'
+            else
+                return 'signs_only'
             end
         end,
         set_state = function(state)
@@ -95,8 +100,8 @@ M.definitions = {
         name = 'readonly',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                  -- off: NonTextの色を使用
-            { fg = 'WarningMsg', bg = 'Visual' } -- on: WarningMsg文字/Visual背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = '読み取り専用モード',
@@ -111,8 +116,8 @@ M.definitions = {
         name = 'paste_mode',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },               -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'MoreMsg' } -- on: Normal文字/MoreMsg背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = 'ペーストモード',
@@ -128,8 +133,8 @@ M.definitions = {
         name = 'auto_hover',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                   -- off: NonTextの色を使用
-            { fg = 'MoreMsg', bg = 'WarningMsg' } -- on: MoreMsgの前景色、WarningMsgの前景色を背景に
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = '自動ホバー表示',
@@ -155,9 +160,9 @@ M.definitions = {
         name = 'colors',
         states = { 'off', 'hex', 'all' },
         colors = {
-            { fg = 'NonText' },                       -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticWarn' }, -- hex: HEXカラーのみ
-            { fg = 'Normal', bg = 'DiagnosticInfo' }  -- all: すべてのカラー表示
+            { fg = 'Normal', bg = 'Normal' },          -- hex: HEXカラーのみ
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- hex: HEXカラーのみ
+            { fg = '#000000', bg = 'DiagnosticError' } -- all: すべてのカラー表示
         },
         default_state = 'all',
         desc = 'カラー表示',
@@ -224,8 +229,8 @@ M.definitions = {
         name = 'migemo',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                      -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticWarn' } -- on: Normal文字/DiagnosticWarn背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = 'Migemo検索',
@@ -275,8 +280,8 @@ M.definitions = {
         name = 'quickscope',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },               -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'MoreMsg' } -- on: Normal文字/MoreMsg背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'on',
         desc = 'QuickScope',
@@ -296,8 +301,8 @@ M.definitions = {
         name = 'jump_mode',
         states = { 'global', 'file_local' },
         colors = {
-            { fg = 'Normal', bg = 'DiagnosticInfo' }, -- global: Normal文字/DiagnosticInfo背景
-            { fg = 'Normal', bg = 'MoreMsg' }         -- file_local: Normal文字/MoreMsg背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- file_local: 黒文字/DiagnosticWarn背景
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
@@ -321,8 +326,8 @@ M.definitions = {
         name = 'windows_path',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                      -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticWarn' } -- on: Normal文字/DiagnosticWarn背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'off',
         desc = 'Windowsパス変換',
@@ -360,8 +365,8 @@ M.definitions = {
         name = 'noice_cmdline',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                      -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticInfo' } -- on: Normal文字/DiagnosticInfo背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
@@ -390,8 +395,8 @@ M.definitions = {
         name = 'lsp_progress',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'NonText' },                      -- off: NonTextの色を使用
-            { fg = 'Normal', bg = 'DiagnosticInfo' } -- on: Normal文字/DiagnosticInfo背景
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
         },
         default_state = 'on',
         desc = 'LSP進捗表示',
@@ -439,11 +444,6 @@ M.definitions = {
 }
 
 -- ========== キーマップ設定 ==========
-
--- トグルメニューを開く
-vim.keymap.set('n', '<leader>t', function()
-    local toggle_manager = require('toggle-manager')
-    toggle_manager.show_menu()
-end, { desc = 'Toggle menu' })
+-- キーマップは21_keymap.luaで定義済み
 
 return M

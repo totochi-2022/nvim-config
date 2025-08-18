@@ -711,8 +711,8 @@ return {
 
     -- Toggle Manager Plugin
     {
-        "totochi-2022/toggle-manager.nvim",  -- GitHub版
-        -- dir = "/home/motoki/work/repo/nvim_plugin/toggle-manager.nvim",  -- ローカル開発版
+        -- "totochi-2022/toggle-manager.nvim",  -- GitHub版
+        dir = "/home/motoki/work/repo/nvim_plugin/toggle-manager.nvim",  -- ローカル開発版
         -- tag = "v1.0.0", -- 安定版を使いたい場合
         config = function()
             local toggle_definitions = require('22_toggle')
