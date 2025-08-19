@@ -4,6 +4,20 @@ return {
     { "andymass/vim-matchup" },
     { "windwp/nvim-autopairs" },
     { "kylechui/nvim-surround" },
+    
+    -- Markdownプレビュー（チートシート表示用）
+    {
+        "ellisonleao/glow.nvim",
+        config = function()
+            require('glow').setup({
+                style = "dark",  -- ダークテーマ
+                width = 120,      -- 幅
+                height = 100,     -- 高さ
+                border = "rounded", -- 枠線スタイル
+            })
+        end,
+        cmd = "Glow",
+    },
 
     -- テキストオブジェクト
     {

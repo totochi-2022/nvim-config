@@ -38,6 +38,7 @@ local definitions = {
         default_state = 'cursor_only',
         desc = '診断表示モード',
         display_char = '⚠ ', -- lualineで表示する文字（スペース付き）
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             -- 現在の診断設定から状態を判定
             local config = vim.diagnostic.config()
@@ -142,7 +143,7 @@ local definitions = {
         default_state = 'off',
         desc = '自動ホバー表示',
         display_char = '🎈', -- lualineで表示する文字
-        auto_hide = true,  -- 最初の状態(off)の時はlualineから自動非表示
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.toggle_auto_hover == 1 and 'on' or 'off'
         end,
@@ -172,6 +173,7 @@ local definitions = {
         default_state = 'all',
         desc = 'カラー表示',
         display_char = '🎨', -- lualineで表示する文字
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             -- グローバル変数でカラー表示の状態を管理
             if vim.g.color_highlighting_mode == nil then
@@ -315,6 +317,7 @@ local definitions = {
         default_state = 'file_local',
         desc = 'ジャンプモード',
         display_char = '⚡', -- lualineで表示する文字
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.jump_mode_file_local and 'file_local' or 'global'
         end,
