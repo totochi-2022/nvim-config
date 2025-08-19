@@ -571,6 +571,15 @@ return {
                 cmdline = {
                     enabled = true,
                     view = "cmdline_popup",
+                    opts = {},
+                    format = {
+                        cmdline = { pattern = "^:", icon = "", lang = "vim" },
+                        search_down = { kind = "search", pattern = "^/", icon = " ", lang = "regex" },
+                        search_up = { kind = "search", pattern = "^%?", icon = " ", lang = "regex" },
+                        filter = { pattern = "^:%s*!", icon = "$", lang = "bash" },
+                        lua = { pattern = { "^:%s*lua%s+", "^:%s*lua%s*=%s*", "^:%s*=%s*" }, icon = "", lang = "lua" },
+                        help = { pattern = "^:%s*he?l?p?%s+", icon = "" },
+                    },
                 },
                 -- メッセージ設定（有効化）
                 messages = {
@@ -652,6 +661,18 @@ return {
                         win_options = {
                             winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
                         },
+                        opts = {
+                            -- 貼り付け時の処理を改善
+                            buf_options = {
+                                filetype = "vim",
+                            },
+                            win_options = {
+                                list = false,
+                                wrap = false,
+                            },
+                        },
+                        -- マウス操作を有効化
+                        mouse = true,
                     },
                     -- LSP進捗表示の位置調整
                     mini = {

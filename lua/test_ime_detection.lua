@@ -3,13 +3,31 @@
 
 local M = {}
 
--- 方法1: 標準のgetimstatus()
+-- 方法1: Neovim標準のIME状態チェック
 M.test_getimstatus = function()
-  print("=== getimstatus() テスト ===")
-  local status = vim.fn.getimstatus()
-  print("getimstatus() result: " .. tostring(status))
-  print("Type: " .. type(status))
-  return status
+  print("=== Neovim標準IME状態 テスト ===")
+  
+  -- iminsertオプション（0=オフ, 1=オン, 2=前回の状態）
+  local iminsert = vim.o.iminsert
+  print("iminsert option: " .. tostring(iminsert))
+  
+  -- imsearchオプション
+  local imsearch = vim.o.imsearch
+  print("imsearch option: " .. tostring(imsearch))
+  
+  -- keymapオプション
+  local keymap = vim.o.keymap
+  print("keymap option: " .. tostring(keymap))
+  
+  -- バッファローカルのkeymap_name
+  local keymap_name = vim.b.keymap_name
+  print("b:keymap_name: " .. tostring(keymap_name))
+  
+  -- IME機能サポート確認
+  local has_ime = vim.fn.has('multi_byte_ime')
+  print("has('multi_byte_ime'): " .. tostring(has_ime))
+  
+  return iminsert
 end
 
 -- 方法2: PowerShell経由でWindowsのIME状態を取得

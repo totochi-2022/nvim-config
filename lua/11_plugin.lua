@@ -34,6 +34,7 @@ local plugin_modules = {
     'plugins.editor',    -- エディタ機能
     'plugins.lsp',       -- LSP
     'plugins.debug',     -- デバッグ
+    'plugins.ime',       -- IME自動切り替え
     'plugins.misc',      -- その他
     'plugins.git',       -- Git（最後、現在空）
 }

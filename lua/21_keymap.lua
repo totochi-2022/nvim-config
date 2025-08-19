@@ -43,6 +43,22 @@ keymap('n', 'mqm', function() require('test_vim_on_key').show_menu() end,
        { noremap = true, desc = 'vim.on_key テスト: メニュー表示' })
 -- }}}
 
+--- noice cmdline paste support{{{
+-- コマンドラインモードでの貼り付けを有効化
+keymap('c', '<C-v>', '<C-r>+', { noremap = true, desc = 'コマンドラインで貼り付け' })
+keymap('c', '<C-r><C-v>', '<C-r>+', { noremap = true, desc = 'コマンドラインで貼り付け' })
+-- 右クリックで貼り付け（noiceコマンドライン用）
+keymap('c', '<RightMouse>', '<C-r>+', { noremap = true, desc = '右クリックで貼り付け' })
+keymap('c', '<MiddleMouse>', '<C-r>+', { noremap = true, desc = 'マウス中ボタンで貼り付け' })
+-- }}}
+
+--- IME detection test keymaps{{{
+keymap('n', '<LocalLeader>7i', function() require('test_ime_detection').run_all_tests() end, { desc = 'Run IME detection tests' })
+keymap('n', '<LocalLeader>71', function() require('test_ime_detection').test_getimstatus() end, { desc = 'Test getimstatus()' })
+keymap('n', '<LocalLeader>72', function() require('test_ime_detection').test_powershell_ime() end, { desc = 'Test PowerShell IME' })
+keymap('n', '<LocalLeader>73', function() require('test_ime_detection').test_zenhan() end, { desc = 'Test zenhan' })
+-- }}}
+
 --- split window{{{
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
 keymap('n', '<LocalLeader>vv', ':<C-u>vs<CR>', { noremap = true, desc = '画面を垂直分割' })
