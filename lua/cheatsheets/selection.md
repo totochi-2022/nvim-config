@@ -21,6 +21,8 @@
 | `<S-Up/Down/Left/Right>` | 方向拡張 | Shiftキーで選択拡張 |
 
 ### テキストオブジェクトで選択
+
+#### 標準テキストオブジェクト
 | キー | 動作 | 説明 |
 |------|------|------|
 | `viw` | 単語内を選択 | inner word |
@@ -35,6 +37,34 @@
 | `vat` | タグ全体を選択 | a tag |
 | `vip` | 段落内を選択 | inner paragraph |
 | `vap` | 段落全体を選択 | a paragraph |
+
+#### プラグイン拡張テキストオブジェクト
+| キー | 動作 | プラグイン |
+|------|------|------------|
+| `vil` | 行内を選択 | vim-textobj-line |
+| `val` | 行全体を選択 | vim-textobj-line |
+| `vie` | バッファ全体内を選択 | vim-textobj-entire |
+| `vae` | バッファ全体を選択 | vim-textobj-entire |
+| `vib` | 任意の括弧内を選択 | vim-textobj-anyblock |
+| `vab` | 任意の括弧全体を選択 | vim-textobj-anyblock |
+| `viB` | 複数括弧内を選択 | vim-textobj-multiblock |
+| `vaB` | 複数括弧全体を選択 | vim-textobj-multiblock |
+| `vi,` | パラメータ内を選択 | vim-textobj-parameter |
+| `va,` | パラメータ全体を選択 | vim-textobj-parameter |
+| `vic` | コメント内を選択 | vim-textobj-comment |
+| `vac` | コメント全体を選択 | vim-textobj-comment |
+
+#### TreeSitterテキストオブジェクト（nvim-treesitter-textobjects）
+| キー | 動作 | 説明 |
+|------|------|------|
+| `vif` | 関数内を選択 | inner function |
+| `vaf` | 関数全体を選択 | a function |
+| `vic` | クラス内を選択 | inner class |
+| `vac` | クラス全体を選択 | a class |
+| `vii` | if文内を選択 | inner if |
+| `vai` | if文全体を選択 | a if |
+| `vil` | ループ内を選択 | inner loop |
+| `val` | ループ全体を選択 | a loop |
 
 ### スマート選択（プラグイン）
 | キー | 動作 | 説明 |

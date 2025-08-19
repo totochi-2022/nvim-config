@@ -25,11 +25,31 @@ local cheatsheets = {
     -- { key = 'p', file = 'plugins.md', desc = 'プラグイン' },
 }
 
--- Glowでチートシートを表示
+-- プレビュー方法の設定
+local preview_method = 'glow'  -- 'glow' or 'markdown_preview'
+
+-- プレビュー方法を設定
+function M.set_preview_method(method)
+    preview_method = method
+end
+
+-- プレビュー方法を取得
+function M.get_preview_method()
+    return preview_method
+end
+
+-- チートシートを表示
 function M.show_cheatsheet(file)
     local filepath = cheatsheet_dir .. '/' .. file
     if vim.fn.filereadable(filepath) == 1 then
-        vim.cmd('Glow ' .. filepath)
+        if preview_method == 'markdown_preview' then
+            -- MarkdownPreviewで表示
+            vim.cmd('edit ' .. filepath)
+            vim.cmd('MarkdownPreview')
+        else
+            -- Glowで表示（デフォルト）
+            vim.cmd('Glow ' .. filepath)
+        end
     else
         vim.notify('チートシートが見つかりません: ' .. file, vim.log.levels.WARN)
     end
@@ -63,7 +83,8 @@ function M.show_menu()
     
     table.insert(lines, '')
     table.insert(lines, '─────────────────────────────────')
-    table.insert(lines, 'キーを押して選択 / ESC or q で終了')
+    table.insert(lines, string.format('プレビュー: %s', preview_method))
+    table.insert(lines, '[p] プレビュー方法切替 / ESC or q で終了')
     
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.api.nvim_buf_set_option(buf, 'modifiable', false)
@@ -95,6 +116,24 @@ function M.show_menu()
             M.show_cheatsheet(sheet.file)
         end, { buffer = buf, silent = true })
     end
+    
+    -- プレビュー方法切替
+    vim.keymap.set('n', 'p', function()
+        -- プレビュー方法を切り替え
+        if preview_method == 'glow' then
+            preview_method = 'markdown_preview'
+            vim.notify('プレビュー方法: MarkdownPreview', vim.log.levels.INFO)
+        else
+            preview_method = 'glow'
+            vim.notify('プレビュー方法: Glow', vim.log.levels.INFO)
+        end
+        
+        -- メニューを再描画
+        if vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_win_close(win, true)
+        end
+        M.show_menu()
+    end, { buffer = buf, silent = true })
     
     -- 終了キー
     local close = function()

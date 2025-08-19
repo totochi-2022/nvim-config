@@ -26,7 +26,7 @@
 ---
 
 ## クイックアクセス
-- `<LocalLeader>?` - このヘルプを表示
+- `<LocalLeader>?` - チートシートメニュー表示
 - `<LocalLeader>0` - トグルメニュー
 - `<Leader>?` - which-key ヘルプ
 

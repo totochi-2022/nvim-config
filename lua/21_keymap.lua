@@ -412,9 +412,6 @@ keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
 keymap('n', '<LocalLeader>?', function()
     require('23_cheatsheet').show_menu()
 end, { noremap = true, silent = true, desc = 'チートシートメニュー' })
-keymap('n', '<LocalLeader>??', function()
-    require('23_cheatsheet').show_cheatsheet('index.md')
-end, { noremap = true, silent = true, desc = 'チートシートインデックス' })
 keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc = 'QuickRunセッション終了' })
 
 -- エラージャンプモード（新しいdefine_complete_mode使用）
