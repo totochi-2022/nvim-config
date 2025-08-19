@@ -37,7 +37,7 @@ local definitions = {
         },
         default_state = 'cursor_only',
         desc = '診断表示モード',
-        display_char = '⚠ ',  -- lualineで表示する文字（スペース付き）
+        display_char = '⚠ ', -- lualineで表示する文字（スペース付き）
         get_state = function()
             -- 現在の診断設定から状態を判定
             local config = vim.diagnostic.config()
@@ -141,7 +141,8 @@ local definitions = {
         },
         default_state = 'off',
         desc = '自動ホバー表示',
-        display_char = '🎈',  -- lualineで表示する文字
+        display_char = '🎈', -- lualineで表示する文字
+        auto_hide = true,  -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.toggle_auto_hover == 1 and 'on' or 'off'
         end,
@@ -170,7 +171,7 @@ local definitions = {
         },
         default_state = 'all',
         desc = 'カラー表示',
-        display_char = '🎨',  -- lualineで表示する文字
+        display_char = '🎨', -- lualineで表示する文字
         get_state = function()
             -- グローバル変数でカラー表示の状態を管理
             if vim.g.color_highlighting_mode == nil then
@@ -239,7 +240,7 @@ local definitions = {
         },
         default_state = 'off',
         desc = 'Migemo検索',
-        display_char = 'み',  -- lualineで表示する文字
+        display_char = 'み', -- lualineで表示する文字
         get_state = function()
             return vim.g.migemo_enabled and 'on' or 'off'
         end,
@@ -291,7 +292,7 @@ local definitions = {
         },
         default_state = 'on',
         desc = 'QuickScope',
-        display_char = '🔍',  -- lualineで表示する文字
+        display_char = '🔍', -- lualineで表示する文字
         get_state = function()
             return (vim.g.qs_enable == 1) and 'on' or 'off'
         end,
@@ -313,7 +314,7 @@ local definitions = {
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
-        display_char = '⚡',  -- lualineで表示する文字
+        display_char = '⚡', -- lualineで表示する文字
         get_state = function()
             return vim.g.jump_mode_file_local and 'file_local' or 'global'
         end,
@@ -378,7 +379,7 @@ local definitions = {
         },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
-        display_char = '💬',  -- lualineで表示する文字
+        display_char = '💬', -- lualineで表示する文字
         get_state = function()
             local ok, noice = pcall(require, 'noice')
             if ok then
@@ -462,14 +463,14 @@ local function setup_toggle_manager()
         -- プラグインがまだ読み込まれていない場合は何もしない
         return false
     end
-    
+
     -- セットアップ実行
     toggle_manager.setup({
         definitions = definitions
     })
-    
+
     -- キーマップは21_keymap.luaで設定
-    
+
     return true
 end
 
