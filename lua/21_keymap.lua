@@ -26,25 +26,25 @@ keymap('c', '<C-r><C-v>', '<C-r>+', { noremap = true, desc = 'コマンドライ
 -- 右クリックで貼り付け（noiceコマンドライン用）
 keymap('c', '<RightMouse>', '<C-r>+', { noremap = true, desc = '右クリックで貼り付け' })
 keymap('c', '<MiddleMouse>', '<C-r>+', { noremap = true, desc = 'マウス中ボタンで貼り付け' })
--- 
+--
 
 --- split window
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
 keymap('n', '<LocalLeader>vv', ':<C-u>vs<CR>', { noremap = true, desc = '画面を垂直分割' })
--- 
+--
 
 --- undo
 keymap('n', '<LocalLeader>u', 'U', { noremap = true, desc = '行の変更を元に戻す' })
 keymap('n', 'U', 'g+', { noremap = true, desc = '新しい変更に進む' })
 keymap('n', 'u', 'g-', { noremap = true, desc = '前の変更に戻る' })
--- 
+--
 
 keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモード' })
 --- Windows path conversion (now handled by toggle library)
 -- keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>',
 --     { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
 -- Moved to toggle library
--- 
+--
 
 --- window
 minor_mode.define_mode({
@@ -79,7 +79,7 @@ minor_mode.define_mode({
         { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
 })
--- 
+--
 
 --- buffer
 minor_mode.define_mode({
@@ -93,7 +93,7 @@ minor_mode.define_mode({
         { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
 })
--- 
+--
 
 --- tab
 -- minor_mode.create('Tab', '<LocalLeader>').set('t', 'gt', '次のタブへ移動')  -- 翻訳機能と競合するため削除
@@ -165,7 +165,7 @@ keymap('', '<LocalLeader>q', ':q<CR>', { noremap = true, desc = '終了' })
 keymap('', '<LocalLeader>Q', ':q!<CR>', { noremap = true, desc = '強制終了' })
 keymap('', '<LocalLeader>e', ':e!<CR>', { noremap = true, desc = '再読み込み' })
 keymap('', '<LocalLeader>E', ':e .<CR>', { noremap = true, desc = 'カレントディレクトリを開く' })
--- 
+--
 
 -- WhichKey 関連（<LocalLeader><F1>をヘルプキーとして使用）
 keymap('n', '<LocalLeader><F1><F1>', ':WhichKey<CR>', { noremap = true, desc = '全キーマップのヘルプ' })
@@ -423,31 +423,23 @@ minor_mode.define_mode({
 
 
 -- 構文情報
-keymap('x', '<LocalLeader>1', ':SyntaxInfo<CR>', { noremap = true, desc = '構文情報表示' })
+keymap('n', '<LocalLeader>1', ':SyntaxInfoEnhanced<CR>', { noremap = true, desc = '詳細構文情報表示' })
 
 -- その他設定
 -- Moved to toggle library
--- keymap('n', '<LocalLeader>6', ':set paste!<CR>', { noremap = true, desc = 'ペーストモードトグル' })
--- keymap('n', '<LocalLeader>5', ':QuickScopeToggle<CR>', { noremap = true, desc = 'QuickScopeトグル' })
 keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィンドウに移動' })
 
 --- Toggle Library Integration
 -- Load toggle configuration (automatically registers minor_mode mappings)
 -- require('12_toggle') -- 番号順で自動読み込みされるのでコメントアウト
 
--- 新トグルシステム
--- <LocalLeader>0 でトグルメニュー（<Space>0と同じ）
+-- トグル設定
+-- <LocalLeader>0 でトグルメニュー
 vim.keymap.set('n', '<LocalLeader>0', function()
     -- 22_toggle.luaの設定に応じて新旧システムを切り替え
     local use_new = vim.g.toggle_use_new_plugin or false
     require("toggle-manager").show_toggle_menu()
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
-
--- デバッグ用（同じ動作）
-vim.keymap.set('n', '<LocalLeader>1', function()
-    require("toggle-manager").show_menu()
-end, { noremap = true, desc = 'Toggle menu (debug)' })
--- 
 
 --- Noice.nvim キーマップ
 -- コマンドライン
@@ -458,13 +450,13 @@ keymap('n', '<LocalLeader>nh', '<cmd>lua require("noice").cmd("history")<CR>', {
 keymap('n', '<LocalLeader>nd', '<cmd>lua require("noice").cmd("dismiss")<CR>', { noremap = true, desc = '通知を消す' })
 keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { noremap = true, desc = 'エラーメッセージ' })
 
--- 
+--
 
 --- Dropbar.nvim キーマップ
 -- ドロップバーの選択
 -- keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })  -- dropbar無効化のためコメントアウト
 -- Toggle menuの<LocalLeader>1は上部のトグル設定セクションに移動済み
--- 
+--
 
 
 -- ナビゲーション
@@ -603,7 +595,7 @@ keymap('n', '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', { desc = "
 keymap('n', '<leader>w', function()
     require("which-key").show({ global = false })
 end, { desc = "Buffer Local Keymaps (which-key)" })
--- 
+--
 
 --- ファイルタイプ固有キーマップ
 
@@ -617,7 +609,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Fish固有
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = "fish", 
+    pattern = "fish",
     callback = function()
         keymap('n', 'mf', function()
             vim.cmd('%!fish_indent')
@@ -629,32 +621,32 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(event)
         local opts = { buffer = event.buf, noremap = true }
-        
+
         -- フォーマット（mfがFish用と重複するが、Fishファイルではfish_indentが優先される）
-        keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'LSPフォーマット' }))
-        
+        keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>',
+            vim.tbl_extend('force', opts, { desc = 'LSPフォーマット' }))
+
         -- その他のLSPキーマップ
-        keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
-        keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', 
-               vim.tbl_extend('force', opts, { desc = '関数シグネチャ表示' }))
-        keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'リネーム' }))
-        keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', 
-               vim.tbl_extend('force', opts, { desc = '診断情報を表示' }))
-        keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', 
-               vim.tbl_extend('force', opts, { desc = '診断をloclistに表示' }))
-        keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ追加' }))
-        keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ削除' }))
+        keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>',
+            vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
+        keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>',
+            vim.tbl_extend('force', opts, { desc = '関数シグネチャ表示' }))
+        keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>',
+            vim.tbl_extend('force', opts, { desc = 'リネーム' }))
+        keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>',
+            vim.tbl_extend('force', opts, { desc = '診断情報を表示' }))
+        keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>',
+            vim.tbl_extend('force', opts, { desc = '診断をloclistに表示' }))
+        keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>',
+            vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ追加' }))
+        keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>',
+            vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ削除' }))
         keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>',
-               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ一覧' }))
-        keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', 
-               vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
+            vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ一覧' }))
+        keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>',
+            vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
     end,
 })
--- 
+--
 
 -- 起動時処理は31_startup.luaに移動

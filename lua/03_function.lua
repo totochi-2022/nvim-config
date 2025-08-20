@@ -265,7 +265,57 @@ function! s:get_syn_info()
         \ " guifg: " . linkedSyn.guifg .
         \ " guibg: " . linkedSyn.guibg
 endfunction
+
+function! s:get_syn_info_enhanced()
+  echo "=== 構文情報 ==="
+  echo "Position: " . line('.') . ":" . col('.') . " | " . get(g:, 'colors_name', '(none)')
+  echo ""
+  
+  " TreeSitter情報
+  try
+    let ts_info = luaeval('vim.treesitter.get_captures_at_cursor(0)')
+    if !empty(ts_info)
+      for capture in ts_info
+        if capture == 'spell'
+          continue  " spellは無視
+        endif
+        
+        let hl_group = '@' . capture
+        let hl_id = hlID(hl_group)
+        
+        " 直接の色
+        let hl_fg = synIDattr(hl_id, 'fg', 'gui')
+        let hl_bg = synIDattr(hl_id, 'bg', 'gui')
+        
+        " リンク先の色
+        let link_to = synIDattr(synIDtrans(hl_id), 'name')
+        if !empty(link_to) && link_to != hl_group
+          let link_fg = synIDattr(hlID(link_to), 'fg', 'gui')
+          let link_bg = synIDattr(hlID(link_to), 'bg', 'gui')
+          
+          if !empty(link_fg) || !empty(link_bg)
+            echo capture . " → " . link_to . " | fg:" . (empty(link_fg) ? "default" : link_fg) . " bg:" . (empty(link_bg) ? "default" : link_bg)
+          else
+            echo capture . " → " . link_to . " | no colors"
+          endif
+        else
+          if !empty(hl_fg) || !empty(hl_bg)
+            echo capture . " | fg:" . (empty(hl_fg) ? "default" : hl_fg) . " bg:" . (empty(hl_bg) ? "default" : hl_bg)
+          else
+            echo capture . " | no colors"
+          endif
+        endif
+      endfor
+    else
+      echo "No TreeSitter captures"
+    endif
+  catch
+    echo "TreeSitter: not available"
+  endtry
+endfunction
+
 command! SyntaxInfo call s:get_syn_info()
+command! SyntaxInfoEnhanced call s:get_syn_info_enhanced()
 ]] -- }}}
 --- SweepQuickrunProcess{{{
 vim.cmd [[
