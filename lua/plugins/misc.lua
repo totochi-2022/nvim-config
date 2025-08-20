@@ -340,14 +340,12 @@ return {
     -- Claude Code統合
     {
         "coder/claudecode.nvim",
+        -- キーマップは lua/21_keymap.lua で定義
+        cmd = { "ClaudeCode", "ClaudeCodeSend" },
         dependencies = { "folke/snacks.nvim" },
         config = function()
             require('claudecode').setup()
         end,
-        keys = {
-            { "mz", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
-            { "mx", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" }
-        }
     },
 
     -- コメントアウトされたプラグイン

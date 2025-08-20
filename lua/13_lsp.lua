@@ -1,4 +1,4 @@
--- 環境判定
+-- 環境?定
 local is_windows = vim.fn.has('win64') == 1
 
 -- Masonの基本設定

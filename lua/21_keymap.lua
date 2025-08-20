@@ -1,83 +1,52 @@
---- local value{{{
+--- local value
 local noremap = { noremap = true, desc = nil }
 -- local remap = { remap = true, desc = nil } -- remapに変更
 local keymap = vim.keymap.set
 
 local minor_mode = require('minor-mode')
--- }}}
 
 
 -- 21_keymap.luaファイルの先頭付近に追加
 local notify_level = vim.log.levels.WARN
 
---- initialize{{{
+--- initialize
 -- keymap('', 's', '', noremap)  -- which-keyで管理するのでコメントアウト
 -- 1. mのデフォルトマッピングを解除
-keymap('n', 'm', '', noremap)
--- }}}
+keymap('n', 'm', '', { noremap = true, desc = 'mキー無効化（LSP用に解放）' })
 
---- set leader, localleader{{{
+--- set leader, localleader
 vim.g.mapleader = 's'
 vim.g.maplocalleader = ' '
--- }}}
 
--- which-key設定は plugins/which-key-spec.lua に移行済み
 
---- vim.on_key() テスト用キーマップ{{{
--- mq プレフィックスで各テストを実行
-keymap('n', 'mq1', function() require('test_vim_on_key').test1_basic_listener() end, 
-       { noremap = true, desc = 'vim.on_key テスト1: 基本動作' })
-keymap('n', 'mq2', function() require('test_vim_on_key').test2_key_consumption() end, 
-       { noremap = true, desc = 'vim.on_key テスト2: キー消費' })
-keymap('n', 'mq3', function() require('test_vim_on_key').test3_namespace_override() end, 
-       { noremap = true, desc = 'vim.on_key テスト3: namespace上書き' })
-keymap('n', 'mq4', function() require('test_vim_on_key').test4_multiple_namespaces() end, 
-       { noremap = true, desc = 'vim.on_key テスト4: 複数namespace' })
-keymap('n', 'mq5', function() require('test_vim_on_key').test5_clever_f_simulation() end, 
-       { noremap = true, desc = 'vim.on_key テスト5: clever-f風動作' })
-keymap('n', 'mqs', function() require('test_vim_on_key').stop_all_tests() end, 
-       { noremap = true, desc = 'vim.on_key テスト: 全停止' })
-keymap('n', 'mqc', function() require('test_vim_on_key').check_status() end, 
-       { noremap = true, desc = 'vim.on_key テスト: 状態確認' })
-keymap('n', 'mqm', function() require('test_vim_on_key').show_menu() end, 
-       { noremap = true, desc = 'vim.on_key テスト: メニュー表示' })
--- }}}
-
---- noice cmdline paste support{{{
+--- noice cmdline paste support
 -- コマンドラインモードでの貼り付けを有効化
 keymap('c', '<C-v>', '<C-r>+', { noremap = true, desc = 'コマンドラインで貼り付け' })
 keymap('c', '<C-r><C-v>', '<C-r>+', { noremap = true, desc = 'コマンドラインで貼り付け' })
 -- 右クリックで貼り付け（noiceコマンドライン用）
 keymap('c', '<RightMouse>', '<C-r>+', { noremap = true, desc = '右クリックで貼り付け' })
 keymap('c', '<MiddleMouse>', '<C-r>+', { noremap = true, desc = 'マウス中ボタンで貼り付け' })
--- }}}
+-- 
 
---- IME detection test keymaps{{{
-keymap('n', '<LocalLeader>7i', function() require('test_ime_detection').run_all_tests() end, { desc = 'Run IME detection tests' })
-keymap('n', '<LocalLeader>71', function() require('test_ime_detection').test_getimstatus() end, { desc = 'Test getimstatus()' })
-keymap('n', '<LocalLeader>72', function() require('test_ime_detection').test_powershell_ime() end, { desc = 'Test PowerShell IME' })
-keymap('n', '<LocalLeader>73', function() require('test_ime_detection').test_zenhan() end, { desc = 'Test zenhan' })
--- }}}
-
---- split window{{{
+--- split window
 keymap('n', '<LocalLeader>vs', ':<C-u>sp<CR>', { noremap = true, desc = '画面を水平分割' })
 keymap('n', '<LocalLeader>vv', ':<C-u>vs<CR>', { noremap = true, desc = '画面を垂直分割' })
--- }}}
+-- 
 
---- undo{{{
+--- undo
 keymap('n', '<LocalLeader>u', 'U', { noremap = true, desc = '行の変更を元に戻す' })
 keymap('n', 'U', 'g+', { noremap = true, desc = '新しい変更に進む' })
 keymap('n', 'u', 'g-', { noremap = true, desc = '前の変更に戻る' })
-keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモード' })
--- }}}
+-- 
 
---- Windows path conversion (now handled by toggle library){{{
+keymap('', '<A-;>', ':', { noremap = true, desc = 'コマンドラインモード' })
+--- Windows path conversion (now handled by toggle library)
 -- keymap('n', '<LocalLeader>3', '<cmd>lua ToggleAutoWindowsPathMode()<CR>',
 --     { noremap = true, desc = '自動Windowsパス変換モードをトグル' })
 -- Moved to toggle library
--- }}}
+-- 
 
---- window{{{
+--- window
 minor_mode.define_mode({
     namespace = 'WindowManagement',
     entries = {
@@ -110,9 +79,9 @@ minor_mode.define_mode({
         { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
 })
--- }}}
+-- 
 
---- buffer{{{
+--- buffer
 minor_mode.define_mode({
     namespace = 'Buffer',
     entries = {
@@ -124,7 +93,7 @@ minor_mode.define_mode({
         { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
     }
 })
--- }}}
+-- 
 
 --- tab
 -- minor_mode.create('Tab', '<LocalLeader>').set('t', 'gt', '次のタブへ移動')  -- 翻訳機能と競合するため削除
@@ -189,14 +158,14 @@ keymap('n', '<Leader>t', ':terminal<CR>', { noremap = true, desc = 'ターミナ
 keymap('n', '-', '<C-X>', { noremap = true, desc = '数値デクリメント' })
 keymap('n', '+', '<C-A>', { noremap = true, desc = '数値インクリメント' })
 
---- save, quit, reload ---{{{
+--- save, quit, reload ---
 keymap('', '<LocalLeader>w', ':w<CR>', { noremap = true, desc = '上書き保存' })
 keymap('', '<LocalLeader>W', ':w!<CR>', { noremap = true, desc = '強制上書き保存' })
 keymap('', '<LocalLeader>q', ':q<CR>', { noremap = true, desc = '終了' })
 keymap('', '<LocalLeader>Q', ':q!<CR>', { noremap = true, desc = '強制終了' })
 keymap('', '<LocalLeader>e', ':e!<CR>', { noremap = true, desc = '再読み込み' })
 keymap('', '<LocalLeader>E', ':e .<CR>', { noremap = true, desc = 'カレントディレクトリを開く' })
--- }}}
+-- 
 
 -- WhichKey 関連（<LocalLeader><F1>をヘルプキーとして使用）
 keymap('n', '<LocalLeader><F1><F1>', ':WhichKey<CR>', { noremap = true, desc = '全キーマップのヘルプ' })
@@ -228,8 +197,7 @@ minor_mode.define_mode({
     }
 })
 
--- LSP関連
-keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', { noremap = true, desc = 'ホバー情報表示' })
+-- LSP関連（ファイルタイプ固有セクションに移動）
 
 -- 行移動関連
 keymap('', '<LocalLeader>h', '^', { noremap = true, desc = '行の先頭へ' })
@@ -298,10 +266,6 @@ keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '�
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })
 
 -- Dropbar（パンくずリスト）
-keymap('n', '<F2>', function()
-    require('dropbar.api').pick()
-end, { noremap = true, desc = 'パンくずリストメニューを開く' })
-
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
     require("dial.map").manipulate("increment", "normal")
@@ -330,11 +294,6 @@ end, { noremap = true, desc = '数値・文字列を連続減少' })
 -- EasyMotion
 keymap('n', '<LocalLeader><Space>', '<Plug>(easymotion-overwin-f2)', { noremap = true, desc = '2文字で画面内ジャンプ' })
 keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', { noremap = true, desc = '2文字でジャンプ' })
--- keymap('n', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字で画面内ジャンプ' })
--- keymap('x', '<LocalLeader><Space>', '<Plug>(jumpcursor-jump)', { noremap = true, desc = '2文字でジャンプ' })
-
--- Migemo Search - moved to toggle system (22_toggle.lua)
--- Use <leader>t -> m to toggle migemo search on/off
 
 -- VisualModeトグル
 keymap('v', 'v', ':<C-u>VmodeToggle<CR>', { noremap = true, desc = 'ビジュアルモード切替' })
@@ -363,8 +322,7 @@ keymap('', '*', '<Plug>(asterisk-z*)', { remap = true, desc = 'カーソル位�
 keymap('', 'g*', '<Plug>(asterisk-gz*)', { remap = true, desc = '部分一致検索' })
 keymap('', 'g#', '<Plug>(asterisk-gz#)', { remap = true, desc = '逆方向部分一致検索' })
 
--- Markdown Preview
-keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', { noremap = false, desc = 'Markdownプレビュートグル' })
+-- Markdown Preview（ファイルタイプ固有セクションに移動）
 
 -- Git操作
 keymap('n', 'mgs', ':Git<CR>', { noremap = true, desc = 'Git status' })
@@ -464,15 +422,6 @@ minor_mode.define_mode({
 })
 
 
--- トグル関連 (now handled by toggle library)
--- Moved to toggle library
--- keymap('n', '<LocalLeader>0', ':set readonly!<CR>', { noremap = true, desc = '読み取り専用モードトグル' })
--- keymap('n', '<LocalLeader>9', '<cmd>lua ToggleAutoHover()<CR>', { noremap = true, desc = '自動ホバートグル' })
--- keymap('n', '<LocalLeader>8', ':<C-u>MigemoToggle<CR>', { noremap = true, desc = 'Migemoトグル' })
--- keymap('n', '<LocalLeader>7', ':ColorizerToggle<CR>', { noremap = true, desc = 'カラー表示トグル' })
--- keymap('n', '<LocalLeader>2', ':ToggleJumpMode<CR>', { noremap = true, desc = 'ジャンプモード切替（ファイル内⇔グローバル）' })
--- minor_mode.create("ToggleDiagDisp", "<LocalLeader>").set("`", "<cmd>lua ToggleDiagDisp(true, true)<CR>", "診断表示モード切替")
-
 -- 構文情報
 keymap('x', '<LocalLeader>1', ':SyntaxInfo<CR>', { noremap = true, desc = '構文情報表示' })
 
@@ -482,7 +431,7 @@ keymap('x', '<LocalLeader>1', ':SyntaxInfo<CR>', { noremap = true, desc = '構�
 -- keymap('n', '<LocalLeader>5', ':QuickScopeToggle<CR>', { noremap = true, desc = 'QuickScopeトグル' })
 keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィンドウに移動' })
 
---- Toggle Library Integration{{{
+--- Toggle Library Integration
 -- Load toggle configuration (automatically registers minor_mode mappings)
 -- require('12_toggle') -- 番号順で自動読み込みされるのでコメントアウト
 
@@ -498,9 +447,9 @@ end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
 vim.keymap.set('n', '<LocalLeader>1', function()
     require("toggle-manager").show_menu()
 end, { noremap = true, desc = 'Toggle menu (debug)' })
--- }}}
+-- 
 
---- Noice.nvim キーマップ{{{
+--- Noice.nvim キーマップ
 -- コマンドライン
 keymap('', ';', ':', { noremap = true, desc = 'コマンドラインモード' })
 keymap('n', '<LocalLeader>nn', '<cmd>Noice<CR>', { noremap = true, desc = 'Noice メイン画面' })
@@ -509,13 +458,13 @@ keymap('n', '<LocalLeader>nh', '<cmd>lua require("noice").cmd("history")<CR>', {
 keymap('n', '<LocalLeader>nd', '<cmd>lua require("noice").cmd("dismiss")<CR>', { noremap = true, desc = '通知を消す' })
 keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { noremap = true, desc = 'エラーメッセージ' })
 
--- }}}
+-- 
 
---- Dropbar.nvim キーマップ{{{
+--- Dropbar.nvim キーマップ
 -- ドロップバーの選択
 -- keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })  -- dropbar無効化のためコメントアウト
 -- Toggle menuの<LocalLeader>1は上部のトグル設定セクションに移動済み
--- }}}
+-- 
 
 
 -- ナビゲーション
@@ -528,36 +477,16 @@ keymap('', '<C-k>', '<Plug>(edgemotion-k)', { desc = '上の空行へ移動' })
 keymap('o', 'iu', ':<c-u>lua require"treesitter-unit".select()<CR>', { noremap = true, desc = 'TS:ユニット内選択（操作）' })
 keymap('o', 'au', ':<c-u>lua require"treesitter-unit".select(true)<CR>', { noremap = true, desc = 'TS:ユニット全体選択（操作）' })
 
--- LSPコマンド
--- LSP基本ナビゲーション（Telescope版）
+-- LSPコマンド（LspAttachイベントでバッファローカルに設定するため移動）
+-- Telescope版のLSPナビゲーション（全体で使用）
 keymap('n', 'md', '<cmd>Telescope lsp_definitions<CR>', { noremap = true, desc = '定義一覧（Telescope）' })
 keymap('n', 'mD', '<cmd>Telescope lsp_declarations<CR>', { noremap = true, desc = '宣言一覧（Telescope）' })
 keymap('n', 'mt', '<cmd>Telescope lsp_type_definitions<CR>', { noremap = true, desc = '型定義一覧（Telescope）' })
-keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', { noremap = true, desc = 'ホバー情報表示' })
-keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', { noremap = true, desc = '関数シグネチャ表示' })
-
--- mrシリーズ（grシリーズのm版）
 keymap('n', 'mrr', '<cmd>Telescope lsp_references<CR>', { noremap = true, desc = '参照一覧（Telescope）' })
 keymap('n', 'mra', '<cmd>Telescope lsp_code_actions<CR>', { noremap = true, desc = 'コードアクション（Telescope）' })
-keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>', { noremap = true, desc = 'リネーム' })
 keymap('n', 'mri', '<cmd>Telescope lsp_implementations<CR>', { noremap = true, desc = '実装一覧（Telescope）' })
-
--- シンボル検索（gO, gSのm版）
 keymap('n', 'mO', '<cmd>Telescope lsp_document_symbols<CR>', { noremap = true, desc = 'ドキュメントシンボル（Telescope）' })
 keymap('n', 'mS', '<cmd>Telescope lsp_workspace_symbols<CR>', { noremap = true, desc = 'ワークスペースシンボル（Telescope）' })
-
--- その他
-keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', { noremap = true, desc = 'コードフォーマット' })
-
--- ワークスペース関連
-keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', { noremap = true, desc = 'ワークスペースフォルダ追加' })
-keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', { noremap = true, desc = 'ワークスペースフォルダ削除' })
-keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>',
-    { noremap = true, desc = 'ワークスペースフォルダ一覧' })
-
--- 診断表示
-keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap = true, desc = '診断情報を表示' })
-keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', { noremap = true, desc = '診断をloclistに表示' })
 
 -- 診断移動は上記のDIAGNOSTICモードで統一（削除）
 
@@ -608,9 +537,7 @@ minor_mode.define_mode({
 })
 
 
-keymap('o', '<LocalLeader>s', ':<C-U>lua require("tsht").nodes()<CR>', {})
-keymap('x', '<LocalLeader>s', ':lua require("tsht").nodes()<CR>', noremap)
-keymap('n', '<LocalLeader>s', 'v:lua require("tsht").nodes()<CR>', noremap)
+-- 重複：TreeSitter Hopperはプラグイン用セクションで設定済み
 
 
 -- デバッグ用のキーマップ（F7をプレフィックスとして使用）
@@ -661,5 +588,73 @@ minor_mode.define_mode({
         { key = 'm', action = '<cmd>lua require("dap").run_to_cursor()<CR>', desc = 'カーソル位置まで実行' },
     }
 })
+
+--- プラグイン用キーマップ (遅延読み込み対応)
+-- Claude Code
+keymap('n', 'mz', '<cmd>ClaudeCode<cr>', { desc = "Toggle Claude" })
+keymap('v', 'mx', '<cmd>ClaudeCodeSend<cr>', { desc = "Send to Claude" })
+
+-- TreeSitter Hopper
+keymap('o', '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', { desc = "TreeSitter hop (operator)" })
+keymap('x', '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', { desc = "TreeSitter hop (visual)" })
+keymap('n', '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', { desc = "TreeSitter hop (normal)" })
+
+-- which-key
+keymap('n', '<leader>w', function()
+    require("which-key").show({ global = false })
+end, { desc = "Buffer Local Keymaps (which-key)" })
+-- 
+
+--- ファイルタイプ固有キーマップ
+
+-- Markdown固有
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "markdown",
+    callback = function()
+        keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', { buffer = true, noremap = false, desc = 'Markdownプレビュートグル' })
+    end,
+})
+
+-- Fish固有
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "fish", 
+    callback = function()
+        keymap('n', 'mf', function()
+            vim.cmd('%!fish_indent')
+        end, { buffer = true, noremap = true, desc = 'Fishフォーマット' })
+    end,
+})
+
+-- LSP有効時のキーマップ
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(event)
+        local opts = { buffer = event.buf, noremap = true }
+        
+        -- フォーマット（mfがFish用と重複するが、Fishファイルではfish_indentが優先される）
+        keymap('n', 'mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'LSPフォーマット' }))
+        
+        -- その他のLSPキーマップ
+        keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
+        keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', 
+               vim.tbl_extend('force', opts, { desc = '関数シグネチャ表示' }))
+        keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'リネーム' }))
+        keymap('n', 'me', '<cmd>lua vim.diagnostic.open_float()<CR>', 
+               vim.tbl_extend('force', opts, { desc = '診断情報を表示' }))
+        keymap('n', 'mq', '<cmd>lua vim.diagnostic.setloclist()<CR>', 
+               vim.tbl_extend('force', opts, { desc = '診断をloclistに表示' }))
+        keymap('n', 'mwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ追加' }))
+        keymap('n', 'mwr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ削除' }))
+        keymap('n', 'mwl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>',
+               vim.tbl_extend('force', opts, { desc = 'ワークスペースフォルダ一覧' }))
+        keymap('n', '<C-Space>', '<cmd>lua vim.lsp.buf.hover()<CR>', 
+               vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
+    end,
+})
+-- 
 
 -- 起動時処理は31_startup.luaに移動

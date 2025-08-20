@@ -199,15 +199,8 @@ return {
                 },
             })
         end,
-        keys = {
-            {
-                "<leader>?",
-                function()
-                    require("which-key").show({ global = false })
-                end,
-                desc = "Buffer Local Keymaps (which-key)",
-            },
-        },
+        -- キーマップは lua/21_keymap.lua で定義
+        event = "VeryLazy",
     },
 
     {

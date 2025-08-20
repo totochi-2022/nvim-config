@@ -42,16 +42,7 @@ autocmd("bufreadpost", {
         end
     end,
 })
--- fishファイル用のフォーマット設定
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = "fish",
-    callback = function()
-        -- フォーマットキーを設定
-        vim.keymap.set('n', 'mf', function()
-            vim.cmd('%!fish_indent')
-        end, { buffer = true, noremap = true })
-    end,
-})
+-- fishファイル用のフォーマット設定は lua/21_keymap.lua に移動
 
 -- ホバー用のタイマー
 local hover_timer = nil

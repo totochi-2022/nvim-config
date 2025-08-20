@@ -227,12 +227,8 @@ return {
             },
             {
                 'mfussenegger/nvim-treehopper',
+                -- キーマップは lua/21_keymap.lua で定義
                 event = "VeryLazy",
-                keys = {
-                    { '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', mode = 'o' },
-                    { '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', mode = 'x' },
-                    { '<LocalLeader>s', '<cmd>lua require("tsht").nodes()<CR>', mode = 'n' },
-                },
                 config = function()
                     require('tsht').config.hint_keys = { "h", "j", "f", "d", "n", "v", "s", "l", "a" }
                 end,
