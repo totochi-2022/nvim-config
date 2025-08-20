@@ -265,7 +265,7 @@ keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '�
 -- EasyAlign
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })
 
--- Dropbar（パンくずリスト）
+keymap('n', '<Leader>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkファイルを開く' })
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
     require("dial.map").manipulate("increment", "normal")
@@ -307,7 +307,6 @@ keymap('x', '<S-Up>', '<Up>', { noremap = true, desc = '選択を上に拡張' }
 keymap('x', '<S-Down>', '<Down>', { noremap = true, desc = '選択を下に拡張' })
 keymap('x', '<S-Left>', '<Left>', { noremap = true, desc = '選択を左に拡張' })
 keymap('x', '<S-Right>', '<Right>', { noremap = true, desc = '選択を右に拡張' })
-keymap('n', '<Leader>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkファイルを開く' })
 
 -- Yanky
 keymap('n', 'p', '<Plug>(YankyPutAfter)', { noremap = true, desc = 'ヤンク後にペースト' })

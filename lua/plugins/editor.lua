@@ -48,13 +48,13 @@ return {
                     },
                     egrepify = {
                         -- AND operator for tokens in prompt
-                        AND = true, -- default: true
+                        AND = true,           -- default: true
                         -- invert toggle for include/exclude operators
-                        invert = false, -- default: false
+                        invert = false,       -- default: false
                         -- lnum toggle for line numbers
-                        lnum = true, -- default: true
+                        lnum = true,          -- default: true
                         -- trim toggle for leading/trailing whitespace
-                        trim = true, -- default: true
+                        trim = true,          -- default: true
                         -- permutations toggle for tokens in prompt
                         permutations = false, -- default: false
                         -- デフォルトのキーマップを使用（明示的設定を削除）
@@ -87,107 +87,107 @@ return {
         'monaqa/dial.nvim',
         config = function()
             local augend = require("dial.augend")
-            require("dial.config").augends:register_group{
+            require("dial.config").augends:register_group {
                 default = {
                     -- 基本的な数値
-                    augend.integer.alias.decimal,      -- 10進数
-                    augend.integer.alias.hex,          -- 16進数
-                    augend.integer.alias.binary,       -- 2進数
-                    
+                    augend.integer.alias.decimal, -- 10進数
+                    augend.integer.alias.hex,     -- 16進数
+                    augend.integer.alias.binary,  -- 2進数
+
                     -- 小数点
-                    augend.decimal_fraction.new{
+                    augend.decimal_fraction.new {
                         signed = true,
                     },
-                    
+
                     -- 日付関連
-                    augend.date.alias["%Y/%m/%d"],     -- 2024/01/01
-                    augend.date.alias["%Y-%m-%d"],     -- 2024-01-01
-                    augend.date.alias["%H:%M"],        -- 23:59
-                    
+                    augend.date.alias["%Y/%m/%d"], -- 2024/01/01
+                    augend.date.alias["%Y-%m-%d"], -- 2024-01-01
+                    augend.date.alias["%H:%M"],    -- 23:59
+
                     -- ブール値・論理値
-                    augend.constant.alias.bool,        -- true/false
-                    augend.constant.alias.alpha,       -- a/b/c/...
-                    augend.constant.alias.Alpha,       -- A/B/C/...
-                    
+                    augend.constant.alias.bool,  -- true/false
+                    augend.constant.alias.alpha, -- a/b/c/...
+                    augend.constant.alias.Alpha, -- A/B/C/...
+
                     -- よく使う単語（実用的なもののみ）
-                    augend.constant.new{
-                        elements = {"yes", "no"},
+                    augend.constant.new {
+                        elements = { "yes", "no" },
                         word = true,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"TRUE", "FALSE"},  -- C言語のdefine用
+                    augend.constant.new {
+                        elements = { "TRUE", "FALSE" }, -- C言語のdefine用
                         word = true,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"ON", "OFF"},  -- Arduino用
+                    augend.constant.new {
+                        elements = { "ON", "OFF" }, -- Arduino用
                         word = true,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"HIGH", "LOW"},  -- Arduino用
+                    augend.constant.new {
+                        elements = { "HIGH", "LOW" }, -- Arduino用
                         word = true,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"True", "False"},  -- Python用
+                    augend.constant.new {
+                        elements = { "True", "False" }, -- Python用
                         word = true,
                         cyclic = true,
                     },
-                    
+
                     -- 論理演算子
-                    augend.constant.new{
-                        elements = {"and", "or"},  -- Python/Shell用
+                    augend.constant.new {
+                        elements = { "and", "or" }, -- Python/Shell用
                         word = true,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"&&", "||"},  -- C/JavaScript用
+                    augend.constant.new {
+                        elements = { "&&", "||" }, -- C/JavaScript用
                         word = false,
                         cyclic = true,
                     },
-                    
+
                     -- 比較演算子
-                    augend.constant.new{
-                        elements = {"==", "!="},
+                    augend.constant.new {
+                        elements = { "==", "!=" },
                         word = false,
                         cyclic = true,
                     },
-                    augend.constant.new{
-                        elements = {"<", ">"},
+                    augend.constant.new {
+                        elements = { "<", ">" },
                         word = false,
                         cyclic = true,
                     },
-                    
+
                     -- 括弧（開き）
-                    augend.constant.new{
-                        elements = {"(", "{", "["},
+                    augend.constant.new {
+                        elements = { "(", "{", "[" },
                         word = false,
                         cyclic = true,
                     },
                     -- 括弧（閉じ）
-                    augend.constant.new{
-                        elements = {")", "}", "]"},
+                    augend.constant.new {
+                        elements = { ")", "}", "]" },
                         word = false,
                         cyclic = true,
                     },
-                    
+
                     -- クォート
-                    augend.constant.new{
-                        elements = {"'", "\"", "`"},
+                    augend.constant.new {
+                        elements = { "'", "\"", "`" },
                         word = false,
                         cyclic = true,
                     },
-                    
+
                     -- 色関連
-                    augend.hexcolor.new{
+                    augend.hexcolor.new {
                         case = "lower",
                     },
-                    
+
                     -- 曜日（日本語）
-                    augend.constant.new{
-                        elements = {"月", "火", "水", "木", "金", "土", "日"},
+                    augend.constant.new {
+                        elements = { "月", "火", "水", "木", "金", "土", "日" },
                         word = true,
                         cyclic = true,
                     },
@@ -207,15 +207,15 @@ return {
                 config = function()
                     require('treesitter-context').setup({
                         enable = true,
-                        max_lines = 3,  -- 最大3行までに制限
-                        min_window_height = 10,  -- 10行以下のウィンドウでは無効
+                        max_lines = 3,            -- 最大3行までに制限
+                        min_window_height = 10,   -- 10行以下のウィンドウでは無効
                         line_numbers = true,
-                        multiline_threshold = 20,  -- 20行以上の場合のみコンテキストを表示
-                        trim_scope = 'outer',  -- 外側のスコープを優先的に削除
-                        mode = 'cursor',  -- カーソル位置のコンテキストを表示
-                        separator = nil,  -- 区切り線なし（必要なら'-'などを設定）
+                        multiline_threshold = 20, -- 20行以上の場合のみコンテキストを表示
+                        trim_scope = 'outer',     -- 外側のスコープを優先的に削除
+                        mode = 'cursor',          -- カーソル位置のコンテキストを表示
+                        separator = nil,          -- 区切り線なし（必要なら'-'などを設定）
                         zindex = 20,
-                        on_attach = nil,  -- 特定のバッファで無効にしたい場合はここで関数を定義
+                        on_attach = nil,          -- 特定のバッファで無効にしたい場合はここで関数を定義
                     })
                 end,
             },
@@ -283,7 +283,7 @@ return {
         end,
     },
 
-    -- アウトライン表示（既存）
+    -- アウトライン表示
     {
         'hedyhli/outline.nvim',
         config = function()
@@ -292,7 +292,7 @@ return {
                     position = 'right',
                     width = 25,
                     relative_width = true,
-                    auto_close = true,  -- 選択したら自動で閉じる
+                    auto_close = true, -- 選択したら自動で閉じる
                 },
                 outline_items = {
                     highlight_hovered_item = true,
@@ -301,13 +301,13 @@ return {
                 symbols = {
                     filter = {
                         default = {
-                            'Class', 'Constructor', 'Enum', 'Field', 'Function', 
-                            'Interface', 'Method', 'Module', 'Namespace', 'Package', 
+                            'Class', 'Constructor', 'Enum', 'Field', 'Function',
+                            'Interface', 'Method', 'Module', 'Namespace', 'Package',
                             'Property', 'Struct', 'Trait'
                         },
                         lua = {
-                            'Class', 'Constructor', 'Enum', 'Field', 'Function', 
-                            'Interface', 'Method', 'Module', 'Namespace', 'Package', 
+                            'Class', 'Constructor', 'Enum', 'Field', 'Function',
+                            'Interface', 'Method', 'Module', 'Namespace', 'Package',
                             'Property', 'Struct', 'Trait'
                         },
                     },
@@ -335,18 +335,18 @@ return {
             require('grug-far').setup({
                 -- シンタックスハイライト用の言語設定
                 folding = {
-                  enabled = true
+                    enabled = true
                 },
                 -- 結果のハイライト
                 resultLocation = {
-                  showNumbersColumn = true
+                    showNumbersColumn = true
                 },
                 -- 検索エンジン設定
                 engines = {
-                  ripgrep = {
-                    -- ripgrepの追加オプション
-                    extraArgs = ''
-                  }
+                    ripgrep = {
+                        -- ripgrepの追加オプション
+                        extraArgs = ''
+                    }
                 },
                 -- キーマップ設定
                 keymaps = {
@@ -367,22 +367,22 @@ return {
                     swapEngine = { n = '<leader>e' }
                 }
             })
-            
+
             -- 現在のバッファで検索するコマンド
             vim.api.nvim_create_user_command('GrugFarCurrentBuffer', function()
                 require('grug-far').open({
                     prefills = {
-                        paths = vim.fn.expand('%:p')  -- 現在のファイルのフルパス
+                        paths = vim.fn.expand('%:p') -- 現在のファイルのフルパス
                     }
                 })
             end, {})
-            
+
             -- カーソル下の単語を現在のバッファで検索
             vim.api.nvim_create_user_command('GrugFarCurrentWord', function()
                 require('grug-far').open({
                     prefills = {
-                        search = vim.fn.expand('<cword>'),  -- カーソル下の単語
-                        paths = vim.fn.expand('%:p')  -- 現在のファイル
+                        search = vim.fn.expand('<cword>'), -- カーソル下の単語
+                        paths = vim.fn.expand('%:p')       -- 現在のファイル
                     }
                 })
             end, {})
@@ -399,8 +399,5 @@ return {
         end
     },
 
-    -- コメントアウトされたプラグイン
-    -- { "anuvyklack/pretty-fold.nvim" },
-    -- { "anuvyklack/fold-preview.nvim" },
-    -- { "nvim-neo-tree/neo-tree.nvim" },
 }
+

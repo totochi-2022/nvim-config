@@ -95,20 +95,29 @@ endfunction
 command! OpenJunkfile call s:open_junkfile()
 ]]
 --}}}
---- VmodeToggle{{{
-vim.cmd [[
-function! s:vmode_toggle()
-  let s:vmode_now = visualmode()
-    if s:vmode_now ==# "v"
-      call feedkeys("gvV", "n")
-    elseif s:vmode_now ==# "V"
-      call feedkeys("gv", "n")
-    elseif s:vmode_now == ""
-      call feedkeys("gvv", "n")
-    endif
-endfunction
-command! VmodeToggle call s:vmode_toggle()
-]]
+--- VmodeToggle (Lua版){{{
+local function vmode_toggle()
+    local current_mode = vim.fn.visualmode()
+    
+    if current_mode == "v" then
+        -- 文字ビジュアル → 行ビジュアル
+        vim.fn.feedkeys("gvV", "n")
+    elseif current_mode == "V" then
+        -- 行ビジュアル → 矩形ビジュアル
+        vim.fn.feedkeys("gv\022", "n")  -- \022 は <C-v>
+    elseif current_mode == "\022" then  -- <C-v> (矩形ビジュアル)
+        -- 矩形ビジュアル → 文字ビジュアル
+        vim.fn.feedkeys("gvv", "n")
+    end
+end
+
+-- グローバル関数として公開
+_G.VmodeToggle = vmode_toggle
+
+-- コマンド定義
+vim.api.nvim_create_user_command("VmodeToggle", function()
+    vmode_toggle()
+end, { desc = "ビジュアルモードの種類を切り替え" })
 --}}}
 
 --- FileLocalJumpList ファイル内ジャンプ履歴{{{
