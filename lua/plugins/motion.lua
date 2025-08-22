@@ -1,39 +1,35 @@
 -- plugins/motion.lua - 移動・ジャンプ関連
 return {
     -- 移動関連
+    -- フォーク版のaccelerated-jk（visualモード対応）
     {
-        "rainbowhxch/accelerated-jk.nvim",
+        "totochi-2022/accelerated-jk.nvim",
         config = function()
             require('accelerated-jk').setup({
                 mode = 'time_driven',
                 enable_deceleration = false,
-                mapping = {
-                    --ノーマルモードの設定
-                    n = {
-                        j = 'gj',
-                        k = 'gk',
-                        -- 他のモーション
-                        h = 'h',
-                        l = 'l',
-                        b = 'b',
-                        w = 'w',
-                        e = 'e',
-                        B = 'B',
-                        W = 'W',
-                        E = 'E',
-                    },
-                    -- ビジュアルモードの設定
-                    v = {
-                        j = 'gj',
-                        k = 'gk',
-                    },
-                },
-                acceleration_motions = { 'j', 'k', 'h', 'l', 'b', 'w', 'e', 'B', 'W', 'E' },
+                acceleration_motions = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },
+                acceleration_motions_visual = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },  -- visualも同じ設定
                 acceleration_limit = 150,
                 acceleration_table = { 7, 12, 17, 21, 24, 26, 28, 30 }
             })
         end,
     },
+    -- 開発用ローカル版（コメントアウト）
+    -- {
+    --     dir = "/home/motoki/work/repo/nvim_plugin/accelerated-jk.nvim",
+    --     name = "accelerated-jk.nvim",
+    --     config = function()
+    --         require('accelerated-jk').setup({
+    --             mode = 'time_driven',
+    --             enable_deceleration = false,
+    --             acceleration_motions = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },
+    --             acceleration_motions_visual = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },
+    --             acceleration_limit = 150,
+    --             acceleration_table = { 7, 12, 17, 21, 24, 26, 28, 30 }
+    --         })
+    --     end,
+    -- },
 
     {
         'easymotion/vim-easymotion',
