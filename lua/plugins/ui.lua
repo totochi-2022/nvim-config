@@ -90,21 +90,21 @@ return {
                         name = "Default",
                     },
                 },
-                -- strict = true,
-                -- override_by_filename = {
-                --     [".gitignore"] = {
-                --         icon = "",
-                --         color = "#f1502f",
-                --         name = "Gitignore"
-                --     }
-                -- },
-                -- override_by_extension = {
-                --     ["log"] = {
-                --         icon = "",
-                --         color = "#81e043",
-                --         name = "Log"
-                --     }
-                -- },
+                strict = true,
+                override_by_filename = {
+                    [".gitignore"] = {
+                        icon = "",
+                        color = "#f1502f",
+                        name = "Gitignore"
+                    }
+                },
+                override_by_extension = {
+                    ["log"] = {
+                        icon = "",
+                        color = "#81e043",
+                        name = "Log"
+                    }
+                },
             }
         end
     },
@@ -713,16 +713,6 @@ return {
         end,
     },
 
-    -- コメントアウトされたプラグイン
-    -- {
-    --     "vim-scripts/indentLine.vim"
-    -- },
-    -- {
-    --     "lukas-reineke/indent-blankline.nvim",
-    --     main = "ibl",
-    --     opts = {}
-    -- },
-
     -- Toggle Manager Plugin
     {
         -- "totochi-2022/toggle-manager.nvim",  -- GitHub版
@@ -745,7 +735,7 @@ return {
                 virtual_symbol_suffix = '',
                 virtual_symbol_position = 'inline',  -- 'inline' または 'eol'
             })
-            
+
             -- 初期状態の設定
             if vim.g.color_highlighting_mode == 'off' then
                 require('nvim-highlight-colors').turnOff()
@@ -764,7 +754,7 @@ return {
         version = false,
         config = function()
             local hipatterns = require('mini.hipatterns')
-            
+
             -- ハイライトグループパターンを関数で動的生成
             local function get_vim_highlight_pattern()
                 return {
@@ -773,7 +763,7 @@ return {
                         if vim.g.color_highlighting_mode ~= 'all' then
                             return nil  -- allモード以外では無効
                         end
-                        
+
                         -- Vimファイルまたは設定ファイルでのみ有効
                         local ft = vim.bo[buf_id].filetype
                         if ft == 'vim' or ft == 'lua' then
@@ -789,13 +779,13 @@ return {
                     end,
                 }
             end
-            
+
             hipatterns.setup({
                 highlighters = {
                     vim_highlight = get_vim_highlight_pattern(),
                 },
             })
-            
+
             -- パターン更新用のグローバル関数を作成
             vim.g.update_hipatterns = function()
                 -- すべてのバッファで無効化
@@ -804,7 +794,7 @@ return {
                         pcall(hipatterns.disable, buf)
                     end
                 end
-                
+
                 vim.schedule(function()
                     -- 新しいパターンで再設定
                     hipatterns.setup({
@@ -812,7 +802,7 @@ return {
                             vim_highlight = get_vim_highlight_pattern(),
                         },
                     })
-                    
+
                     -- すべてのバッファで有効化
                     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                         if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == '' then

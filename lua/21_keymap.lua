@@ -435,8 +435,6 @@ keymap('n', '<Leader><Space>', '<C-W>p', { noremap = true, desc = '前のウィ�
 -- トグル設定
 -- <LocalLeader>0 でトグルメニュー
 vim.keymap.set('n', '<LocalLeader>0', function()
-    -- 22_toggle.luaの設定に応じて新旧システムを切り替え
-    local use_new = vim.g.toggle_use_new_plugin or false
     require("toggle-manager").show_toggle_menu()
 end, { noremap = true, silent = true, desc = '統合トグルメニュー' })
 

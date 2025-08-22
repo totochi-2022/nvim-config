@@ -100,21 +100,21 @@ local definitions = {
         end
     },
 
-    r = { -- キー = R (readonly) - 表示のみの例
-        name = 'readonly',
-        states = { 'off', 'on' },
-        colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
-        },
-        default_state = 'off',
-        desc = '読み取り専用モード',
-        readonly = true, -- このフラグで表示のみになる
-        get_state = function()
-            return vim.opt.readonly:get() and 'on' or 'off'
-        end,
-        -- set_stateは定義しない（表示のみなので）
-    },
+    -- r = { -- キー = R (readonly) - 表示のみの例
+    --     name = 'readonly',
+    --     states = { 'off', 'on' },
+    --     colors = {
+    --         { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+    --         { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+    --     },
+    --     default_state = 'off',
+    --     desc = '読み取り専用モード',
+    --     readonly = true, -- このフラグで表示のみになる
+    --     get_state = function()
+    --         return vim.opt.readonly:get() and 'on' or 'off'
+    --     end,
+    --     -- set_stateは定義しない（表示のみなので）
+    -- },
 
     p = { -- キー = P (paste_mode)
         name = 'paste_mode',
@@ -453,6 +453,51 @@ local definitions = {
                     end
                 end
             end
+        end
+    },
+
+    l = { -- キー = L (laststatus)
+        name = 'laststatus',
+        states = { '2', '3' },
+        colors = {
+            { fg = 'Normal', bg = 'Normal' }, -- 2: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- 3: Normal色 (lualine非表示だから色不要)
+        },
+        default_state = '3',
+        desc = 'ステータスライン表示',
+        get_state = function()
+            local status = vim.opt.laststatus:get()
+            return tostring(status)
+        end,
+        set_state = function(state)
+            vim.opt.laststatus = tonumber(state)
+        end
+    },
+
+    v = { -- キー = V (cursorcolumn)
+        name = 'cursorcolumn',
+        states = { 'off', 'on' },
+        colors = {
+            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+        },
+        default_state = 'off',
+        desc = 'カーソル縦表示',
+        get_state = function()
+            return vim.g.toggle_cursorcolumn_state or 'off'
+        end,
+        set_state = function(state)
+            vim.g.toggle_cursorcolumn_state = state
+            local enable = (state == 'on')
+            -- 全ウィンドウに反映
+            for _, win in pairs(vim.api.nvim_list_wins()) do
+                local config = vim.api.nvim_win_get_config(win)
+                if config.relative == '' then -- 通常ウィンドウのみ
+                    vim.api.nvim_win_set_option(win, 'cursorcolumn', enable)
+                end
+            end
+            -- グローバル設定も更新（新しいウィンドウ用）
+            vim.o.cursorcolumn = enable
         end
     }
 }

@@ -2,6 +2,14 @@
 
 このドキュメントは、Claudeに依頼する際の参考情報として、Neovim環境の構成と設定を記載しています。
 
+## 既知の問題
+
+### コマンドライン補完（noice.nvim）
+- **問題**: noice.nvimとnvim-cmpの統合で、Enterキーでの補完選択ができない
+- **現在の回避策**: スペースキーで補完を確定
+- **参考**: GitHub Issue #1142 (https://github.com/folke/noice.nvim/issues/1142)
+- **TODO**: このバグが修正されたら、Enterキーでの補完選択を再度有効化する
+
 ## 環境情報
 
 - **OS**: Windows (WSL2 - Linux 5.15.133.1-microsoft-standard-WSL2)
@@ -144,6 +152,40 @@ nvim/
 - **プラグイン追加**: `11_plugin.lua`と`plugins/`配下
 - **LSP設定**: `13_lsp.lua`と`plugins/lsp.lua`
 - **UI関連**: `plugins/ui.lua`
+
+## トグル機能開発時の注意事項
+
+### window-localオプション（非推奨）
+**基本的にトグル機能ではwindow-localオプションを使用しないこと**
+
+- `cursorcolumn`, `wrap`, `number`など、一部のVimオプションはwindow-local
+- フローティングウィンドウ（トグルメニュー）からは元ウィンドウの設定が見えない
+- `get_state()`で正しい状態が取得できない問題が発生
+
+**どうしても必要な場合の実装例**:
+```lua
+get_state = function()
+    return vim.g.toggle_option_state or 'off'  -- グローバル変数で管理
+end,
+set_state = function(state)
+    vim.g.toggle_option_state = state
+    local enable = (state == 'on')
+    -- 全通常ウィンドウに適用
+    for _, win in pairs(vim.api.nvim_list_wins()) do
+        local config = vim.api.nvim_win_get_config(win)
+        if config.relative == '' then
+            vim.api.nvim_win_set_option(win, 'option', enable)
+        end
+    end
+    -- 新しいウィンドウ用にグローバル設定も更新
+    vim.o.option = enable
+end
+```
+
+### 推奨する設定
+- **グローバルオプション**: `vim.o.option`
+- **プラグインの設定**: `vim.g.plugin_setting`
+- **カスタム機能**: グローバル変数 + 独自実装
 
 ## Git ブランチ運用ルール
 

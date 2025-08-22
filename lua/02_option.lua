@@ -10,7 +10,7 @@ vim.opt.relativenumber = false
 
 --- 現在行をハイライト
 vim.opt.cursorline = true
-vim.opt.cursorcolumn = true
+-- vim.opt.cursorcolumn = true  -- トグルで制御するためコメントアウト
 -- vim.opt.cursorcolumn = false
 
 -- 編集中でもバッファを開く
