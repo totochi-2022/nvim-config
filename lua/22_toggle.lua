@@ -125,6 +125,7 @@ local definitions = {
         },
         default_state = 'off',
         desc = 'ペーストモード',
+        display_char = '󰆒 ', -- lualineで表示する文字（スペース付き）
         get_state = function()
             return vim.opt.paste:get() and 'on' or 'off'
         end,
@@ -242,7 +243,7 @@ local definitions = {
         },
         default_state = 'off',
         desc = 'Migemo検索',
-        display_char = 'み', -- lualineで表示する文字
+        display_char = '󰰑 ', -- lualineで表示する文字（スペース付き）
         get_state = function()
             return vim.g.migemo_enabled and 'on' or 'off'
         end,
@@ -316,7 +317,7 @@ local definitions = {
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
-        display_char = '⚡', -- lualineで表示する文字
+        display_char = '󱀼 ', -- lualineで表示する文字（スペース付き）
         auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.jump_mode_file_local and 'file_local' or 'global'
