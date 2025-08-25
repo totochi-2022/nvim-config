@@ -303,8 +303,10 @@ vim.api.nvim_create_autocmd({ "CursorHold" }, {
         if vim.g.toggle_auto_hover == 1 then
             local clients = vim.lsp.get_clients({ bufnr = 0 })
             if #clients == 0 then return end
-
-            vim.lsp.buf.hover()
+            vim.lsp.buf.hover({
+                focus = false,
+                border = "rounded"
+            })
         end
     end,
 })

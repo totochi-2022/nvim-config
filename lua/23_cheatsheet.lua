@@ -25,7 +25,7 @@ local cheatsheets = {
 }
 
 -- プレビュー方法の設定
-local preview_method = 'glow'  -- 'glow' or 'markdown_preview'
+local preview_method = 'glow' -- 'glow' or 'markdown_preview'
 
 
 -- チートシートを表示
@@ -49,14 +49,14 @@ end
 function ShowCheatsheetMenu()
     -- メニュー用のバッファを作成
     local buf = vim.api.nvim_create_buf(false, true)
-    
+
     -- メニュー内容を構築
     local lines = {
         '📚 Neovim チートシート',
         '========================',
         '',
     }
-    
+
     -- キーの最大長を計算（整列用）
     local max_key_len = 0
     for _, sheet in ipairs(cheatsheets) do
@@ -64,28 +64,28 @@ function ShowCheatsheetMenu()
             max_key_len = #sheet.key
         end
     end
-    
+
     for _, sheet in ipairs(cheatsheets) do
         local padding = string.rep(' ', max_key_len - #sheet.key)
         local line = string.format('  [%s]%s  %s', sheet.key, padding, sheet.desc)
         table.insert(lines, line)
     end
-    
+
     table.insert(lines, '')
     table.insert(lines, '─────────────────────────────────')
     table.insert(lines, string.format('プレビュー: %s', preview_method))
     table.insert(lines, '[p] プレビュー方法切替 / ESC or q で終了')
-    
+
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.api.nvim_buf_set_option(buf, 'modifiable', false)
     vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-    
+
     -- ウィンドウサイズと位置を計算
-    local width = 45  -- 少し広く
+    local width = 45 -- 少し広く
     local height = #lines + 2
     local col = math.floor((vim.o.columns - width) / 2)
     local row = math.floor((vim.o.lines - height) / 2)
-    
+
     -- フローティングウィンドウを作成
     local win = vim.api.nvim_open_win(buf, true, {
         relative = 'editor',
@@ -98,7 +98,7 @@ function ShowCheatsheetMenu()
         title = ' Cheatsheet Menu ',
         title_pos = 'center',
     })
-    
+
     -- キーマッピングを設定
     for _, sheet in ipairs(cheatsheets) do
         vim.keymap.set('n', sheet.key, function()
@@ -106,7 +106,7 @@ function ShowCheatsheetMenu()
             show_cheatsheet(sheet.file)
         end, { buffer = buf, silent = true })
     end
-    
+
     -- プレビュー方法切替
     vim.keymap.set('n', 'p', function()
         -- プレビュー方法を切り替え
@@ -117,24 +117,25 @@ function ShowCheatsheetMenu()
             preview_method = 'glow'
             vim.notify('プレビュー方法: Glow', vim.log.levels.INFO)
         end
-        
+
         -- メニューを再描画
         if vim.api.nvim_win_is_valid(win) then
             vim.api.nvim_win_close(win, true)
         end
         ShowCheatsheetMenu()
     end, { buffer = buf, silent = true })
-    
+
     -- 終了キー
     local close = function()
         if vim.api.nvim_win_is_valid(win) then
             vim.api.nvim_win_close(win, true)
         end
     end
-    
+
     vim.keymap.set('n', 'q', close, { buffer = buf, silent = true })
     vim.keymap.set('n', '<ESC>', close, { buffer = buf, silent = true })
 end
 
 -- グローバル関数として公開（21_keymap.luaから呼び出し用）
 _G.ShowCheatsheetMenu = ShowCheatsheetMenu
+

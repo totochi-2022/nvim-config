@@ -613,6 +613,47 @@ vim.api.nvim_create_autocmd("FileType", {
         end, { buffer = true, noremap = true, desc = 'Fishフォーマット' })
     end,
 })
+-- vim.o.winborder = 'rounded'
+local opts = { noremap = true }
+local debug_border = true
+
+local function add_hover_border()
+    vim.defer_fn(function()
+        print("=== border設定処理開始 ===")
+        local lsp_wins = {}
+        
+        for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            local config = vim.api.nvim_win_get_config(win)
+            if config.relative == 'win' then
+                local buf = vim.api.nvim_win_get_buf(win)
+                local lines = vim.api.nvim_buf_get_lines(buf, 0, 2, false)
+                
+                print("ウィンドウ", win, "サイズ:", config.width .. "x" .. config.height)
+                print("  zindex:", config.zindex, "border:", config.border, "focusable:", config.focusable)
+                print("  内容:", table.concat(lines, " | "):sub(1, 40) .. "...")
+                
+                if config.zindex == 45 then
+                    table.insert(lsp_wins, {win = win, config = config})
+                    print("  → zindex:45 収集")
+                elseif config.zindex == 60 then
+                    print("  → zindex:60 発見")
+                end
+                print("  ---")
+            end
+        end
+        
+        print("zindex:45 ウィンドウ数:", #lsp_wins)
+        -- 以下処理...
+        print("========")
+    end, 50)
+end
+
+
+
+vim.keymap.set('n', 'm<Space>', function()
+    vim.lsp.buf.hover()
+    add_hover_border()
+end, vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
 
 -- LSP有効時のキーマップ
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -624,8 +665,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.tbl_extend('force', opts, { desc = 'LSPフォーマット' }))
 
         -- その他のLSPキーマップ
-        keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover()<CR>',
-            vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
+        -- keymap('n', 'm<Space>', '<cmd>lua vim.lsp.buf.hover({ border = "rounded"})<CR>',
+        --     vim.tbl_extend('force', opts, { desc = 'ホバー情報表示' }))
         keymap('n', 'mh', '<cmd>lua vim.lsp.buf.signature_help()<CR>',
             vim.tbl_extend('force', opts, { desc = '関数シグネチャ表示' }))
         keymap('n', 'mrn', '<cmd>lua vim.lsp.buf.rename()<CR>',
