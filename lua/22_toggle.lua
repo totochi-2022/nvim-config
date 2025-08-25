@@ -134,12 +134,11 @@ local definitions = {
             vim.opt.paste = (state == 'on')
         end
     },
-
     h = { -- キー = H (auto_hover)
         name = 'auto_hover',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal',  bg = 'Normal' }, -- off: Normal色
             { fg = '#ff0000', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',

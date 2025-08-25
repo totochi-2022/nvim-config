@@ -263,7 +263,67 @@ return {
 
 
     -- マルチカーソル
-    { "mg979/vim-visual-multi" },
+    {
+        "mg979/vim-visual-multi",
+        init = function()
+            -- F4キーをプレフィックスとして使用
+            vim.g.VM_leader = '<F4>'
+            
+            -- 主要なキーマップをF4プレフィックスで設定
+            vim.g.VM_maps = {
+                -- 基本操作
+                ['Find Under'] = '<F4>n',         -- F4+n: 現在の単語を選択
+                ['Find Subword Under'] = '<F4>n',
+                ['Select All'] = '<F4>a',         -- F4+a: 全ての一致を選択
+                ['Start Regex Search'] = '<F4>/',  -- F4+/: 正規表現検索
+                
+                -- カーソル追加
+                ['Add Cursor Down'] = '<F4>j',     -- F4+j: 下にカーソル追加
+                ['Add Cursor Up'] = '<F4>k',       -- F4+k: 上にカーソル追加
+                
+                -- 選択系
+                ['Select h'] = '<F4>h',            -- F4+h: 左に選択拡張
+                ['Select l'] = '<F4>l',            -- F4+l: 右に選択拡張
+                
+                -- その他
+                ['Skip Region'] = '<F4>s',         -- F4+s: 現在の選択をスキップ
+                ['Remove Region'] = '<F4>x',       -- F4+x: 現在の選択を削除
+                ['Undo'] = '<F4>u',                -- F4+u: アンドゥ
+                ['Redo'] = '<F4>r',                -- F4+r: リドゥ
+            }
+            
+            -- nvim-cmpとの競合を回避
+            -- マルチカーソルモード中は補完を無効化
+            vim.g.VM_set_statusline = 1
+            vim.g.VM_silent_exit = 1
+        end,
+        config = function()
+            -- VMモード開始・終了時のフック
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'visual_multi_start',
+                callback = function()
+                    -- nvim-cmpを一時的に無効化
+                    local ok, cmp = pcall(require, 'cmp')
+                    if ok then
+                        vim.g.cmp_enabled_backup = cmp.get_config().enabled
+                        cmp.setup.buffer { enabled = false }
+                    end
+                end
+            })
+            
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'visual_multi_exit',
+                callback = function()
+                    -- nvim-cmpを復元
+                    local ok, cmp = pcall(require, 'cmp')
+                    if ok and vim.g.cmp_enabled_backup ~= nil then
+                        cmp.setup.buffer { enabled = vim.g.cmp_enabled_backup }
+                        vim.g.cmp_enabled_backup = nil
+                    end
+                end
+            })
+        end,
+    },
 
     -- コマンド出力キャプチャ
     { "tyru/capture.vim" },

@@ -26,6 +26,9 @@ require '21_keymap'
 -- 22_toggle.lua (新トグルシステム)
 require '22_toggle'
 
+-- 23_cheatsheet.lua (チートシートシステム)
+require '23_cheatsheet'
+
 -- 31_startup.lua (最終起動処理)
 require '31_startup'
 

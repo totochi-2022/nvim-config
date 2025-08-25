@@ -383,7 +383,7 @@ keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
 
 -- チートシート
 keymap('n', '<LocalLeader>?', function()
-    require('23_cheatsheet').show_menu()
+    ShowCheatsheetMenu()
 end, { noremap = true, silent = true, desc = 'チートシートメニュー' })
 keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc = 'QuickRunセッション終了' })
 

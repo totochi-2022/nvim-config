@@ -1,8 +1,6 @@
 -- Cheatsheet System
 -- Markdownチートシートの管理と表示
 
-local M = {}
-
 -- チートシートのベースディレクトリ
 local cheatsheet_dir = vim.fn.stdpath('config') .. '/lua/cheatsheets'
 
@@ -13,6 +11,7 @@ local cheatsheets = {
     { key = 'v', file = 'selection.md', desc = '選択・ビジュアル' },
     { key = 'f', file = 'fold.md', desc = 'フォールド' },
     { key = 'c', file = 'comment.md', desc = 'コメント操作' },
+    { key = 'm', file = 'multicursor.md', desc = 'マルチカーソル' },
     -- 以下は未作成（将来作成予定）
     -- { key = 's', file = 'search.md', desc = '検索・置換' },
     -- { key = 'l', file = 'lsp.md', desc = 'LSP機能' },
@@ -28,18 +27,9 @@ local cheatsheets = {
 -- プレビュー方法の設定
 local preview_method = 'glow'  -- 'glow' or 'markdown_preview'
 
--- プレビュー方法を設定
-function M.set_preview_method(method)
-    preview_method = method
-end
-
--- プレビュー方法を取得
-function M.get_preview_method()
-    return preview_method
-end
 
 -- チートシートを表示
-function M.show_cheatsheet(file)
+local function show_cheatsheet(file)
     local filepath = cheatsheet_dir .. '/' .. file
     if vim.fn.filereadable(filepath) == 1 then
         if preview_method == 'markdown_preview' then
@@ -56,7 +46,7 @@ function M.show_cheatsheet(file)
 end
 
 -- チートシートメニューを表示
-function M.show_menu()
+function ShowCheatsheetMenu()
     -- メニュー用のバッファを作成
     local buf = vim.api.nvim_create_buf(false, true)
     
@@ -113,7 +103,7 @@ function M.show_menu()
     for _, sheet in ipairs(cheatsheets) do
         vim.keymap.set('n', sheet.key, function()
             vim.api.nvim_win_close(win, true)
-            M.show_cheatsheet(sheet.file)
+            show_cheatsheet(sheet.file)
         end, { buffer = buf, silent = true })
     end
     
@@ -132,7 +122,7 @@ function M.show_menu()
         if vim.api.nvim_win_is_valid(win) then
             vim.api.nvim_win_close(win, true)
         end
-        M.show_menu()
+        ShowCheatsheetMenu()
     end, { buffer = buf, silent = true })
     
     -- 終了キー
@@ -146,23 +136,5 @@ function M.show_menu()
     vim.keymap.set('n', '<ESC>', close, { buffer = buf, silent = true })
 end
 
--- Telescopeでチートシートを検索（オプション）
-function M.telescope_cheatsheets()
-    local ok, telescope = pcall(require, 'telescope.builtin')
-    if not ok then
-        vim.notify('Telescopeが見つかりません', vim.log.levels.WARN)
-        return
-    end
-    
-    telescope.find_files({
-        prompt_title = 'Cheatsheets',
-        cwd = cheatsheet_dir,
-        previewer = true,
-        layout_config = {
-            width = 0.9,
-            height = 0.9,
-        },
-    })
-end
-
-return M
+-- グローバル関数として公開（21_keymap.luaから呼び出し用）
+_G.ShowCheatsheetMenu = ShowCheatsheetMenu
