@@ -3,7 +3,9 @@ return {
     -- 移動関連
     -- フォーク版のaccelerated-jk（visualモード対応）
     {
-        "totochi-2022/accelerated-jk.nvim",
+        vim.g.use_local_plugins and vim.g.use_local_plugins.accelerated_jk
+            and { dir = "/home/motoki/work/repo/nvim_plugin/accelerated-jk.nvim" }  -- ローカル開発版
+            or "totochi-2022/accelerated-jk.nvim",  -- GitHub版
         config = function()
             require('accelerated-jk').setup({
                 mode = 'time_driven',
@@ -15,21 +17,6 @@ return {
             })
         end,
     },
-    -- 開発用ローカル版（コメントアウト）
-    -- {
-    --     dir = "/home/motoki/work/repo/nvim_plugin/accelerated-jk.nvim",
-    --     name = "accelerated-jk.nvim",
-    --     config = function()
-    --         require('accelerated-jk').setup({
-    --             mode = 'time_driven',
-    --             enable_deceleration = false,
-    --             acceleration_motions = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },
-    --             acceleration_motions_visual = { 'j', 'k', 'w', 'b', 'e', 'W', 'B', 'E', 'h', 'l' },
-    --             acceleration_limit = 150,
-    --             acceleration_table = { 7, 12, 17, 21, 24, 26, 28, 30 }
-    --         })
-    --     end,
-    -- },
 
     {
         'easymotion/vim-easymotion',
@@ -96,11 +83,12 @@ return {
     --         })
     --     end,
     -- },
-    -- ローカル開発用
+    -- clever-f.nvim（Neovim版）
     {
-        dir = "/home/motoki/work/repo/nvim_plugin/clever-f.nvim",
-        name = "clever-f.nvim",
-        enabled = true,  -- テスト有効
+        vim.g.use_local_plugins and vim.g.use_local_plugins.clever_f
+            and { dir = "/home/motoki/work/repo/nvim_plugin/clever-f.nvim" }  -- ローカル開発版
+            or "totochi-2022/clever-f.nvim",  -- GitHub版
+        enabled = true,
         config = function()
             vim.g.clever_f_setup_called = true  -- setup呼び出しフラグ
             require('clever-f').setup({

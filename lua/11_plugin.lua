@@ -1,4 +1,17 @@
 -- 11_plugin.lua - メインプラグイン設定
+
+-- ========== 自作プラグイン開発設定 ==========
+-- 各自作プラグインの開発版使用設定
+-- true: ~/work/repo/nvim_plugin/ のローカル版を使用
+-- false/nil: GitHub版を使用
+vim.g.use_local_plugins = {
+    toggle_manager = false,      -- toggle-manager.nvim
+    incsearch_migemo = false,    -- incsearch-migemo.nvim
+    accelerated_jk = false,      -- accelerated-jk.nvim
+    clever_f = false,            -- clever-f.nvim
+    minor_mode = false,          -- minor-mode.nvim
+}
+
 local lazypath = vim.fn.stdpath("data") .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
     vim.fn.system({

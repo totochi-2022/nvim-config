@@ -2,33 +2,21 @@
 return {
     -- Minor Mode Plugin
     {
-        "totochi-2022/minor-mode.nvim",
-        -- dir = "/home/motoki/work/repo/nvim_plugin/minor-mode.nvim",  -- ローカル版
+        vim.g.use_local_plugins and vim.g.use_local_plugins.minor_mode
+            and { dir = "/home/motoki/work/repo/nvim_plugin/minor-mode.nvim" }  -- ローカル開発版
+            or "totochi-2022/minor-mode.nvim",  -- GitHub版
         config = false, -- 設定不要、そのまま使用
     },
-    -- ローカル開発用
-    -- {
-    --     dir = "/home/motoki/work/repo/nvim-plugin/minor-mode.nvim",
-    --     name = "minor-mode.nvim",
-    --     config = false,
-    -- },
     
     -- Incremental Migemo Search
     {
-        "totochi-2022/incsearch-migemo.nvim",
-        -- dir = "/home/motoki/work/repo/nvim_plugin/incsearch-migemo.nvim",  -- ローカル版
+        vim.g.use_local_plugins and vim.g.use_local_plugins.incsearch_migemo
+            and { dir = "/home/motoki/work/repo/nvim_plugin/incsearch-migemo.nvim" }  -- ローカル開発版
+            or "totochi-2022/incsearch-migemo.nvim",  -- GitHub版
         config = function()
             require('incsearch-migemo').setup()
         end,
     },
-    -- ローカル開発用
-    -- {
-    --     dir = "/home/motoki/work/repo/nvim-plugin/incsearch-migemo.nvim",
-    --     name = "incsearch-migemo.nvim",
-    --     config = function()
-    --         require('incsearch-migemo').setup()
-    --     end,
-    -- },
     
     -- コアライブラリ
     { "tpope/vim-repeat" },
