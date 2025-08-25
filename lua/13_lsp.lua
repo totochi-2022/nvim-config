@@ -297,6 +297,19 @@ cmp.setup({
     },
 })
 
+vim.api.nvim_create_autocmd({ "CursorHold" }, {
+    pattern = "*",
+    callback = function()
+        if vim.g.toggle_auto_hover == 1 then
+            local clients = vim.lsp.get_clients({ bufnr = 0 })
+            if #clients == 0 then return end
+
+            vim.lsp.buf.hover()
+        end
+    end,
+})
+
+
 -- コマンドライン補完
 cmp.setup.cmdline('/', {
     mapping = cmp.mapping.preset.cmdline(),

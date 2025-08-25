@@ -222,7 +222,7 @@ vim.g.netrw_preview = 1
 
 vim.opt.diffopt:append('vertical')
 
-vim.opt.updatetime = 300
+vim.opt.updatetime = 1000  -- CursorHoldイベントのタイミング（1秒）
 vim.g.incsearch_use_migemo = 0
 vim.g.toggle_auto_hover = 0
 

@@ -120,12 +120,13 @@ local definitions = {
         name = 'paste_mode',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal',  bg = 'Normal' }, -- off: Normal色
+            { fg = '#FF0000', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = 'ペーストモード',
         display_char = '󰆒 ', -- lualineで表示する文字（スペース付き）
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.opt.paste:get() and 'on' or 'off'
         end,
@@ -138,8 +139,8 @@ local definitions = {
         name = 'auto_hover',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = '#ff0000', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = '自動ホバー表示',
@@ -165,15 +166,14 @@ local definitions = {
 
     c = { -- キー = C (color highlighting)
         name = 'colors',
-        states = { 'off', 'hex', 'all' },
+        states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal', bg = 'Normal' },          -- hex: HEXカラーのみ
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- hex: HEXカラーのみ
-            { fg = '#000000', bg = 'DiagnosticError' } -- all: すべてのカラー表示
+            { fg = 'Normal', bg = 'Normal' }, --
+            { fg = 'Normal', bg = 'Normal' }, --
         },
-        default_state = 'all',
+        default_state = 'on',
         desc = 'カラー表示',
-        display_char = '🎨', -- lualineで表示する文字
+        display_char = ' ', -- lualineで表示する文字
         auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             -- グローバル変数でカラー表示の状態を管理
@@ -192,37 +192,19 @@ local definitions = {
                     highlight_colors.turnOff()
                 else
                     -- 状態に応じて設定を変更
-                    if state == 'hex' then
-                        -- HEXカラーのみ有効
-                        highlight_colors.setup({
-                            render = 'virtual',
-                            enable_hex = true,
-                            enable_short_hex = true,
-                            enable_rgb = false,
-                            enable_hsl = false,
-                            enable_named_colors = false,
-                            enable_tailwind = false,
-                            virtual_symbol = '■',
-                            virtual_symbol_prefix = ' ',
-                            virtual_symbol_suffix = '',
-                            virtual_symbol_position = 'inline',
-                        })
-                    else -- all
-                        -- すべてのカラー形式を有効
-                        highlight_colors.setup({
-                            render = 'virtual',
-                            enable_hex = true,
-                            enable_short_hex = true,
-                            enable_rgb = true,
-                            enable_hsl = true,
-                            enable_named_colors = true,
-                            enable_tailwind = true,
-                            virtual_symbol = '■',
-                            virtual_symbol_prefix = ' ',
-                            virtual_symbol_suffix = '',
-                            virtual_symbol_position = 'inline',
-                        })
-                    end
+                    highlight_colors.setup({
+                        render = 'virtual',
+                        enable_hex = true,
+                        enable_short_hex = true,
+                        enable_rgb = true,
+                        enable_hsl = true,
+                        enable_named_colors = true,
+                        enable_tailwind = true,
+                        virtual_symbol = '■',
+                        virtual_symbol_prefix = ' ',
+                        virtual_symbol_suffix = '',
+                        virtual_symbol_position = 'inline',
+                    })
                     highlight_colors.turnOn()
                 end
             end
@@ -238,12 +220,13 @@ local definitions = {
         name = 'migemo',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = 'Migemo検索',
         display_char = '󰰑 ', -- lualineで表示する文字（スペース付き）
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.migemo_enabled and 'on' or 'off'
         end,
@@ -290,12 +273,13 @@ local definitions = {
         name = 'quickscope',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'on',
         desc = 'QuickScope',
-        display_char = '🔍', -- lualineで表示する文字
+        display_char = ' ', -- lualineで表示する文字
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return (vim.g.qs_enable == 1) and 'on' or 'off'
         end,
@@ -312,8 +296,8 @@ local definitions = {
         name = 'jump_mode',
         states = { 'global', 'file_local' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- file_local: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'file_local',
         desc = 'ジャンプモード',
@@ -378,12 +362,13 @@ local definitions = {
         name = 'noice_cmdline',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'on',
         desc = 'Noiceコマンドライン',
         display_char = '💬', -- lualineで表示する文字
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             local ok, noice = pcall(require, 'noice')
             if ok then
@@ -478,11 +463,13 @@ local definitions = {
         name = 'cursorcolumn',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = 'カーソル縦表示',
+        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
+        display_char = '󰥓', -- lualineで表示する文字
         get_state = function()
             return vim.g.toggle_cursorcolumn_state or 'off'
         end,
