@@ -639,7 +639,7 @@ local function add_hover_border()
                 print("  内容:", table.concat(lines, " | "):sub(1, 40) .. "...")
 
                 if config.zindex == 45 then
-                    table.insert(lsp_wins, {win = win, config = config})
+                    table.insert(lsp_wins, { win = win, config = config })
                     print("  → zindex:45 収集")
                 elseif config.zindex == 60 then
                     print("  → zindex:60 発見")
