@@ -148,7 +148,7 @@ keymap('', '<Leader>i', ':Telescope ghq list<CR>', { noremap = true, desc = 'ghq
 keymap('', '<Leader>d', ':Telescope diagnostics<CR>', { noremap = true, desc = '診断一覧' })
 keymap('', '<Leader>f', ':Telescope fd<CR>', { noremap = true, desc = 'ファイル検索' })
 keymap('', '<Leader>e', ':Telescope file_browser path=%:p:h<CR>', { noremap = true, desc = 'ファイルブラウザ（現在のディレクトリ）' })
-keymap('', '<Leader>J', ':Telescope jumplist<CR>', { noremap = true, desc = 'ジャンプリスト' })
+keymap('', '<Leader>j', ':Telescope jumplist<CR>', { noremap = true, desc = 'ジャンプリスト' })
 keymap('', '<Leader>c', ':Telescope highlights<CR>', { noremap = true, desc = 'ハイライトグループ一覧' })
 keymap('', '<Leader>S', ':SearchSession<CR>', { noremap = true, desc = 'セッション検索' })
 keymap('n', '<Leader>u', ':Telescope undo<CR>', { noremap = true, desc = '変更履歴（Telescope）' })
@@ -265,7 +265,7 @@ keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '�
 -- EasyAlign
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })
 
-keymap('n', '<Leader>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkファイルを開く' })
+keymap('n', '<F8>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkファイルを開く' })
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
     require("dial.map").manipulate("increment", "normal")
@@ -447,20 +447,26 @@ keymap('n', '<LocalLeader>nh', '<cmd>lua require("noice").cmd("history")<CR>', {
 keymap('n', '<LocalLeader>nd', '<cmd>lua require("noice").cmd("dismiss")<CR>', { noremap = true, desc = '通知を消す' })
 keymap('n', '<LocalLeader>ne', '<cmd>lua require("noice").cmd("errors")<CR>', { noremap = true, desc = 'エラーメッセージ' })
 
---
-
---- Dropbar.nvim キーマップ
--- ドロップバーの選択
--- keymap('n', '<LocalLeader>1', '<cmd>lua require("dropbar.api").pick()<CR>', { noremap = true, desc = 'Dropbar 選択' })  -- dropbar無効化のためコメントアウト
--- Toggle menuの<LocalLeader>1は上部のトグル設定セクションに移動済み
---
-
 
 -- ナビゲーション
 keymap('n', '<C-,>', '<Plug>(milfeulle-prev)', { noremap = true, desc = '前の位置に移動' })
 keymap('n', '<C-.>', '<Plug>(milfeulle-next)', { noremap = true, desc = '次の位置に移動' })
 keymap('', '<C-j>', '<Plug>(edgemotion-j)', { desc = '下の空行へ移動' })
 keymap('', '<C-k>', '<Plug>(edgemotion-k)', { desc = '上の空行へ移動' })
+
+-- 変更リストジャンプモード
+minor_mode.define_mode({
+    namespace = 'ChangeList',
+    entries = {
+        { key = 'g;', action = 'g;', desc = '前の変更位置へ+変更リストモード開始' },
+        { key = 'g,', action = 'g,', desc = '次の変更位置へ+変更リストモード開始' }
+    },
+    actions = {
+        { key = ';', action = 'g;', desc = '前の変更位置へ' },
+        { key = ',', action = 'g,', desc = '次の変更位置へ' },
+        { key = '.', action = "'.`", desc = '最終変更位置へジャンプ' },
+    }
+})
 
 -- TreeSitter関連
 keymap('o', 'iu', ':<c-u>lua require"treesitter-unit".select()<CR>', { noremap = true, desc = 'TS:ユニット内選択（操作）' })
@@ -621,17 +627,17 @@ local function add_hover_border()
     vim.defer_fn(function()
         print("=== border設定処理開始 ===")
         local lsp_wins = {}
-        
+
         for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
             local config = vim.api.nvim_win_get_config(win)
             if config.relative == 'win' then
                 local buf = vim.api.nvim_win_get_buf(win)
                 local lines = vim.api.nvim_buf_get_lines(buf, 0, 2, false)
-                
+
                 print("ウィンドウ", win, "サイズ:", config.width .. "x" .. config.height)
                 print("  zindex:", config.zindex, "border:", config.border, "focusable:", config.focusable)
                 print("  内容:", table.concat(lines, " | "):sub(1, 40) .. "...")
-                
+
                 if config.zindex == 45 then
                     table.insert(lsp_wins, {win = win, config = config})
                     print("  → zindex:45 収集")
@@ -641,7 +647,7 @@ local function add_hover_border()
                 print("  ---")
             end
         end
-        
+
         print("zindex:45 ウィンドウ数:", #lsp_wins)
         -- 以下処理...
         print("========")
