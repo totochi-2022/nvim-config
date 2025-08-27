@@ -9,7 +9,6 @@ require '11_plugin'
 
 -- 12_function.lua（プラグイン読み込み後に実行）
 require '12_function'
--- vim.cmd [[autocmd BufWritePost 11_plugins.lua PackerCompile]]
 
 -- 13_lsp.lua
 require '13_lsp'
@@ -31,5 +30,3 @@ require '23_cheatsheet'
 
 -- 31_startup.lua (最終起動処理)
 require '31_startup'
-
--- RandomScheme()
