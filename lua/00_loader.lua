@@ -17,14 +17,14 @@ require '13_lsp'
 -- 14_autocmd.lua
 require '14_autocmd'
 
--- 14_autocmd.lua
+-- 15_dap.lua
 require '15_dap'
 
--- 21_Keymap.lua
-require '21_keymap'
+-- 16_toggle.lua (新トグルシステム) - キーマップより先に読み込み
+require '16_toggle'
 
--- 22_toggle.lua (新トグルシステム)
-require '22_toggle'
+-- 21_keymap.lua
+require '21_keymap'
 
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
