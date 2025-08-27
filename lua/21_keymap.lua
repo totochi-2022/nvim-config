@@ -203,6 +203,18 @@ minor_mode.define_mode({
 keymap('', '<LocalLeader>h', '^', { noremap = true, desc = '行の先頭へ' })
 keymap('', '<LocalLeader>l', '$', { noremap = true, desc = '行の末尾へ' })
 
+-- x削除モード（minor-mode使用）
+minor_mode.define_mode({
+    namespace = 'DeleteMode',
+    entries = {
+        { key = 'x', action = 'x', desc = '文字削除+削除モード開始' }
+    },
+    actions = {
+        { key = 'x', action = '<Cmd>undojoin<CR>x', desc = '文字削除（統合）' },
+    },
+    -- 他のキーで自動終了（デフォルト動作）
+})
+
 -- レジスタ関連
 keymap('', '<LocalLeader>y', ':let @q = @*<CR>', { noremap = true, desc = 'クリップボードをレジスタqにコピー' })
 keymap('', '<LocalLeader>p', '"qp', { noremap = true, desc = 'レジスタqをペースト（後）' })

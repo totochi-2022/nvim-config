@@ -699,6 +699,7 @@ local function apply_diagnostic_config(show_underline)
     })
 end
 
+
 -- モード終了時に元の表示に戻す
 function DiagModeExit()
     -- グローバル変数から診断状態を取得して復元
