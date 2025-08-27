@@ -690,43 +690,36 @@ end
 
 -- モード終了時に元の表示に戻す
 function DiagModeExit()
-    -- トグル設定を復元（単純に診断トグルの現在状態を再適用）
-    local ok, toggle = pcall(require, '22_toggle')
-    if ok and toggle and toggle.definitions and toggle.definitions.d then
-        -- 現在の診断トグル状態を取得
-        local current_state = toggle.definitions.d.get_state()
-        if current_state then
-            -- 状態に応じて適切な診断設定を復元
-            if current_state == 'cursor_only' then
-                -- tiny-inline-diagnosticに戻す
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,
-                    underline = false,
-                    update_in_insert = false,
-                    severity_sort = true,
-                })
-                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-                if tiny_ok then
-                    tiny.enable()
-                end
-            elseif current_state == 'full_with_underline' then
-                -- 全表示（既に設定済みなので何もしない）
-            elseif current_state == 'signs_only' then
-                -- サインのみに戻す
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,
-                    underline = false,
-                    update_in_insert = false,
-                    severity_sort = true,
-                })
-                local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-                if tiny_ok then
-                    tiny.disable()
-                end
-            end
+    -- グローバル変数から診断状態を取得して復元
+    local current_state = vim.g.toggle_diagnostic_state or 'signs_only'
+    
+    -- 状態に応じて適切な診断設定を復元
+    if current_state == 'signs_only' then
+        vim.diagnostic.config({
+            virtual_text = false,
+            signs = true,
+            underline = false,
+            update_in_insert = false,
+            severity_sort = true,
+        })
+        local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+        if tiny_ok then
+            tiny.disable()
         end
+    elseif current_state == 'cursor_only' then
+        vim.diagnostic.config({
+            virtual_text = false,
+            signs = true,
+            underline = false,
+            update_in_insert = false,
+            severity_sort = true,
+        })
+        local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+        if tiny_ok then
+            tiny.enable()
+        end
+    elseif current_state == 'full_with_underline' then
+        -- 全表示（既に設定済みなので何もしない）
     end
     print("診断表示を元に戻しました")
 end

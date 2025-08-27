@@ -51,24 +51,14 @@ mason_null_ls.setup({
     automatic_installation = false,
 })
 
--- 診断設定（そのまま）
+-- 診断設定はトグルシステム（22_toggle.lua）で管理
+-- ここでは基本設定のみ（トグルで変更されない項目）
 vim.diagnostic.config({
-    virtual_text = false,
-    signs = true,
-    underline = false,
     update_in_insert = false,
     severity_sort = true,
 })
 
-vim.defer_fn(function()
-    vim.diagnostic.config({
-        virtual_text = false,
-        signs = true,
-        underline = false,
-        update_in_insert = false,
-        severity_sort = true,
-    })
-end, 500)
+-- 遅延実行も削除（トグルシステムと競合するため）
 
 -- グローバル設定（全LSPサーバー共通）
 vim.lsp.config('*', {

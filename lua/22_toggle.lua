@@ -29,33 +29,22 @@
 local definitions = {
     d = { -- キー = D (diagnostics)
         name = 'diagnostics',
-        states = { 'cursor_only', 'full_with_underline', 'signs_only' },
+        states = { 'signs_only', 'cursor_only', 'full_with_underline' },
         colors = {
-            { fg = 'Normal', bg = 'Normal' },          -- cursor_only: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- full_with_underline: 黒文字/DiagnosticWarn背景
-            { fg = '#000000', bg = 'DiagnosticError' } -- signs_only: 黒文字/DiagnosticError背景
+            { fg = 'Normal', bg = 'Normal' },          -- signs_only: Normal色
+            { fg = '#000000', bg = 'DiagnosticWarn' }, -- cursor_only: 黒文字/DiagnosticWarn背景
+            { fg = '#000000', bg = 'DiagnosticError' } -- full_with_underline: 黒文字/DiagnosticError背景
         },
-        default_state = 'cursor_only',
+        default_state = 'signs_only',
         desc = '診断表示モード',
         display_char = '⚠ ', -- lualineで表示する文字（スペース付き）
         auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
-            -- 現在の診断設定から状態を判定
-            local config = vim.diagnostic.config()
-            -- tiny-inline-diagnosticが有効かチェック
-            local ok, tiny_diag = pcall(require, 'tiny-inline-diagnostic')
-            local tiny_enabled = ok and tiny_diag.is_enabled and tiny_diag.is_enabled()
-
-            if config.virtual_text then
-                return 'full_with_underline'
-            elseif tiny_enabled or (not config.virtual_text and config.signs and not config.underline) then
-                -- tiny-inline-diagnosticが有効、またはvirtual_textなし、signsあり、underlineなし
-                return 'cursor_only'
-            else
-                return 'signs_only'
-            end
+            -- グローバル変数で状態を管理
+            return vim.g.toggle_diagnostic_state or 'signs_only'
         end,
         set_state = function(state)
+            vim.g.toggle_diagnostic_state = state  -- 状態を記憶
             if state == 'cursor_only' then
                 vim.diagnostic.config({
                     virtual_text = false,
@@ -485,7 +474,7 @@ local definitions = {
             -- グローバル設定も更新（新しいウィンドウ用）
             vim.o.cursorcolumn = enable
         end
-    }
+    },
 }
 
 -- ========== セットアップ実行 ==========
