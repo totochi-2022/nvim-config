@@ -4,11 +4,11 @@ require '01_initial_setting'
 -- 02_option.lua
 require '02_option'
 
--- 03_function.lua
-require '03_function'
-
 -- 11_plugin.lua
 require '11_plugin'
+
+-- 12_function.lua（プラグイン読み込み後に実行）
+require '12_function'
 -- vim.cmd [[autocmd BufWritePost 11_plugins.lua PackerCompile]]
 
 -- 13_lsp.lua

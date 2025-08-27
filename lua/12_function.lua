@@ -688,36 +688,32 @@ function DiagModeEnter()
     print("-- DIAGNOSTIC MODE: 全エラー表示 --")
 end
 
+-- 診断設定を適用するヘルパー関数
+local function apply_diagnostic_config(show_underline)
+    vim.diagnostic.config({
+        virtual_text = false,
+        signs = true,
+        underline = show_underline or false,
+        update_in_insert = false,
+        severity_sort = true,
+    })
+end
+
 -- モード終了時に元の表示に戻す
 function DiagModeExit()
     -- グローバル変数から診断状態を取得して復元
     local current_state = vim.g.toggle_diagnostic_state or 'signs_only'
     
+    -- tiny-inline-diagnosticの制御
+    local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
+    
     -- 状態に応じて適切な診断設定を復元
     if current_state == 'signs_only' then
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = true,
-            underline = false,
-            update_in_insert = false,
-            severity_sort = true,
-        })
-        local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-        if tiny_ok then
-            tiny.disable()
-        end
+        apply_diagnostic_config(false)
+        if tiny_ok then tiny.disable() end
     elseif current_state == 'cursor_only' then
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = true,
-            underline = false,
-            update_in_insert = false,
-            severity_sort = true,
-        })
-        local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-        if tiny_ok then
-            tiny.enable()
-        end
+        apply_diagnostic_config(false)
+        if tiny_ok then tiny.enable() end
     elseif current_state == 'full_with_underline' then
         -- 全表示（既に設定済みなので何もしない）
     end
