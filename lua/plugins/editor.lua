@@ -399,5 +399,39 @@ return {
         end
     },
 
+    -- mini.basics（undo改善を含む基本設定）
+    {
+        "echasnovski/mini.basics",
+        enabled = false,  -- まず無効にして既存機能との競合を避ける
+        config = function()
+            require('mini.basics').setup({
+                options = {
+                    basic = false,      -- 基本オプションは設定済みなので無効
+                    extra_ui = false,   -- UIも設定済み
+                    win_borders = 'default'
+                },
+                mappings = {
+                    basic = false,      -- 基本マッピングは設定済み
+                    option_toggle_prefix = '',  -- トグル機能は自前システムを使用
+                    windows = false,    -- ウィンドウ操作は設定済み
+                    move_with_alt = false, -- Alt移動は無効
+                },
+                autocommands = {
+                    basic = false,      -- 基本autocmdは設定済み
+                    relnum_in_visual_mode = false -- 相対行番号は手動制御
+                }
+            })
+        end
+    },
+
+    -- より専用的なundo改善プラグイン
+    {
+        "machakann/vim-sandwich",
+        enabled = false,  -- テスト用
+        config = function()
+            -- sandwichもundojoinを使ったundo統合をしている
+        end
+    },
+
 }
 

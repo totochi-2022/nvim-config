@@ -238,10 +238,13 @@ vim.api.nvim_create_autocmd({ "CursorHold" }, {
         if vim.g.toggle_auto_hover == 1 then
             local clients = vim.lsp.get_clients({ bufnr = 0 })
             if #clients == 0 then return end
-            vim.lsp.buf.hover({
-                focus = false,
-                border = "rounded"
-            })
+            -- グローバル関数を使用（フック処理で統一的にボーダーが適用される）
+            if _G.show_lsp_hover then
+                _G.show_lsp_hover()
+            else
+                -- フォールバック（グローバル関数が未定義の場合）
+                vim.lsp.buf.hover({ focus = false })
+            end
         end
     end,
 })

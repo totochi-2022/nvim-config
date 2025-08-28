@@ -40,40 +40,40 @@ function RandomScheme(silent)
         end
         return
     end
-    
+
     -- プロセスIDとメモリアドレスを組み合わせたユニークなシード
     local pid = vim.fn.getpid()
     local addr = tostring({}):match("0x(%w+)") or "0"
     local hrtime = vim.loop.hrtime()
     local seed = pid + tonumber(addr, 16) + hrtime % 1000000
-    
+
     math.randomseed(seed)
-    
+
     local random_num = math.random(#Colorschemes)
     local col_sh = Colorschemes[random_num]
-    
+
     vim.cmd('colorscheme ' .. col_sh)
-    
+
     -- フローティングウィンドウの背景色を本体と同じに設定
     vim.defer_fn(function()
         local normal_bg = vim.fn.synIDattr(vim.fn.hlID('Normal'), 'bg')
         if normal_bg == '' then
             normal_bg = 'NONE'
         end
-        
+
         -- FloatBorderの背景色のみを調整（線の色はそのまま）
         local current_float_border = vim.api.nvim_get_hl(0, { name = 'FloatBorder' })
         vim.api.nvim_set_hl(0, 'FloatBorder', {
-            fg = current_float_border.fg,  -- 線の色はそのまま維持
-            bg = normal_bg,                -- 背景色のみを本体と同じにする
+            fg = current_float_border.fg, -- 線の色はそのまま維持
+            bg = normal_bg,               -- 背景色のみを本体と同じにする
         })
-        
+
         -- フローティングウィンドウ内容の背景色も調整
         vim.api.nvim_set_hl(0, 'NormalFloat', {
-            bg = normal_bg,      -- フローティング内容の背景色
+            bg = normal_bg, -- フローティング内容の背景色
         })
-    end, 50)  -- カラースキーム適用後に少し遅延して実行
-    
+    end, 50)                -- カラースキーム適用後に少し遅延して実行
+
     if not silent then
         print(col_sh)
     end
@@ -98,14 +98,14 @@ command! OpenJunkfile call s:open_junkfile()
 --- VmodeToggle (Lua版){{{
 local function vmode_toggle()
     local current_mode = vim.fn.visualmode()
-    
+
     if current_mode == "v" then
         -- 文字ビジュアル → 行ビジュアル
         vim.fn.feedkeys("gvV", "n")
     elseif current_mode == "V" then
         -- 行ビジュアル → 矩形ビジュアル
-        vim.fn.feedkeys("gv\022", "n")  -- \022 は <C-v>
-    elseif current_mode == "\022" then  -- <C-v> (矩形ビジュアル)
+        vim.fn.feedkeys("gv\022", "n") -- \022 は <C-v>
+    elseif current_mode == "\022" then -- <C-v> (矩形ビジュアル)
         -- 矩形ビジュアル → 文字ビジュアル
         vim.fn.feedkeys("gvv", "n")
     end
@@ -129,28 +129,28 @@ let g:file_local_jumplist = {}
 function! s:add_to_file_jumplist()
   let l:bufnr = bufnr('%')
   let l:pos = [line('.'), col('.')]
-  
+
   " バッファごとの履歴を初期化
   if !has_key(g:file_local_jumplist, l:bufnr)
     let g:file_local_jumplist[l:bufnr] = {'list': [], 'current': -1}
   endif
-  
+
   let l:jumplist = g:file_local_jumplist[l:bufnr]
-  
+
   " 同じ位置の場合は追加しない
   if len(l:jumplist.list) > 0 && l:jumplist.list[-1] == l:pos
     return
   endif
-  
+
   " 現在位置より後の履歴を削除（新しいブランチ）
   if l:jumplist.current < len(l:jumplist.list) - 1
     let l:jumplist.list = l:jumplist.list[:l:jumplist.current]
   endif
-  
+
   " 新しい位置を追加
   call add(l:jumplist.list, l:pos)
   let l:jumplist.current = len(l:jumplist.list) - 1
-  
+
   " 履歴が長すぎる場合は古いものを削除
   if len(l:jumplist.list) > 100
     let l:jumplist.list = l:jumplist.list[1:]
@@ -164,13 +164,13 @@ function! s:file_jump_back()
     echo "No file jump history"
     return
   endif
-  
+
   let l:jumplist = g:file_local_jumplist[l:bufnr]
   if l:jumplist.current <= 0
     echo "Already at oldest position"
     return
   endif
-  
+
   let l:jumplist.current -= 1
   let l:pos = l:jumplist.list[l:jumplist.current]
   call cursor(l:pos[0], l:pos[1])
@@ -183,13 +183,13 @@ function! s:file_jump_forward()
     echo "No file jump history"
     return
   endif
-  
+
   let l:jumplist = g:file_local_jumplist[l:bufnr]
   if l:jumplist.current >= len(l:jumplist.list) - 1
     echo "Already at newest position"
     return
   endif
-  
+
   let l:jumplist.current += 1
   let l:pos = l:jumplist.list[l:jumplist.current]
   call cursor(l:pos[0], l:pos[1])
@@ -279,7 +279,7 @@ function! s:get_syn_info_enhanced()
   echo "=== 構文情報 ==="
   echo "Position: " . line('.') . ":" . col('.') . " | " . get(g:, 'colors_name', '(none)')
   echo ""
-  
+
   " TreeSitter情報
   try
     let ts_info = luaeval('vim.treesitter.get_captures_at_cursor(0)')
@@ -288,20 +288,20 @@ function! s:get_syn_info_enhanced()
         if capture == 'spell'
           continue  " spellは無視
         endif
-        
+
         let hl_group = '@' . capture
         let hl_id = hlID(hl_group)
-        
+
         " 直接の色
         let hl_fg = synIDattr(hl_id, 'fg', 'gui')
         let hl_bg = synIDattr(hl_id, 'bg', 'gui')
-        
+
         " リンク先の色
         let link_to = synIDattr(synIDtrans(hl_id), 'name')
         if !empty(link_to) && link_to != hl_group
           let link_fg = synIDattr(hlID(link_to), 'fg', 'gui')
           let link_bg = synIDattr(hlID(link_to), 'bg', 'gui')
-          
+
           if !empty(link_fg) || !empty(link_bg)
             echo capture . " → " . link_to . " | fg:" . (empty(link_fg) ? "default" : link_fg) . " bg:" . (empty(link_bg) ? "default" : link_bg)
           else
@@ -576,16 +576,16 @@ end
 --     end,
 -- })
 
--- Windows path to WSL path conversion  
+-- Windows path to WSL path conversion
 function ConvertWindowsPath(win_path)
     -- 外部コマンドでパス変換（将来的にカスタムスクリプトに置き換え可能）
-    local converter_cmd = "wslpath"  -- 将来的にはカスタムスクリプトのパスに変更可能
-    
+    local converter_cmd = "wslpath" -- 将来的にはカスタムスクリプトのパスに変更可能
+
     local handle = io.popen(converter_cmd .. ' "' .. win_path .. '" 2>/dev/null')
     if handle then
         local wsl_path = handle:read("*a"):gsub("\n$", "")
         handle:close()
-        
+
         -- 変換が成功した場合のみ変換結果を返す
         if wsl_path ~= "" then
             return wsl_path
@@ -688,6 +688,8 @@ function DiagModeEnter()
     print("-- DIAGNOSTIC MODE: 全エラー表示 --")
 end
 
+-- minor-modeを使った連続削除のundo統合は21_keymap.luaで設定
+
 -- 診断設定を適用するヘルパー関数
 local function apply_diagnostic_config(show_underline)
     vim.diagnostic.config({
@@ -704,10 +706,10 @@ end
 function DiagModeExit()
     -- グローバル変数から診断状態を取得して復元
     local current_state = vim.g.toggle_diagnostic_state or 'signs_only'
-    
+
     -- tiny-inline-diagnosticの制御
     local tiny_ok, tiny = pcall(require, "tiny-inline-diagnostic")
-    
+
     -- 状態に応じて適切な診断設定を復元
     if current_state == 'signs_only' then
         apply_diagnostic_config(false)
