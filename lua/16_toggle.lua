@@ -44,7 +44,7 @@ local definitions = {
             return vim.g.toggle_diagnostic_state or 'signs_only'
         end,
         set_state = function(state)
-            vim.g.toggle_diagnostic_state = state  -- 状態を記憶
+            vim.g.toggle_diagnostic_state = state -- 状態を記憶
             if state == 'cursor_only' then
                 vim.diagnostic.config({
                     virtual_text = false,
@@ -109,8 +109,8 @@ local definitions = {
         name = 'paste_mode',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' }, -- off: Normal色
-            { fg = '#FF0000', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = 'ペーストモード',
@@ -127,8 +127,8 @@ local definitions = {
         name = 'auto_hover',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal',  bg = 'Normal' }, -- off: Normal色
-            { fg = '#ff0000', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' },  -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' },  -- off: Normal色
         },
         default_state = 'off',
         desc = '自動ホバー表示',
@@ -358,21 +358,33 @@ local definitions = {
         display_char = '💬', -- lualineで表示する文字
         auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
-            local ok, noice = pcall(require, 'noice')
-            if ok then
-                local config_ok, config = pcall(require, 'noice.config')
-                if config_ok and config.options and config.options.cmdline then
-                    return config.options.cmdline.enabled and 'on' or 'off'
-                end
+            -- グローバル変数で状態を管理
+            if vim.g.noice_cmdline_enabled == nil then
+                vim.g.noice_cmdline_enabled = true
             end
-            return 'off'
+            return vim.g.noice_cmdline_enabled and 'on' or 'off'
         end,
         set_state = function(state)
+            vim.g.noice_cmdline_enabled = (state == 'on')
+            
             local ok, noice = pcall(require, 'noice')
             if ok then
-                local config_ok, config = pcall(require, 'noice.config')
-                if config_ok and config.options and config.options.cmdline then
-                    config.options.cmdline.enabled = (state == 'on')
+                if state == 'off' then
+                    -- Noiceを無効化して通常のコマンドラインに戻す
+                    vim.cmd('Noice disable')
+                    -- 重要: Noice無効化後にcmdheightを設定する必要がある
+                    -- Noiceがcmdheight=0に設定するため、通常のコマンドラインが
+                    -- 表示されなくなる問題を防ぐ
+                    vim.opt.cmdheight = 1  -- 通常のコマンドライン1行表示
+                else
+                    -- cmdheightを0にしてNoiceのフローティングコマンドラインを有効化
+                    -- この順番が重要: 先にcmdheightを設定してからNoiceを有効化
+                    vim.opt.cmdheight = 0
+                    -- 設定を変更
+                    local config = require('noice.config')
+                    config.options.cmdline.enabled = true
+                    -- Noiceを有効化
+                    vim.cmd('Noice enable')
                 end
             end
         end
