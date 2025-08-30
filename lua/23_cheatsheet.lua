@@ -12,6 +12,7 @@ local cheatsheets = {
     { key = 'f', file = 'fold.md', desc = 'フォールド' },
     { key = 'c', file = 'comment.md', desc = 'コメント操作' },
     { key = 'm', file = 'multicursor.md', desc = 'マルチカーソル' },
+    { key = 'h', file = 'history.md', desc = '履歴・コマンドライン' },
     -- 以下は未作成（将来作成予定）
     -- { key = 's', file = 'search.md', desc = '検索・置換' },
     -- { key = 'l', file = 'lsp.md', desc = 'LSP機能' },
