@@ -130,6 +130,8 @@ keymap('', '<F3>', ':Telescope command_palette<CR>', { noremap = true, desc = '�
 keymap('', '<Leader>h', ':Telescope frecency<CR>', { noremap = true, desc = '最近使用したファイル（頻度順）' })
 keymap('', '<Leader>H', ':Telescope oldfiles<CR>', { noremap = true, desc = '最近使用したファイル（時間順）' })
 keymap('', '<Leader>R', ':Telescope registers<CR>', { noremap = true, desc = 'レジスタ一覧' })
+keymap('n', '<Leader>p', ':Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
+keymap('x', '<Leader>p', '<Esc>:Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
 
 -- grug-far.nvim 検索・置換
 keymap('n', '<Leader>r', ':GrugFarCurrentBuffer<CR>', { noremap = true, desc = '現在のバッファで検索・置換' })

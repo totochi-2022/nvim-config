@@ -79,6 +79,7 @@ return {
             require('telescope').load_extension('command_palette')
             require('telescope').load_extension('undo')
             require('telescope').load_extension('egrepify')
+            require('telescope').load_extension('yank_history')
         end,
     },
 
