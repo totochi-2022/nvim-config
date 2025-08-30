@@ -10,6 +10,7 @@ vim.g.use_local_plugins = {
     accelerated_jk = false,      -- accelerated-jk.nvim
     clever_f = false,            -- clever-f.nvim
     minor_mode = false,          -- minor-mode.nvim
+    jaq = false,                 -- jaq-nvim (改造版)
 }
 
 local lazypath = vim.fn.stdpath("data") .. '/lazy/lazy.nvim'

@@ -380,18 +380,22 @@ keymap('n', 'ms', ':ISwapWith<CR>', { noremap = true, desc = '引数/要素を�
 keymap('n', 'mS', ':ISwap<CR>', { noremap = true, desc = '引数/要素を選択して交換' })
 
 -- QuickRun
-keymap('n', 'mnn', ':Jaq<CR>', { noremap = true, desc = 'Jaq実行（デフォルト）' })
-keymap('n', 'mnf', ':Jaq float<CR>', { noremap = true, desc = 'Jaq実行（フロート）' })
-keymap('n', 'mnb', ':Jaq bang<CR>', { noremap = true, desc = 'Jaq実行（Bang）' })
-keymap('n', 'mnq', ':Jaq quickfix<CR>', { noremap = true, desc = 'Jaq実行（クイックフィックス）' })
-keymap('n', 'mnt', ':Jaq terminal<CR>', { noremap = true, desc = 'Jaq実行（ターミナル）' })
-keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
+-- Python/Ruby等はinternalコマンドなので引数なし
+keymap('n', 'mnn', ':Jaq<CR>', { noremap = true, desc = 'Jaq実行（カスタムランナー）' })
+-- Markdown等のexternalコマンドのみモード指定可能
+keymap('n', 'mnf', ':Jaq float<CR>', { noremap = true, desc = 'Jaq実行（フロート・external用）' })
+keymap('n', 'mnb', ':Jaq bang<CR>', { noremap = true, desc = 'Jaq実行（Bang・external用）' })
+keymap('n', 'mnq', ':Jaq quickfix<CR>', { noremap = true, desc = 'Jaq実行（クイックフィックス・external用）' })
+keymap('n', 'mnt', ':Jaq terminal<CR>', { noremap = true, desc = 'Jaq実行（ターミナル・external用）' })
+-- keymap('n', 'mnr', ':QuickRun<CR>', { noremap = true, desc = 'QuickRun実行' })
+keymap('n', 'mnk', ':JaqKillCurrent<CR>', { noremap = true, desc = 'Jaq最新プロセスをkill' })
+keymap('n', 'mnK', ':JaqKillAll<CR>', { noremap = true, desc = 'Jaq全プロセスをkill' })
+keymap('n', 'mnl', ':JaqList<CR>', { noremap = true, desc = 'Jaqプロセス一覧' })
 
 -- チートシート
 keymap('n', '<LocalLeader>?', function()
     ShowCheatsheetMenu()
 end, { noremap = true, silent = true, desc = 'チートシートメニュー' })
-keymap('n', 'mnk', ':call quickrun#session#sweep()<CR>', { noremap = true, desc = 'QuickRunセッション終了' })
 
 -- エラージャンプモード（新しいdefine_complete_mode使用）
 local minor_mode = require('minor-mode')

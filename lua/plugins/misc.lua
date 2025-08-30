@@ -90,38 +90,23 @@ return {
         end
     },
 
-    -- 実行系
-    {
-        "thinca/vim-quickrun",
-        config = function()
-            vim.g.quickrun_config = {
-                ["_"] = {
-                    runner = "vimproc",
-                    runner_vimproc_updatetime = 60,
-                    outputter = "error",
-                    outputter_error_success = "buffer",
-                    outputter_error_error = "quickfix",
-                    outputter_buffer_split = ":rightbelow 8sp",
-                    outputter_buffer_close_on_empty = 1,
-                }
-            }
-        end
-    },
+    -- 実行系 (jaq-nvimで代替済み)
+    -- { "thinca/vim-quickrun" },
+    -- { "Shougo/vimproc.vim", build = "make" },
 
-    { "Shougo/vimproc.vim", build = "make" },
-
-    {
-        "is0n/jaq-nvim",
+    (vim.g.use_local_plugins and vim.g.use_local_plugins.jaq) and {
+        dir = "/home/motoki/work/repo/nvim_plugin/jaq-nvim",  -- ローカル開発版
         config = function()
             require('jaq-nvim').setup({
                 cmds = {
                     internal = {
                         lua = "luafile %",
-                        vim = "source %"
+                        vim = "source %",
                     },
                     external = {
                         markdown = "glow %",
                         python = "python3 %",
+                        ruby = "ruby %",
                         javascript = "node %",
                         sh = "sh %",
                     }
@@ -147,6 +132,52 @@ return {
                         position = "bot",
                         size = 10,
                         line_no = false
+                    },
+                    quickfix = {
+                        position = "bot",
+                        size = 10
+                    }
+                }
+            })
+        end
+    } or {
+        "totochi-2022/jaq-nvim",  -- GitHub版（フォーク予定）
+        config = function()
+            require('jaq-nvim').setup({
+                cmds = {
+                    internal = {
+                        lua = "luafile %",
+                        vim = "source %",
+                    },
+                    external = {
+                        markdown = "glow %",
+                        python = "python3 %",
+                        ruby = "ruby %",
+                        javascript = "node %",
+                        sh = "sh %",
+                    }
+                },
+                behavior = {
+                    default = "float",
+                    startinsert = false,
+                    wincmd = false,
+                    autosave = false
+                },
+                ui = {
+                    float = {
+                        border = "none",
+                        winhl = "Normal",
+                        borderhl = "FloatBorder",
+                        height = 0.8,
+                        width = 0.8,
+                        x = 0.5,
+                        y = 0.5,
+                        winblend = 0
+                    },
+                    terminal = {
+                        position = "bot",
+                        line_no = false,
+                        size = 10
                     },
                     quickfix = {
                         position = "bot",

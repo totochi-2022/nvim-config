@@ -722,3 +722,35 @@ function DiagModeExit()
     end
     print("診断表示を元に戻しました")
 end
+
+-- Jaq実行プロセスのキル関数（改造版jaq-nvim対応）
+function JaqKill()
+    local ok, jaq_nvim = pcall(require, 'jaq-nvim')
+    if ok and jaq_nvim.kill_current then
+        return jaq_nvim.kill_current()
+    else
+        print("jaq-nvim kill function not available")
+    end
+end
+
+function JaqKillAll()
+    local ok, jaq_nvim = pcall(require, 'jaq-nvim')
+    if ok and jaq_nvim.kill_all then
+        return jaq_nvim.kill_all()
+    else
+        print("jaq-nvim kill_all function not available")
+    end
+end
+
+-- Jaqプロセス一覧表示関数
+function JaqList()
+    local ok, jaq_nvim = pcall(require, 'jaq-nvim')
+    if ok and jaq_nvim.list_processes then
+        return jaq_nvim.list_processes()
+    else
+        print("jaq-nvim list function not available")
+    end
+end
+
+-- コマンド登録（改造版と重複しないように削除）
+-- プラグイン側でコマンド登録されるため、ここでは関数のみ定義
