@@ -243,9 +243,9 @@ local definitions = {
                 vim.g.migemo_enabled = true
             else
                 -- 標準の検索に戻す
-                vim.keymap.del('n', '/')
-                vim.keymap.del('n', '?')
-                vim.keymap.del('n', 'g/')
+                pcall(vim.keymap.del, 'n', '/')
+                pcall(vim.keymap.del, 'n', '?')
+                pcall(vim.keymap.del, 'n', 'g/')
                 -- EasyMotionのmigemoも無効化
                 vim.g.EasyMotion_use_migemo = 0
                 -- lazy.nvim経由で再読み込み
@@ -374,20 +374,25 @@ local definitions = {
 
             if state == 'off' then
                 -- 完全無効化（トラブルシューティング用）
-                vim.cmd('Noice disable')
+                pcall(vim.cmd, 'Noice disable')
                 vim.opt.cmdheight = 1
 
             elseif state == 'all' then
                 -- フル機能（コマンドライン＋LSP進捗＋通知）
                 -- Noiceを一度無効化して設定をリセット
-                vim.cmd('Noice disable')
+                pcall(vim.cmd, 'Noice disable')
                 vim.opt.cmdheight = 0
-                local config = require('noice.config')
-                -- コマンドラインをフローティング表示
-                config.options.cmdline.enabled = true
-                config.options.cmdline.view = "cmdline_popup"
+                local ok_config, config = pcall(require, 'noice.config')
+                if ok_config and config.options then
+                    -- コマンドラインをフローティング表示
+                    if config.options.cmdline then
+                        config.options.cmdline.enabled = true
+                        config.options.cmdline.view = "cmdline_popup"
+                    end
+                end
                 -- LSP設定を完全に有効化
-                config.options.lsp = {
+                if ok_config and config.options and config.options.lsp then
+                    config.options.lsp = {
                     progress = {
                         enabled = true,
                         view = "mini"
@@ -406,10 +411,17 @@ local definitions = {
                     message = {
                         enabled = true
                     }
-                }
+                    }
+                end
                 -- メッセージ・通知を有効化
-                config.options.messages.enabled = true
-                config.options.notify.enabled = true
+                if ok_config and config.options then
+                    if config.options.messages then
+                        config.options.messages.enabled = true
+                    end
+                    if config.options.notify then
+                        config.options.notify.enabled = true
+                    end
+                end
                 -- nvim-notifyを上方向に設定
                 local notify_ok, notify = pcall(require, "notify")
                 if notify_ok then
@@ -420,12 +432,12 @@ local definitions = {
                     })
                 end
                 -- Noiceを再度有効化
-                vim.cmd('Noice enable')
+                pcall(vim.cmd, 'Noice enable')
 
             elseif state == 'below' then
                 -- 最小限表示（下部Noiceコマンドライン＋通知のみ、LSP進捗OFF）
                 -- Noiceを一度無効化
-                vim.cmd('Noice disable')
+                pcall(vim.cmd, 'Noice disable')
                 -- cmdheightを設定
                 vim.opt.cmdheight = 0
                 local config = require('noice.config')
@@ -461,7 +473,7 @@ local definitions = {
                     })
                 end
                 -- Noiceを再度有効化
-                vim.cmd('Noice enable')
+                pcall(vim.cmd, 'Noice enable')
             end
         end
     },

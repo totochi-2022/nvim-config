@@ -119,7 +119,7 @@ return {
                 },
                 ui = {
                     float = {
-                        border = "none",
+                        border = "rounded",
                         winhl = "Normal",
                         borderhl = "FloatBorder",
                         winblend = 0,
@@ -165,7 +165,7 @@ return {
                 },
                 ui = {
                     float = {
-                        border = "none",
+                        border = "rounded",
                         winhl = "Normal",
                         borderhl = "FloatBorder",
                         height = 0.8,
@@ -394,7 +394,12 @@ return {
     },
 
     -- 翻訳（denops必須）
-    { "vim-denops/denops.vim" },
+    { 
+        "vim-denops/denops.vim",
+        init = function()
+            vim.g.denops_disable_version_check = 1
+        end
+    },
     { "skanehira/denops-translate.vim", dependencies = { "vim-denops/denops.vim" } },
 
     -- ブラウザ

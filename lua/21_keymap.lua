@@ -366,7 +366,7 @@ keymap('i', 'jj', '<ESC>', { noremap = true, desc = 'ESCショートカット' }
 keymap('i', 'ｊｊ', '<ESC>', { noremap = true, desc = 'ESCショートカット（全角）' })
 
 -- マーク関連
-keymap('n', '<LocalLeader>m', ':<C-u>MarksToggleSigns<CR>', { noremap = true, desc = 'マーク表示切替' })
+keymap('n', '<LocalLeader>m', ':<C-u>messages<CR>', { noremap = true, desc = 'メッセージ履歴表示' })
 keymap('n', 'mm', '<Plug>(Marks-toggle)', { noremap = true, desc = 'マークをトグル' })
 
 -- ブラウザ関連
