@@ -120,7 +120,7 @@ keymap('n', '<LocalLeader>Cp', '<Plug>NERDCommenterAppend <ESC> p', { noremap = 
 keymap('', ':', ';', { noremap = true, desc = 'セミコロン' })
 keymap('n', '<Leader>;', ':', { noremap = true, desc = 'コマンド入力' })
 keymap('n', 'q;', 'q:', { noremap = true, desc = 'コマンド履歴' })
-keymap('n', '<LocalLeader>;', ':<C-u>Capture :', { noremap = true, desc = 'コマンド出力をキャプチャ' })
+keymap('n', '<LocalLeader>;', 'q:', { noremap = true, desc = 'コマンドライン履歴' })
 keymap('n', ';', '<cmd>FineCmdline<CR>', { noremap = true, desc = '洗練されたコマンドライン' })
 keymap('x', ';', [[:<C-u>FineCmdline '<,'><CR>]], { noremap = true, desc = '選択範囲に対するコマンド' })
 

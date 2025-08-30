@@ -356,8 +356,8 @@ return {
         end,
     },
 
-    -- コマンド出力キャプチャ
-    { "tyru/capture.vim" },
+    -- コマンド出力キャプチャ (削除済み - 不要)
+    -- { "tyru/capture.vim" },
 
     -- コマンドライン改良（noice.nvimに置き換えのため無効化）
     {
