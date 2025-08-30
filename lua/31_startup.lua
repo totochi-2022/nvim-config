@@ -2,13 +2,14 @@
 -- カラースキーム変更とdashboard起動を最終段階で実行
 
 -- 起動時にランダムカラースキームを実行
-RandomScheme(true)
+-- RandomScheme(true)
 
+vim.cmd.colorscheme('gruvbox')
 -- 起動時のdashboard表示判定（カラー変更後）
 vim.defer_fn(function()
     -- 引数なしで起動し、空のバッファの場合のみ表示
     if vim.fn.argc() == 0 and vim.api.nvim_buf_get_name(0) == "" and vim.bo.filetype == "" then
         -- dashboard-nvimの正しい起動方法
-        vim.cmd('Dashboard')  -- コマンド実行
+        vim.cmd('Dashboard') -- コマンド実行
     end
-end, 200)  -- 200ms遅延でカラースキーム変更後に実行
+end, 1)                      -- 200ms遅延でカラースキーム変更後に実行

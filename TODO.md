@@ -22,3 +22,7 @@
 - [ ] x/X のundo履歴統合の別解決策を調査
 - [ ] トグル機能の window-local オプション対応改善
 - [ ] 診断表示モードの改善
+- [ ] LSPホバーの「No information available」メッセージ抑制
+  - vim.lsp.handlers["textDocument/hover"]のオーバーライドを試したが動作せず
+  - ハンドラー設定タイミングやLSP初期化順序の調査が必要
+  - 代替案：カスタム:Messagesコマンドでフィルタリング表示

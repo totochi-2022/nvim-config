@@ -127,8 +127,8 @@ local definitions = {
         name = 'auto_hover',
         states = { 'off', 'on' },
         colors = {
-            { fg = 'Normal', bg = 'Normal' },  -- off: Normal色
-            { fg = 'Normal', bg = 'Normal' },  -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
         },
         default_state = 'off',
         desc = '自動ホバー表示',
@@ -213,7 +213,8 @@ local definitions = {
         },
         default_state = 'off',
         desc = 'Migemo検索',
-        display_char = '󰰑 ', -- lualineで表示する文字（スペース付き）
+        -- display_char = '󰰑 ', -- lualineで表示する文字（スペース付き）
+        display_char = 'み', -- lualineで表示する文字（スペース付き）
         auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
         get_state = function()
             return vim.g.migemo_enabled and 'on' or 'off'
@@ -307,139 +308,165 @@ local definitions = {
         end
     },
 
-    w = { -- キー = W (windows_path)
-        name = 'windows_path',
-        states = { 'off', 'on' },
-        colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
-        },
-        default_state = 'off',
-        desc = 'Windowsパス変換',
-        get_state = function()
-            return vim.g.auto_windows_path_mode and 'on' or 'off'
-        end,
-        set_state = function(state)
-            if state == 'on' then
-                vim.g.auto_windows_path_mode = true
-                -- autocmdを作成（簡略化版）
-                vim.g.auto_path_autocmd_id = vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-                    callback = function()
-                        local line = vim.api.nvim_get_current_line()
-                        if line == "" or line:find('\n') then return end
-                        if IsWindowsPath and IsWindowsPath(line) then
-                            local converted_path = ConvertWindowsPath and ConvertWindowsPath(line)
-                            if converted_path and FileExists and FileExists(converted_path) then
-                                vim.api.nvim_set_current_line("")
-                                vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
-                            end
-                        end
-                    end
-                })
-            else
-                vim.g.auto_windows_path_mode = false
-                if vim.g.auto_path_autocmd_id then
-                    pcall(vim.api.nvim_del_autocmd, vim.g.auto_path_autocmd_id)
-                    vim.g.auto_path_autocmd_id = nil
-                end
-            end
-        end
-    },
+    -- w = { -- キー = W (windows_path)
+    --     name = 'windows_path',
+    --     states = { 'off', 'on' },
+    --     colors = {
+    --         { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
+    --         { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
+    --     },
+    --     default_state = 'off',
+    --     desc = 'Windowsパス変換',
+    --     get_state = function()
+    --         return vim.g.auto_windows_path_mode and 'on' or 'off'
+    --     end,
+    --     set_state = function(state)
+    --         if state == 'on' then
+    --             vim.g.auto_windows_path_mode = true
+    --             -- autocmdを作成（簡略化版）
+    --             vim.g.auto_path_autocmd_id = vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    --                 callback = function()
+    --                     local line = vim.api.nvim_get_current_line()
+    --                     if line == "" or line:find('\n') then return end
+    --                     if IsWindowsPath and IsWindowsPath(line) then
+    --                         local converted_path = ConvertWindowsPath and ConvertWindowsPath(line)
+    --                         if converted_path and FileExists and FileExists(converted_path) then
+    --                             vim.api.nvim_set_current_line("")
+    --                             vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
+    --                         end
+    --                     end
+    --                 end
+    --             })
+    --         else
+    --             vim.g.auto_windows_path_mode = false
+    --             if vim.g.auto_path_autocmd_id then
+    --                 pcall(vim.api.nvim_del_autocmd, vim.g.auto_path_autocmd_id)
+    --                 vim.g.auto_path_autocmd_id = nil
+    --             end
+    --         end
+    --     end
+    -- },
 
-    n = { -- キー = N (noice_cmdline)
-        name = 'noice_cmdline',
-        states = { 'off', 'on' },
+    n = { -- キー = N (noice表示モード)
+        name = 'noice_mode',
+        states = { 'off', 'all', 'below' },
         colors = {
-            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
-            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' },           -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticInfo' },  -- all: 黒文字/Info背景
+            { fg = '#000000', bg = 'DiagnosticHint' },  -- below: 黒文字/Hint背景
         },
-        default_state = 'on',
-        desc = 'Noiceコマンドライン',
+        default_state = 'all',
+        desc = 'Noice表示モード',
         display_char = '💬', -- lualineで表示する文字
-        auto_hide = true, -- 最初の状態(off)の時はlualineから自動非表示
+        auto_hide = false, -- 常に表示
         get_state = function()
             -- グローバル変数で状態を管理
-            if vim.g.noice_cmdline_enabled == nil then
-                vim.g.noice_cmdline_enabled = true
+            if vim.g.noice_display_mode == nil then
+                vim.g.noice_display_mode = 'all'
             end
-            return vim.g.noice_cmdline_enabled and 'on' or 'off'
+            return vim.g.noice_display_mode
         end,
         set_state = function(state)
-            vim.g.noice_cmdline_enabled = (state == 'on')
-            
+            vim.g.noice_display_mode = state
+
             local ok, noice = pcall(require, 'noice')
-            if ok then
-                if state == 'off' then
-                    -- Noiceを無効化して通常のコマンドラインに戻す
-                    vim.cmd('Noice disable')
-                    -- 重要: Noice無効化後にcmdheightを設定する必要がある
-                    -- Noiceがcmdheight=0に設定するため、通常のコマンドラインが
-                    -- 表示されなくなる問題を防ぐ
-                    vim.opt.cmdheight = 1  -- 通常のコマンドライン1行表示
-                else
-                    -- cmdheightを0にしてNoiceのフローティングコマンドラインを有効化
-                    -- この順番が重要: 先にcmdheightを設定してからNoiceを有効化
-                    vim.opt.cmdheight = 0
-                    -- 設定を変更
-                    local config = require('noice.config')
-                    config.options.cmdline.enabled = true
-                    -- Noiceを有効化
-                    vim.cmd('Noice enable')
+            if not ok then return end
+
+            if state == 'off' then
+                -- 完全無効化（トラブルシューティング用）
+                vim.cmd('Noice disable')
+                vim.opt.cmdheight = 1
+
+            elseif state == 'all' then
+                -- フル機能（コマンドライン＋LSP進捗＋通知）
+                -- Noiceを一度無効化して設定をリセット
+                vim.cmd('Noice disable')
+                vim.opt.cmdheight = 0
+                local config = require('noice.config')
+                -- コマンドラインをフローティング表示
+                config.options.cmdline.enabled = true
+                config.options.cmdline.view = "cmdline_popup"
+                -- LSP設定を完全に有効化
+                config.options.lsp = {
+                    progress = {
+                        enabled = true,
+                        view = "mini"
+                    },
+                    override = {
+                        ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+                        ["vim.lsp.util.stylize_markdown"] = true,
+                        ["cmp.entry.get_documentation"] = true,
+                    },
+                    hover = {
+                        enabled = true
+                    },
+                    signature = {
+                        enabled = true
+                    },
+                    message = {
+                        enabled = true
+                    }
+                }
+                -- メッセージ・通知を有効化
+                config.options.messages.enabled = true
+                config.options.notify.enabled = true
+                -- nvim-notifyを上方向に設定
+                local notify_ok, notify = pcall(require, "notify")
+                if notify_ok then
+                    notify.setup({
+                        top_down = true,  -- 上から下に表示
+                        timeout = 3000,
+                        render = "wrapped-compact"
+                    })
                 end
+                -- Noiceを再度有効化
+                vim.cmd('Noice enable')
+
+            elseif state == 'below' then
+                -- 最小限表示（下部Noiceコマンドライン＋通知のみ、LSP進捗OFF）
+                -- Noiceを一度無効化
+                vim.cmd('Noice disable')
+                -- cmdheightを設定
+                vim.opt.cmdheight = 0
+                local config = require('noice.config')
+                -- コマンドラインを下部に表示
+                config.options.cmdline.enabled = true
+                config.options.cmdline.view = "cmdline"  -- 下部表示（フローティングではない）
+                -- LSP設定を完全に無効化
+                config.options.lsp = {
+                    progress = {
+                        enabled = false
+                    },
+                    override = {},
+                    hover = {
+                        enabled = false
+                    },
+                    signature = {
+                        enabled = false
+                    },
+                    message = {
+                        enabled = false
+                    }
+                }
+                -- メッセージ・通知は有効化
+                config.options.messages.enabled = true
+                config.options.notify.enabled = true
+                -- nvim-notifyを下方向に設定
+                local notify_ok, notify = pcall(require, "notify")
+                if notify_ok then
+                    notify.setup({
+                        top_down = false,  -- 下から上に表示
+                        timeout = 3000,
+                        render = "wrapped-compact"
+                    })
+                end
+                -- Noiceを再度有効化
+                vim.cmd('Noice enable')
             end
         end
     },
 
-    i = { -- キー = I (lsp_progress)
-        name = 'lsp_progress',
-        states = { 'off', 'on' },
-        colors = {
-            { fg = 'Normal',  bg = 'Normal' },         -- off: Normal色
-            { fg = '#000000', bg = 'DiagnosticWarn' }, -- on: 黒文字/DiagnosticWarn背景
-        },
-        default_state = 'on',
-        desc = 'LSP進捗表示',
-        get_state = function()
-            local ok, noice = pcall(require, 'noice')
-            if ok then
-                local config_ok, config = pcall(require, 'noice.config')
-                if config_ok and config.options and config.options.lsp and config.options.lsp.progress then
-                    return config.options.lsp.progress.enabled and 'on' or 'off'
-                end
-            end
-            return 'off'
-        end,
-        set_state = function(state)
-            local ok, noice = pcall(require, 'noice')
-            if ok then
-                local config_ok, config = pcall(require, 'noice.config')
-                if config_ok and config.options and config.options.lsp and config.options.lsp.progress then
-                    if state == 'on' then
-                        config.options.lsp.progress.enabled = true
-                        config.options.lsp.progress.view = "mini"
-                        local notify_ok, notify = pcall(require, "notify")
-                        if notify_ok then
-                            notify.setup({
-                                top_down = true,
-                                timeout = 3000,
-                                render = "wrapped-compact"
-                            })
-                        end
-                    else
-                        config.options.lsp.progress.enabled = false
-                        local notify_ok, notify = pcall(require, "notify")
-                        if notify_ok then
-                            notify.setup({
-                                top_down = false,
-                                timeout = 3000,
-                                render = "wrapped-compact"
-                            })
-                        end
-                    end
-                end
-            end
-        end
-    },
+    -- i キーは削除（nに統合）
 
     l = { -- キー = L (laststatus)
         name = 'laststatus',

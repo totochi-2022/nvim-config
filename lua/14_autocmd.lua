@@ -126,8 +126,8 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 })
 
 -- markdownファイルで診断を無効化（バッファ単位）
-vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter", "FileType"}, {
-    pattern = {"*.md", "*.markdown", "markdown"},
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "FileType" }, {
+    pattern = { "*.md", "*.markdown", "markdown" },
     callback = function()
         local bufnr = vim.api.nvim_get_current_buf()
         -- バッファ単位で診断のみ無効化（LSPクライアントは停止しない）
@@ -137,7 +137,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter", "FileType"}, {
 })
 
 -- LSPホバーウィンドウ自動ボーダー設定
--- 
+--
 -- 概要：
 -- - BufWinEnterイベントでフローティングウィンドウを監視
 -- - LSPホバーは zindex 45/60 で識別可能
@@ -147,21 +147,21 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter", "FileType"}, {
 -- - 手動ホバー（K、m<Space>）、自動ホバー（CursorHold）共に対応
 local function setup_lsp_hover_border_hook()
     -- デバッグモードフラグ（必要に応じて true に変更）
-    local debug_mode = false  -- true にするとウィンドウ情報を出力
-    
+    local debug_mode = false -- true にするとウィンドウ情報を出力
+
     local check_floating_windows = function(event_name)
         return function()
             vim.defer_fn(function()
                 -- 全ウィンドウをチェック
                 for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
                     local ok, config = pcall(vim.api.nvim_win_get_config, win)
-                    
+
                     if ok and config.relative ~= '' then
                         -- デバッグ出力（フローティングウィンドウの詳細情報）
                         if debug_mode then
                             print(string.format(
                                 "[%s] Float Win %d: zindex=%s, pos=(%d,%d), size=%dx%d, border=%s, relative=%s",
-                                event_name,  -- どのイベントで検出したか表示
+                                event_name, -- どのイベントで検出したか表示
                                 win,
                                 config.zindex or "nil",
                                 config.row or -1,
@@ -172,28 +172,42 @@ local function setup_lsp_hover_border_hook()
                                 config.relative
                             ))
                         end
-                        
-                        -- zindex 45の時は(0,2)位置のウィンドウのみ、zindex 60は全て対象
-                        if config.relative == 'win' and 
-                           ((config.zindex == 45 and config.row == 0 and config.col == 2) or 
-                            config.zindex == 60) then
+                        -- zindex 45,(0,2)位置のウィンドウのみ
+                        if config.relative == 'win' and
+                            (config.zindex == 45 and config.row == 0 and config.col == 2) then
                             -- まだボーダーがない場合のみ設定
                             if not config.border or config.border == "none" then
                                 -- zindex 45は角丸、zindex 60は四角
-                                config.border = config.zindex == 45 and 'rounded' or 'single'
+                                config.border = 'rounded'
                                 pcall(vim.api.nvim_win_set_config, win, config)
-                                
+
                                 if debug_mode then
                                     print("  → Border applied by " .. event_name .. " to window " .. win)
                                 end
                             end
                         end
+
+                        -- -- zindex 45の時は(0,2)位置のウィンドウのみ、zindex 60は全て対象
+                        -- if config.relative == 'win' and
+                        --    ((config.zindex == 45 and config.row == 0 and config.col == 2) or
+                        --     config.zindex == 60) then
+                        --     -- まだボーダーがない場合のみ設定
+                        --     if not config.border or config.border == "none" then
+                        --         -- zindex 45は角丸、zindex 60は四角
+                        --         config.border = config.zindex == 45 and 'rounded' or 'single'
+                        --         pcall(vim.api.nvim_win_set_config, win, config)
+                        --
+                        --         if debug_mode then
+                        --             print("  → Border applied by " .. event_name .. " to window " .. win)
+                        --         end
+                        --     end
+                        -- end
                     end
                 end
             end, 10)
         end
     end
-    
+
     -- BufWinEnterイベントでLSPホバーウィンドウを監視
     vim.api.nvim_create_autocmd("BufWinEnter", {
         group = vim.api.nvim_create_augroup("LSPHoverBorder", { clear = true }),
