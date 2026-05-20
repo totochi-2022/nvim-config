@@ -4,6 +4,9 @@ require '01_initial_setting'
 -- 02_option.lua
 require '02_option'
 
+-- 04_env_check.lua (環境チェック)
+require '04_env_check'
+
 -- 11_plugin.lua
 require '11_plugin'
 

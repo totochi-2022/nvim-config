@@ -121,6 +121,48 @@ vim.lsp.config('ruby_lsp', {
     },
 })
 
+-- HTML LSPの設定
+vim.lsp.config('html', {
+    settings = {
+        html = {
+            format = {
+                enable = true,
+                wrapLineLength = 120,
+                unformatted = "wbr",
+                contentUnformatted = "pre,code,textarea",
+                indentInnerHtml = false,
+                preserveNewLines = true,
+                maxPreserveNewLines = 10,
+                indentHandlebars = false,
+                endWithNewline = false,
+                extraLiners = "head, body, /html",
+                wrapAttributes = "auto",
+                templating = false,
+                unformattedContentDelimiter = "",
+            },
+            suggest = {
+                html5 = true,
+            },
+            validate = {
+                scripts = true,
+                styles = true,
+            },
+            hover = {
+                documentation = true,
+                references = true,
+            },
+        },
+    },
+    init_options = {
+        configurationSection = { "html", "css", "javascript" },
+        embeddedLanguages = {
+            css = true,
+            javascript = true,
+        },
+        provideFormatter = true,
+    },
+})
+
 -- OmniSharp専用設定（競合回避）
 vim.lsp.config('omnisharp', {
     cmd = { "omnisharp", "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },

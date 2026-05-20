@@ -5,26 +5,15 @@ return {
         "rachartier/tiny-inline-diagnostic.nvim",
         event = "VeryLazy",
         config = function()
-            -- 標準診断無効化（signsのみ有効）
+            -- 診断設定（signsのみ有効、virtual_textはtiny-inline-diagnosticが担当）
             vim.diagnostic.config({
                 virtual_text = false,
-                signs = true,         -- エラー行判別用にsignsを有効化
-                underline = false,    -- アンダーラインは無効
+                signs = true,
+                underline = false,
                 update_in_insert = false,
                 severity_sort = true,
             })
-            
-            -- Neovimデフォルトの診断設定（signsのみ有効）
-            vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
-                vim.lsp.handlers["textDocument/publishDiagnostics"], {
-                    virtual_text = false,
-                    signs = true,         -- signsを有効化
-                    underline = false,    -- アンダーラインは無効
-                    update_in_insert = false,
-                    severity_sort = true,
-                }
-            )
-            
+
             require('tiny-inline-diagnostic').setup({
                 signs = {
                     left = " ",
@@ -68,30 +57,6 @@ return {
                     enabled = false,      -- 複数行診断を無効化
                     always_show = false,  -- 全行での常時表示を無効化
                 },
-            })
-            
-            -- 確実に標準診断設定（signsのみ有効、複数回実行）
-            vim.defer_fn(function()
-                vim.diagnostic.config({
-                    virtual_text = false,
-                    signs = true,         -- signsを有効化
-                    underline = false,    -- アンダーラインは無効
-                    update_in_insert = false,
-                    severity_sort = true,
-                })
-            end, 100)
-            
-            -- LSP起動時にも設定
-            vim.api.nvim_create_autocmd("LspAttach", {
-                callback = function()
-                    vim.diagnostic.config({
-                        virtual_text = false,
-                        signs = true,         -- signsを有効化
-                        underline = false,    -- アンダーラインは無効
-                        update_in_insert = false,
-                        severity_sort = true,
-                    })
-                end,
             })
         end
     },
