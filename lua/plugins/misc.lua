@@ -398,7 +398,7 @@ return {
     -- ヘルプ
     { "vim-jp/vimdoc-ja" },
 
-    -- マークダウンプレビュー
+    -- マークダウンプレビュー（ブラウザ表示）
     {
         "iamcco/markdown-preview.nvim",
         build = "cd app && npm install && git checkout -- yarn.lock",
@@ -406,6 +406,14 @@ return {
             vim.g.mkdp_filetypes = { "markdown" }
         end,
         ft = { "markdown" },
+    },
+
+    -- マークダウンのインライン描画（バッファ内で見出し・表・コードブロック等を装飾）
+    {
+        "MeanderingProgrammer/render-markdown.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+        ft = { "markdown" },
+        opts = {},
     },
 
     -- 構文ファイル
