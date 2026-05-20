@@ -197,91 +197,81 @@ return {
         end,
     },
 
-    -- TreeSitter関連
+    -- TreeSitter本体（mainブランチ - 新API）
     {
         'nvim-treesitter/nvim-treesitter',
-        build = ":TSUpdate",
-        dependencies = {
-            'nvim-treesitter/nvim-treesitter-textobjects',
-            {
-                'nvim-treesitter/nvim-treesitter-context',
-                config = function()
-                    require('treesitter-context').setup({
-                        enable = true,
-                        max_lines = 3,            -- 最大3行までに制限
-                        min_window_height = 10,   -- 10行以下のウィンドウでは無効
-                        line_numbers = true,
-                        multiline_threshold = 20, -- 20行以上の場合のみコンテキストを表示
-                        trim_scope = 'outer',     -- 外側のスコープを優先的に削除
-                        mode = 'cursor',          -- カーソル位置のコンテキストを表示
-                        separator = nil,          -- 区切り線なし（必要なら'-'などを設定）
-                        zindex = 20,
-                        on_attach = nil,          -- 特定のバッファで無効にしたい場合はここで関数を定義
-                    })
-                end,
-            },
-            'JoosepAlviste/nvim-ts-context-commentstring',
-            'RRethy/nvim-treesitter-endwise',
-            {
-                'nvim-treesitter/nvim-treesitter-textobjects',
-                event = "VeryLazy",
-            },
-            {
-                'mfussenegger/nvim-treehopper',
-                -- キーマップは lua/21_keymap.lua で定義
-                event = "VeryLazy",
-                config = function()
-                    require('tsht').config.hint_keys = { "h", "j", "f", "d", "n", "v", "s", "l", "a" }
-                end,
-            },
-            {
-                'David-Kunz/treesitter-unit',
-                config = function()
-                    -- TreeSitter Unitの設定
-                end
-            },
-        },
+        branch = 'main',
+        lazy = false,
+        build = ':TSUpdate',
         config = function()
-            require('nvim-treesitter.configs').setup {
-                ensure_installed = {
-                    "lua", "vim", "vimdoc", "query",
-                    "python", "javascript", "typescript",
-                    "markdown", "markdown_inline", "fish"
-                },
-                highlight = {
-                    enable = true,
-                },
-                indent = {
-                    enable = true
-                },
-                fold = {
-                    enable = true
-                },
-                folding = {
-                    enable = true,
-                },
-            }
+            -- パーサーインストール（new API）
+            require('nvim-treesitter').install({
+                "lua", "vim", "vimdoc", "query",
+                "python", "javascript", "typescript",
+                "markdown", "markdown_inline", "fish",
+                "bash", "json", "yaml", "toml", "html", "css",
+            })
 
-            -- TreesitterベースのFoldingを有効化
+            -- FileType毎にハイライト・フォールドを有効化
+            vim.api.nvim_create_autocmd('FileType', {
+                callback = function(ev)
+                    local lang = vim.treesitter.language.get_lang(ev.match) or ev.match
+                    -- 対応パーサーがあれば起動
+                    local ok = pcall(vim.treesitter.start, ev.buf, lang)
+                    if ok then
+                        -- Treesitterベースのフォールド・インデント
+                        vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+                        vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                    end
+                end,
+            })
+
+            -- フォールド基本設定
             vim.opt.foldmethod = "expr"
-            vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
             vim.opt.foldenable = false
             vim.opt.foldlevel = 99
-
-            -- treesitter-context設定
-            -- require('treesitter-context').setup({
-            --     enable = true,
-            --     max_lines = 0,
-            --     min_window_height = 0,
-            --     line_numbers = true,
-            --     multiline_threshold = 20,
-            --     trim_scope = 'outer',
-            --     mode = 'cursor',
-            --     separator = nil,
-            --     zindex = 20,
-            --     on_attach = nil,
-            -- })
         end,
+    },
+
+    -- treesitter-context: 関数階層表示
+    {
+        'nvim-treesitter/nvim-treesitter-context',
+        event = "VeryLazy",
+        config = function()
+            require('treesitter-context').setup({
+                enable = true,
+                max_lines = 3,
+                min_window_height = 10,
+                line_numbers = true,
+                multiline_threshold = 20,
+                trim_scope = 'outer',
+                mode = 'cursor',
+                separator = nil,
+                zindex = 20,
+                on_attach = nil,
+            })
+        end,
+    },
+
+    -- コメント文字列をfiletype別に切り替え
+    {
+        'JoosepAlviste/nvim-ts-context-commentstring',
+        event = "VeryLazy",
+    },
+
+    -- TreeSitterノードへのhopジャンプ
+    {
+        'mfussenegger/nvim-treehopper',
+        event = "VeryLazy",
+        config = function()
+            require('tsht').config.hint_keys = { "h", "j", "f", "d", "n", "v", "s", "l", "a" }
+        end,
+    },
+
+    -- ユニット(treesitter node)選択 - iu/au
+    {
+        'David-Kunz/treesitter-unit',
+        event = "VeryLazy",
     },
 
     -- アウトライン表示

@@ -354,7 +354,7 @@ if vim.g.neovide then
 
     -- Treesitterフォールディング関連
     vim.opt.foldmethod = 'expr'
-    vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+    vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
     vim.opt.foldenable = false -- 起動時はフォールドを開いた状態に
     vim.opt.foldlevel = 99     -- 深いレベルまで開く
     -- fold開く条件

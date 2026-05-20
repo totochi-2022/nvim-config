@@ -103,32 +103,105 @@ return {
         dependencies = { "nvim-lua/plenary.nvim" },
     },
 
-    -- 補完エンジン
+    -- Lua開発支援（Neovim設定編集時にvim.api等の補完を提供）
     {
-        "hrsh7th/nvim-cmp",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp",
-            "hrsh7th/cmp-buffer",
-            "hrsh7th/cmp-path",
-            "hrsh7th/cmp-cmdline",
-            "hrsh7th/cmp-emoji",
-            "hrsh7th/vim-vsnip",
-            "hrsh7th/cmp-vsnip",
-            "onsails/lspkind-nvim",
+        "folke/lazydev.nvim",
+        ft = "lua",
+        opts = {
+            library = {
+                { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            },
         },
     },
 
-    -- スニペット
-    { "hrsh7th/vim-vsnip" },
-    { "hrsh7th/cmp-vsnip" },
-
-    -- 補完ソース
-    { "hrsh7th/cmp-nvim-lsp" },
-    { "hrsh7th/cmp-buffer" },
-    { "hrsh7th/cmp-path" },
-    { "hrsh7th/cmp-cmdline" },
-    { "hrsh7th/cmp-emoji" },
-
-    -- アイコン・UI
-    { "onsails/lspkind-nvim" },
+    -- 補完エンジン（blink.cmp）
+    {
+        "saghen/blink.cmp",
+        version = "*",
+        event = { "InsertEnter", "CmdlineEnter" },
+        dependencies = {
+            "rafamadriz/friendly-snippets",
+            "hrsh7th/vim-vsnip",
+            {
+                "saghen/blink.compat",
+                version = "*",
+                lazy = true,
+                opts = {},
+            },
+            -- 既存のcmpソースをblink.compat経由で流用
+            "hrsh7th/cmp-vsnip",
+            "hrsh7th/cmp-emoji",
+        },
+        opts = {
+            enabled = function()
+                return not vim.b.disable_blink_cmp
+            end,
+            keymap = {
+                preset = "default",
+                ["<Tab>"] = { "select_next", "fallback" },
+                ["<S-Tab>"] = { "select_prev", "fallback" },
+                ["<CR>"] = { "accept", "fallback" },
+                ["<C-l>"] = { "show", "fallback" },
+                ["<C-e>"] = { "cancel", "fallback" },
+                ["<C-p>"] = { "select_prev", "fallback" },
+                ["<C-n>"] = { "select_next", "fallback" },
+                ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+                ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+                ["<Esc>"] = { "cancel", "fallback" },
+            },
+            appearance = {
+                use_nvim_cmp_as_default = true,
+                nerd_font_variant = "mono",
+            },
+            completion = {
+                menu = {
+                    border = "rounded",
+                    draw = {
+                        columns = {
+                            { "label", "label_description", gap = 1 },
+                            { "kind_icon", "kind", gap = 1 },
+                        },
+                    },
+                },
+                documentation = {
+                    auto_show = true,
+                    auto_show_delay_ms = 200,
+                    window = { border = "rounded" },
+                },
+                ghost_text = { enabled = true },
+                accept = {
+                    auto_brackets = { enabled = false },
+                },
+            },
+            signature = {
+                enabled = true,
+                window = { border = "rounded" },
+            },
+            sources = {
+                default = { "lazydev", "lsp", "path", "vsnip", "buffer", "emoji" },
+                providers = {
+                    vsnip = {
+                        name = "vsnip",
+                        module = "blink.compat.source",
+                        score_offset = -3,
+                    },
+                    emoji = {
+                        name = "emoji",
+                        module = "blink.compat.source",
+                        score_offset = -5,
+                    },
+                    lazydev = {
+                        name = "LazyDev",
+                        module = "lazydev.integrations.blink",
+                        score_offset = 100,
+                    },
+                },
+            },
+            cmdline = {
+                keymap = { preset = "inherit" },
+                completion = { menu = { auto_show = true } },
+            },
+        },
+        opts_extend = { "sources.default" },
+    },
 }

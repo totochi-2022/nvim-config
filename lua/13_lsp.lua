@@ -76,7 +76,7 @@ vim.lsp.config('*', {
             })
         end
     end,
-    capabilities = require('cmp_nvim_lsp').default_capabilities(),
+    capabilities = require('blink.cmp').get_lsp_capabilities(),
 })
 
 -- 特別な設定が必要なサーバーのみ個別設定
@@ -85,8 +85,8 @@ vim.lsp.config('lua_ls', {
         Lua = {
             runtime = { version = 'LuaJIT' },
             diagnostics = { globals = { "vim", "use" } },
+            -- workspace.libraryはlazydev.nvimが管理
             workspace = {
-                library = vim.api.nvim_get_runtime_file("", true),
                 checkThirdParty = false,
             },
             telemetry = { enable = false },
@@ -190,88 +190,7 @@ vim.lsp.config('omnisharp', {
 -- Mason 2.0のautomatic_enable = trueにより、手動のvim.lsp.enable()は不要
 -- インストールされたサーバーは自動的に有効化される
 
--- 補完設定（nvim-cmp）- 変更なし
-local cmp_ok, cmp = pcall(require, "cmp")
-if not cmp_ok then
-    return
-end
-
-local lspkind_ok, lspkind = pcall(require, 'lspkind')
-if not lspkind_ok then
-    lspkind = nil
-end
-
-cmp.setup({
-    snippet = {
-        expand = function(args)
-            vim.fn["vsnip#anonymous"](args.body)
-        end,
-    },
-
-    sources = cmp.config.sources({
-        { name = "nvim_lsp", priority = 1000 },
-        { name = "vsnip",    priority = 750 },
-        { name = "buffer",   priority = 500 },
-        { name = "path",     priority = 250 },
-        { name = "emoji",    priority = 100 },
-    }),
-
-    mapping = cmp.mapping.preset.insert({
-        ["<C-p>"] = cmp.mapping.select_prev_item(),
-        ["<C-n>"] = cmp.mapping.select_next_item(),
-        ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-        ["<Tab>"] = cmp.mapping.select_next_item(),
-
-        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),
-
-        ["<CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true
-        }),
-        ['<C-l>'] = cmp.mapping.complete(),
-        ['<C-e>'] = cmp.mapping.abort(),
-        ['<Esc>'] = cmp.mapping.close(),
-    }),
-
-    formatting = lspkind_ok and {
-        format = lspkind.cmp_format({
-            mode = 'symbol_text',
-            maxwidth = 50,
-            ellipsis_char = '...',
-            before = function(entry, vim_item)
-                vim_item.menu = ({
-                    nvim_lsp = "[LSP]",
-                    vsnip = "[Snippet]",
-                    buffer = "[Buffer]",
-                    path = "[Path]",
-                    emoji = "[Emoji]",
-                })[entry.source.name]
-                return vim_item
-            end
-        })
-    } or {
-        format = function(entry, vim_item)
-            vim_item.menu = ({
-                nvim_lsp = "[LSP]",
-                vsnip = "[Snippet]",
-                buffer = "[Buffer]",
-                path = "[Path]",
-                emoji = "[Emoji]",
-            })[entry.source.name]
-            return vim_item
-        end
-    },
-
-    window = {
-        completion = cmp.config.window.bordered(),
-        documentation = cmp.config.window.bordered(),
-    },
-
-    experimental = {
-        ghost_text = true,
-    },
-})
+-- 補完エンジン（blink.cmp）の設定はlua/plugins/lsp.luaのopts内で行う
 
 -- auto_hover機能
 vim.api.nvim_create_autocmd({ "CursorHold" }, {
@@ -289,23 +208,6 @@ vim.api.nvim_create_autocmd({ "CursorHold" }, {
             end
         end
     end,
-})
-
--- コマンドライン補完
-cmp.setup.cmdline('/', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = {
-        { name = 'buffer' }
-    }
-})
-
-cmp.setup.cmdline(':', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = cmp.config.sources({
-        { name = 'path' }
-    }, {
-        { name = 'cmdline' }
-    })
 })
 
 -- none-ls設定

@@ -329,28 +329,18 @@ return {
             vim.g.VM_silent_exit = 1
         end,
         config = function()
-            -- VMモード開始・終了時のフック
+            -- VMモード中はblink.cmpを無効化（plugins/lsp.luaのenabledコールバックがvim.b.disable_blink_cmpを参照）
             vim.api.nvim_create_autocmd('User', {
                 pattern = 'visual_multi_start',
                 callback = function()
-                    -- nvim-cmpを一時的に無効化
-                    local ok, cmp = pcall(require, 'cmp')
-                    if ok then
-                        vim.g.cmp_enabled_backup = cmp.get_config().enabled
-                        cmp.setup.buffer { enabled = false }
-                    end
+                    vim.b.disable_blink_cmp = true
                 end
             })
-            
+
             vim.api.nvim_create_autocmd('User', {
                 pattern = 'visual_multi_exit',
                 callback = function()
-                    -- nvim-cmpを復元
-                    local ok, cmp = pcall(require, 'cmp')
-                    if ok and vim.g.cmp_enabled_backup ~= nil then
-                        cmp.setup.buffer { enabled = vim.g.cmp_enabled_backup }
-                        vim.g.cmp_enabled_backup = nil
-                    end
+                    vim.b.disable_blink_cmp = nil
                 end
             })
         end,

@@ -131,7 +131,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "FileType" }, {
     callback = function()
         local bufnr = vim.api.nvim_get_current_buf()
         -- バッファ単位で診断のみ無効化（LSPクライアントは停止しない）
-        vim.diagnostic.disable(bufnr)
+        vim.diagnostic.enable(false, { bufnr = bufnr })
     end,
     desc = "Disable diagnostics in markdown files"
 })
