@@ -396,7 +396,7 @@ return {
     { "tyru/open-browser.vim" },
 
     -- ヘルプ
-    { "vim-jp/vimdoc-ja" },
+    { "vim-jp/vimdoc-ja", pin = false },
 
     -- マークダウンプレビュー（ブラウザ表示）
     {
