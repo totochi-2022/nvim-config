@@ -125,6 +125,21 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     callback = set_vb_filetype,
 })
 
+-- vimdoc-jaのhelptags生成物 doc/tags-ja を HEAD に戻す
+-- （lazyは doc/tags のみ自動クリーンするため、tags-jaが残ると Lazy update が衝突で失敗する）
+-- 起動時(VeryLazy)と更新直前(LazyUpdatePre/LazySyncPre)に実行し、更新フローを常にクリーンに迎える
+autocmd('User', {
+    pattern = { 'VeryLazy', 'LazyUpdatePre', 'LazySyncPre' },
+    callback = function()
+        local dir = vim.fn.stdpath('data') .. '/lazy/vimdoc-ja'
+        if vim.fn.isdirectory(dir .. '/.git') == 1 then
+            -- LazySyncPreではこの直後にlazyがdirtyチェックするため同期実行(:wait)が必須
+            vim.system({ 'git', 'checkout', '--', 'doc/tags-ja' }, { cwd = dir }):wait()
+        end
+    end,
+    desc = 'Reset vimdoc-ja doc/tags-ja to avoid Lazy update conflicts',
+})
+
 -- markdownファイルで診断を無効化（バッファ単位）
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "FileType" }, {
     pattern = { "*.md", "*.markdown", "markdown" },
