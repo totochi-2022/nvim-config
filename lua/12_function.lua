@@ -833,3 +833,32 @@ function _G.OpenDrawio()
     vim.fn.jobstart({ DRAWIO_EXE, winpath }, { detach = true })
     vim.notify('draw.ioで開く: ' .. vim.fn.fnamemodify(path, ':t'), vim.log.levels.INFO)
 end
+
+-- [統一] クリップボードを判定して貼り付け
+--   1. テキストがdraw.io(SVG/XML) → PasteDrawio
+--   2. 画像データあり → PasteImage
+--   3. どちらでもない → メッセージ表示
+function _G.SmartPaste()
+    local clip = vim.fn.getreg('+')
+    if clip == nil or clip == '' then clip = vim.fn.getreg('*') end
+
+    -- 1. draw.io（SVG/XML文字列）
+    if clip:match('<svg') or clip:match('<mxfile') or clip:match('<mxGraphModel') then
+        PasteDrawio()
+        return
+    end
+
+    -- 2. 画像データ（img-clipの判定を使用。遅延ロードのためここでrequireするとロードされる）
+    local ok, clipboard = pcall(require, 'img-clip.clipboard')
+    if not ok then
+        -- img-clip未ロードでもPasteImageコマンドがロードトリガになる
+        clipboard = nil
+    end
+    if clipboard and clipboard.content_is_image() then
+        vim.cmd('PasteImage')
+        return
+    end
+
+    -- 3. どちらでもない
+    vim.notify('クリップボードに画像もdraw.io図もありません', vim.log.levels.WARN)
+end
