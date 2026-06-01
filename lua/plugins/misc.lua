@@ -396,7 +396,8 @@ return {
     { "tyru/open-browser.vim" },
 
     -- ヘルプ
-    { "vim-jp/vimdoc-ja", pin = false },
+    -- helptagsが生成するdoc/tags-jaをgitに無視させ、Lazy updateのdirtyチェックを回避
+    { "vim-jp/vimdoc-ja", build = "git update-index --skip-worktree doc/tags-ja" },
 
     -- マークダウンプレビュー（ブラウザ表示）
     {
