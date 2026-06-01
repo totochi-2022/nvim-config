@@ -408,6 +408,7 @@ return {
         build = "cd app && npm install && git checkout -- yarn.lock",
         config = function()
             vim.g.mkdp_filetypes = { "markdown" }
+            vim.g.mkdp_theme = 'dark'  -- プレビューをダークテーマで表示（標準ダーク）
         end,
         ft = { "markdown" },
     },
