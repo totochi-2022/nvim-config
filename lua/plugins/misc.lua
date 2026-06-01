@@ -420,6 +420,27 @@ return {
         opts = {},
     },
 
+    -- クリップボードの画像を貼り付け（GROWIライク：画像保存+markdownリンク挿入）
+    {
+        "HakonHarnes/img-clip.nvim",
+        cmd = "PasteImage",  -- キーマップは21_keymap.luaで管理（:PasteImageでcmd遅延ロード）
+        opts = {
+            default = {
+                dir_path = "assets",          -- 画像の保存先（編集中ファイルと同階層のassets/）
+                file_name = "%Y%m%d-%H%M%S",  -- ファイル名はタイムスタンプ
+                url_encode_path = true,
+                prompt_for_file_name = false, -- 毎回ファイル名を聞かず即保存
+                relative_to_current_file = true,
+            },
+            filetypes = {
+                markdown = {
+                    url_encode_path = true,
+                    template = "![$CURSOR]($FILE_PATH)",
+                },
+            },
+        },
+    },
+
     -- 構文ファイル
     { "khaveesh/vim-fish-syntax" },
 

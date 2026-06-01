@@ -23,6 +23,7 @@
   "gruvbox": { "branch": "master", "commit": "697c00291db857ca0af00ec154e5bd514a79191f" },
   "hlargs.nvim": { "branch": "main", "commit": "0b29317c944fb1f76503ce4540d6dceffbb5ccd2" },
   "hlchunk.nvim": { "branch": "main", "commit": "06f51922ca43d5cdacf96725c106405fe064c59e" },
+  "img-clip.nvim": { "branch": "main", "commit": "b6ddfb97b5600d99afe3452d707444afda658aca" },
   "incsearch-migemo.nvim": { "branch": "main", "commit": "5f79e70b9ecd2cb80cd298aedb263e2859f2ed4b" },
   "iswap.nvim": { "branch": "master", "commit": "7340d31629f83bf3318159b2388078e2bc387240" },
   "jaq-nvim": { "branch": "master", "commit": "86ed5223707f8eee58262076e79c933203177b95" },
