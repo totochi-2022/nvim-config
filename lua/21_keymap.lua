@@ -133,6 +133,8 @@ keymap('', '<Leader>R', ':Telescope registers<CR>', { noremap = true, desc = '�
 keymap('n', '<Leader>p', ':Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
 keymap('x', '<Leader>p', '<Esc>:Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
 keymap('n', '<Leader>P', '<cmd>PasteImage<CR>', { noremap = true, desc = 'クリップボード画像を貼り付け' })
+keymap('n', '<Leader>D', '<cmd>lua PasteDrawio()<CR>', { noremap = true, desc = 'draw.io図を貼り付け（クリップボード→保存+埋め込み）' })
+keymap('n', '<Leader>E', '<cmd>lua OpenDrawio()<CR>', { noremap = true, desc = 'カーソル下のdraw.io図を編集（draw.ioで開く）' })
 
 -- grug-far.nvim 検索・置換
 keymap('n', '<Leader>r', ':GrugFarCurrentBuffer<CR>', { noremap = true, desc = '現在のバッファで検索・置換' })

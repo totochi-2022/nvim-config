@@ -754,3 +754,82 @@ end
 
 -- コマンド登録（改造版と重複しないように削除）
 -- プラグイン側でコマンド登録されるため、ここでは関数のみ定義
+
+-- ============================================================
+-- draw.io連携（クリップボード貼り付け + 再編集）
+-- ============================================================
+-- non-Store版 draw.io desktop の実行ファイル
+local DRAWIO_EXE = '/mnt/c/Program Files/draw.io/draw.io.exe'
+
+-- [draw.io] クリップボードのSVG/XMLをassets/に保存しmarkdownに埋め込む（貼り付け）
+-- 使い方: draw.ioで図を選択しコピー → markdownでカーソル位置にキー
+function _G.PasteDrawio()
+    local clip = vim.fn.getreg('+')
+    if clip == nil or clip == '' then clip = vim.fn.getreg('*') end
+
+    local is_svg = clip:match('<svg')
+    local is_xml = clip:match('<mxfile') or clip:match('<mxGraphModel')
+    if not is_svg and not is_xml then
+        vim.notify('クリップボードにdraw.io/SVGデータが見つかりません', vim.log.levels.WARN)
+        return
+    end
+
+    local base = vim.fn.expand('%:p:h')
+    if base == '' or vim.bo.buftype ~= '' then
+        vim.notify('保存先が不明です（名前付きで保存してから実行してください）', vim.log.levels.WARN)
+        return
+    end
+    local dir = base .. '/assets'
+    vim.fn.mkdir(dir, 'p')
+
+    local ts = os.date('%Y%m%d-%H%M%S')
+    local fname, link
+    if is_svg then
+        -- Editable SVG: 表示も再編集も可能。画像として埋め込む
+        fname = ts .. '.drawio.svg'
+        link = '![](assets/' .. fname .. ')'
+    else
+        -- XMLのみ: 再編集可能だがmarkdownでは表示不可（リンクのみ）
+        fname = ts .. '.drawio'
+        link = '[drawio diagram](assets/' .. fname .. ')'
+    end
+
+    vim.fn.writefile(vim.split(clip, '\n', { plain = true }), dir .. '/' .. fname)
+    vim.api.nvim_put({ link }, 'c', true, true)
+    vim.notify('保存: assets/' .. fname .. (is_xml and '（XMLは表示不可。draw.ioで「Copy as SVG」推奨）' or ''),
+        vim.log.levels.INFO)
+end
+
+-- [draw.io] カーソル下の .drawio(.svg) を draw.io で開く（再編集）
+function _G.OpenDrawio()
+    if vim.fn.executable(DRAWIO_EXE) == 0 then
+        vim.notify('draw.io.exeが見つかりません: ' .. DRAWIO_EXE, vim.log.levels.ERROR)
+        return
+    end
+
+    -- カーソル下のファイル名、なければ現在行から ](path) を抽出
+    local cfile = vim.fn.expand('<cfile>')
+    if cfile == '' then
+        cfile = vim.api.nvim_get_current_line():match('%]%(([^)]+)%)') or ''
+    end
+    if cfile == '' then
+        vim.notify('カーソル下にファイルパスがありません', vim.log.levels.WARN)
+        return
+    end
+
+    -- 相対パスは編集中ファイル基準で絶対化
+    local path = cfile
+    if not path:match('^[/~]') then
+        path = vim.fn.expand('%:p:h') .. '/' .. cfile
+    end
+    path = vim.fn.fnamemodify(path, ':p')
+    if vim.fn.filereadable(path) == 0 then
+        vim.notify('ファイルが見つかりません: ' .. path, vim.log.levels.WARN)
+        return
+    end
+
+    -- WSL → Windowsパスに変換して draw.io に渡す
+    local winpath = vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', '')
+    vim.fn.jobstart({ DRAWIO_EXE, winpath }, { detach = true })
+    vim.notify('draw.ioで開く: ' .. vim.fn.fnamemodify(path, ':t'), vim.log.levels.INFO)
+end
