@@ -3,6 +3,7 @@ return {
     -- Telescope関連
     {
         "nvim-telescope/telescope.nvim",
+        cmd = "Telescope",  -- :Telescope初回実行まで遅延（全キーマップがコマンド経由のため安全）
         dependencies = {
             'kkharji/sqlite.lua',
             'nvim-telescope/telescope-ghq.nvim',
@@ -277,6 +278,7 @@ return {
     -- アウトライン表示
     {
         'hedyhli/outline.nvim',
+        cmd = "Outline",  -- :Outline初回実行まで遅延
         config = function()
             require("outline").setup({
                 outline_window = {
@@ -310,6 +312,7 @@ return {
     -- ファイラー
     {
         "stevearc/oil.nvim",
+        cmd = "Oil",  -- :Oil初回実行まで遅延（注: nvim <dir>でのファイラ自動起動は無効化される）
         opts = {
             default_file_explorer = true,
             view_options = {
@@ -322,6 +325,7 @@ return {
     -- 検索・置換
     {
         'MagicDuck/grug-far.nvim',
+        cmd = "GrugFar",  -- :GrugFar初回実行まで遅延
         config = function()
             require('grug-far').setup({
                 -- シンタックスハイライト用の言語設定

@@ -125,6 +125,19 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     callback = set_vb_filetype,
 })
 
+-- クリップボード連携をVeryLazyで遅延設定（02_option.luaから移動）
+-- 起動時に設定するとyankyのinit_history(VimEnter)が+レジスタ=クリップボードを読み、
+-- WSL2のXWayland初回接続で約166ms起動が遅延するため。VeryLazyに遅らせて回避。
+autocmd('User', {
+    pattern = 'VeryLazy',
+    once = true,
+    callback = function()
+        local is_win = vim.fn.has('win64') == 1
+        vim.opt.clipboard = is_win and { 'unnamed' } or { 'unnamedplus', 'unnamed' }
+    end,
+    desc = 'クリップボード連携を遅延設定（起動高速化）',
+})
+
 -- vimdoc-jaのhelptags生成物 doc/tags-ja を HEAD に戻す
 -- （lazyは doc/tags のみ自動クリーンするため、tags-jaが残ると Lazy update が衝突で失敗する）
 -- 起動時(VeryLazy)と更新直前(LazyUpdatePre/LazySyncPre)に実行し、更新フローを常にクリーンに迎える

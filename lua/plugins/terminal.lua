@@ -3,6 +3,8 @@ return {
     -- ターミナル
     {
         "akinsho/toggleterm.nvim",
+        cmd = "ToggleTerm",
+        keys = { { "<F5>", mode = { "n", "t" } } },  -- F5初回押下まで遅延（open_mappingと同じキー）
         config = function()
             require("toggleterm").setup({
                 open_mapping = [[<F5>]],

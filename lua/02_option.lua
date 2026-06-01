@@ -168,8 +168,11 @@ vim.opt.inccommand = 'split'
 -- 常にカレントバッファをルートに
 -- vim.opt.autochdir = true
 
--- クリップボードと連携する
-vim.opt.clipboard = is_windows and { 'unnamed' } or { 'unnamedplus', 'unnamed' }
+-- クリップボード連携はVeryLazyで遅延設定（14_autocmd.lua）
+-- 理由: 起動時にclipboardを設定すると、yankyのinit_history(VimEnter)が
+--       +レジスタ=クリップボードを読み、WSL2のXWayland初回接続で約166ms起動が遅延するため。
+--       VimEnter < VeryLazy の順序を利用し、init_history時はclipboard空("レジスタ)にする。
+-- vim.opt.clipboard = is_windows and { 'unnamed' } or { 'unnamedplus', 'unnamed' }
 
 vim.opt.swapfile = false
 

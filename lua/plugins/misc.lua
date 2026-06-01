@@ -217,6 +217,8 @@ return {
                     },
                 },
                 system_clipboard = {
+                    -- 起動遅延の真因はclipboard即時設定だったため、clipboardをVeryLazy遅延化(14_autocmd.lua)して解決。
+                    -- syncはfocus変化時のみクリップボードを読むので、trueでも起動速度に影響しない。
                     sync_with_ring = true,
                 },
                 highlight = {

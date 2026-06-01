@@ -9,7 +9,9 @@ vim.cmd.colorscheme('gruvbox')
 vim.defer_fn(function()
     -- 引数なしで起動し、空のバッファの場合のみ表示
     if vim.fn.argc() == 0 and vim.api.nvim_buf_get_name(0) == "" and vim.bo.filetype == "" then
-        -- dashboard-nvimの正しい起動方法
-        vim.cmd('Dashboard') -- コマンド実行
+        -- dashboardが有効な場合のみ起動（無効化時はDashboardコマンドが存在しない）
+        if vim.fn.exists(':Dashboard') == 2 then
+            vim.cmd('Dashboard')
+        end
     end
 end, 1)                      -- 200ms遅延でカラースキーム変更後に実行
