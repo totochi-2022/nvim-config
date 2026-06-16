@@ -199,7 +199,12 @@ return {
             },
             cmdline = {
                 keymap = { preset = "inherit" },
-                completion = { menu = { auto_show = true } },
+                completion = {
+                    menu = { auto_show = true },
+                    -- :q<CR> 等で先頭候補(qall等)が自動確定されないよう自動選択を無効化
+                    -- 候補を使うときは Tab / C-n で選んでから Enter
+                    list = { selection = { preselect = false, auto_insert = false } },
+                },
             },
         },
         opts_extend = { "sources.default" },

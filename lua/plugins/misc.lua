@@ -421,6 +421,31 @@ return {
         opts = {},
     },
 
+    -- howm的なmarkdownメモ管理（telescope駆動のZettelkasten）
+    -- 保管先は data/howm/ を流用。画像貼り付けはimg-clip/SmartPaste(sP)を使う
+    -- キーマップ（,, プレフィックス）は lua/21_keymap.lua で管理
+    {
+        "renerocksai/telekasten.nvim",
+        dependencies = {
+            "nvim-telescope/telescope.nvim",
+            "nvim-lua/plenary.nvim",
+            "renerocksai/calendar-vim",  -- ,,k のカレンダー表示用
+        },
+        cmd = "Telekasten",  -- :Telekasten で遅延ロード
+        config = function()
+            local howm = vim.g.dir_setting.howm
+            require('telekasten').setup({
+                home       = howm,
+                dailies    = howm .. '/daily',     -- 日次ノート
+                weeklies   = howm .. '/weekly',    -- 週次ノート
+                templates  = howm .. '/templates', -- テンプレート
+                extension  = ".md",
+                new_note_filename = "title",       -- タイトルをファイル名に
+                -- 画像貼り付けはimg-clip/SmartPaste(sP)に任せるためtelekasten側は使わない
+            })
+        end,
+    },
+
     -- クリップボードの画像を貼り付け（GROWIライク：画像保存+markdownリンク挿入）
     {
         "HakonHarnes/img-clip.nvim",
