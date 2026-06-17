@@ -135,6 +135,10 @@ keymap('x', '<Leader>p', '<Esc>:Telescope yank_history<CR>', { noremap = true, d
 keymap('n', '<Leader>P', '<cmd>lua SmartPaste()<CR>', { noremap = true, desc = 'クリップボードを貼り付け（画像/draw.io自動判定）' })
 keymap('n', '<Leader>E', '<cmd>lua OpenDrawio()<CR>', { noremap = true, desc = 'カーソル下のdraw.io図を編集（draw.ioで開く）' })
 
+-- Claude タスク（dtach 永続セッション）
+keymap('n', '<Leader>z', '<cmd>ClaudePick<CR>', { noremap = true, desc = 'Claude タスク一覧' })
+keymap('n', '<Leader>Z', '<cmd>ClaudeOpen<CR>', { noremap = true, desc = 'Claude 現プロジェクトで起動' })
+
 -- grug-far.nvim 検索・置換
 keymap('n', '<Leader>r', ':GrugFarCurrentBuffer<CR>', { noremap = true, desc = '現在のバッファで検索・置換' })
 keymap('v', '<Leader>r', ':GrugFarCurrentWord<CR>', { noremap = true, desc = 'カーソル下の単語を現在のバッファで検索' })

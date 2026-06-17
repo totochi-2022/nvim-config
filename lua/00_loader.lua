@@ -28,6 +28,9 @@ require '16_toggle'
 -- 21_keymap.lua
 require '21_keymap'
 
+-- claude_tasks.lua (dtach ベースの Claude Code タスク管理: :ClaudeOpen/:ClaudePick/:ClaudeKill)
+require('claude_tasks').setup()
+
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
 
