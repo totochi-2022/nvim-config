@@ -31,6 +31,9 @@ require '21_keymap'
 -- claude_tasks.lua (dtach ベースの Claude Code タスク管理: :ClaudeOpen/:ClaudePick/:ClaudeKill)
 require('claude_tasks').setup()
 
+-- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
+require('file_preview').setup()
+
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
 

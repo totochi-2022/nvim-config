@@ -297,6 +297,8 @@ keymap('n', ',,k', '<cmd>Telekasten show_calendar<CR>',  { noremap = true, desc 
 -- draw.io / 画像（元の sP=<Leader>P / sE=<Leader>E はそのまま、,, 版を追加）
 keymap('n', ',,p', '<cmd>lua SmartPaste()<CR>',          { noremap = true, desc = 'howm: 画像/draw.io貼り付け' })
 keymap('n', ',,e', '<cmd>lua OpenDrawio()<CR>',          { noremap = true, desc = 'howm: draw.io図を再編集' })
+-- ,,v: ファイルプレビュー（md/typst は各FileTypeのbuffer-localが優先、他は :Preview）
+keymap('n', ',,v', '<cmd>Preview<CR>',                   { noremap = true, desc = 'プレビュー(svg/csv/stl/dxf)' })
 
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
