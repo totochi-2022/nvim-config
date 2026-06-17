@@ -783,15 +783,24 @@ function _G.PasteDrawio()
     vim.fn.mkdir(dir, 'p')
 
     local ts = os.date('%Y%m%d-%H%M%S')
+    local is_typst = vim.bo.filetype == 'typst' or vim.fn.expand('%:e') == 'typ'
     local fname, link
     if is_svg then
         -- Editable SVG: 表示も再編集も可能。画像として埋め込む
         fname = ts .. '.drawio.svg'
-        link = '![](assets/' .. fname .. ')'
+        if is_typst then
+            link = '#image("assets/' .. fname .. '")'
+        else
+            link = '![](assets/' .. fname .. ')'
+        end
     else
-        -- XMLのみ: 再編集可能だがmarkdownでは表示不可（リンクのみ）
+        -- XMLのみ: 再編集可能だが表示不可（リンク/コメントのみ）
         fname = ts .. '.drawio'
-        link = '[drawio diagram](assets/' .. fname .. ')'
+        if is_typst then
+            link = '// drawio: assets/' .. fname
+        else
+            link = '[drawio diagram](assets/' .. fname .. ')'
+        end
     end
 
     vim.fn.writefile(vim.split(clip, '\n', { plain = true }), dir .. '/' .. fname)
@@ -807,10 +816,16 @@ function _G.OpenDrawio()
         return
     end
 
-    -- カーソル下のファイル名、なければ現在行から ](path) を抽出
+    -- カーソル下のファイル名。なければ現在行から各記法でパスを抽出
+    -- （markdown ](path) / typst #image("path") / コメント drawio: path）。
     local cfile = vim.fn.expand('<cfile>')
+    cfile = cfile:gsub('^["\']', ''):gsub('["\']$', '') -- typstのクォート除去
     if cfile == '' then
-        cfile = vim.api.nvim_get_current_line():match('%]%(([^)]+)%)') or ''
+        local line = vim.api.nvim_get_current_line()
+        cfile = line:match('%]%(([^)]+)%)')
+            or line:match('image%(%s*"([^"]+)"')
+            or line:match('drawio:%s*(%S+)')
+            or ''
     end
     if cfile == '' then
         vim.notify('カーソル下にファイルパスがありません', vim.log.levels.WARN)
