@@ -648,6 +648,15 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+-- Typst固有（,,v でプレビュー: 拡張子で markdown/typst を自動で切替）
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "typst",
+    callback = function()
+        keymap('n', 'mp', '<cmd>TypstPreview<CR>', { buffer = true, noremap = true, desc = 'Typstプレビュー' })
+        keymap('n', ',,v', '<cmd>TypstPreview<CR>', { buffer = true, noremap = true, desc = 'Typstプレビュー' })
+    end,
+})
+
 -- Fish固有
 vim.api.nvim_create_autocmd("FileType", {
     pattern = "fish",

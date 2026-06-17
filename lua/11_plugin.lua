@@ -51,6 +51,7 @@ local plugin_modules = {
     'plugins.ime',       -- IME自動切り替え
     'plugins.misc',      -- その他
     'plugins.git',       -- Git（最後、現在空）
+    'plugins.typst',     -- Typst プレビュー
 }
 
 local all_plugins = {}
