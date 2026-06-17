@@ -85,8 +85,21 @@ local function claude_known_projects()
   return {}
 end
 
--- ピッカーに出す全プロジェクト: 自分の履歴(最近順)を優先し、claude-code 既知の
--- プロジェクトを後ろに追加。実在する dir のみ。
+-- そのプロジェクトで最後に claude を使った時刻(epoch秒)。
+-- claude-code は ~/.claude/projects/<パスを-で連結> にログを置くので、その
+-- フォルダの mtime を「最終利用時刻」として使う。無ければソケット/0 にフォールバック。
+local function last_used(dir)
+  local enc = dir:gsub("[^%w]", "-")
+  local st = vim.uv.fs_stat(vim.fn.expand("~/.claude/projects/") .. enc)
+  if st then
+    return st.mtime.sec
+  end
+  local s2 = vim.uv.fs_stat(sock_for(dir))
+  return s2 and s2.mtime.sec or 0
+end
+
+-- ピッカーに出す全プロジェクト: 自分の履歴と claude-code 既知プロジェクトを統合し、
+-- 実在する dir のみを「最終利用時刻の新しい順」で返す。
 local function all_projects()
   local out, seen = {}, {}
   local function add(dir)
@@ -102,6 +115,9 @@ local function all_projects()
   for _, d in ipairs(claude_known_projects()) do
     add(d)
   end
+  table.sort(out, function(a, b)
+    return last_used(a) > last_used(b)
+  end)
   return out
 end
 
@@ -203,11 +219,8 @@ function M.pick()
       entry_maker = function(it)
         local mark = it.live and "● " or "○ "
         local short = vim.fn.fnamemodify(it.dir, ":~")
-        return {
-          value = it,
-          display = mark .. short,
-          ordinal = (it.live and "0 " or "1 ") .. short,
-        }
+        -- 並びは all_projects() の最終利用時刻順を維持。ordinal はパスのみ(フィルタ用)
+        return { value = it, display = mark .. short, ordinal = short }
       end,
     }),
     sorter = conf.generic_sorter({}),
