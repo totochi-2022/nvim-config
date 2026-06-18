@@ -14,6 +14,33 @@ return {
             'fdschmidt93/telescope-egrepify.nvim',
         },
         config = function()
+            -- file_browser 用: 選択項目を Windows 側で開くアクション
+            local function fb_selected_path()
+                local entry = require('telescope.actions.state').get_selected_entry()
+                if not entry then return nil end
+                local p = entry.path or entry.value
+                return type(p) == 'string' and p or (p and tostring(p)) or nil
+            end
+
+            -- explorer.exe で開く（ディレクトリ→フォルダを開く / ファイル→選択表示）
+            local function fb_open_explorer(_prompt_bufnr)
+                local path = fb_selected_path()
+                if not path then return end
+                local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
+                if vim.fn.isdirectory(path) == 1 then
+                    vim.fn.jobstart({ 'explorer.exe', win }, { detach = true })
+                else
+                    vim.fn.jobstart({ 'explorer.exe', '/select,' .. win }, { detach = true })
+                end
+            end
+
+            -- wslview で開く（Windows 既定アプリ。ファイルもディレクトリもURLもOK）
+            local function fb_open_wslview(_prompt_bufnr)
+                local path = fb_selected_path()
+                if not path then return end
+                vim.fn.jobstart({ 'wslview', path }, { detach = true })
+            end
+
             require('telescope').setup({
                 extensions = {
                     frecency = {
@@ -29,6 +56,17 @@ return {
                     },
                     file_browser = {
                         hijack_netrw = true,
+                        mappings = {
+                            -- 選択項目を Windows 側で開く
+                            ["i"] = {
+                                ["<M-e>"] = fb_open_explorer,  -- explorer.exe
+                                ["<M-v>"] = fb_open_wslview,   -- wslview(既定アプリ)
+                            },
+                            ["n"] = {
+                                ["E"] = fb_open_explorer,
+                                ["V"] = fb_open_wslview,
+                            },
+                        },
                     },
                     command_palette = {
                         -- 元の長いコマンドパレット設定をそのまま保持
