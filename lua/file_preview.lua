@@ -24,7 +24,43 @@ local function urienc(s)
   end))
 end
 
+-- 専用プレビューア（プラグイン）に委譲する。lazy で ft 遅延ロードされる構成で、
+-- 特に markdown-preview.nvim はコマンドを「command! -buffer」かつ FileType autocmd
+-- 経由で登録するため、lazy ロード直後は当該バッファにコマンドがまだ無い。
+-- そこで: 明示ロード → FileType を再発火してバッファローカルコマンドを登録 → 実行、
+-- それでも無ければ autoload 関数を直接叩く、の順でフォールバックする。
+local function delegate(plugin, cmd, label, fallback_fn)
+  if vim.fn.exists(":" .. cmd) ~= 2 then
+    pcall(function()
+      require("lazy").load({ plugins = { plugin } })
+    end)
+    -- プラグインの BufEnter/FileType autocmd を当該バッファで発火させる
+    pcall(vim.cmd, "doautocmd <nomodeline> FileType")
+  end
+  if vim.fn.exists(":" .. cmd) == 2 then
+    vim.cmd(cmd)
+    return
+  end
+  -- コマンドがまだ無い場合の最終手段（autoload 関数の直接呼び出し）
+  if fallback_fn and vim.fn.exists("*" .. fallback_fn) == 1 then
+    pcall(vim.fn[fallback_fn])
+    return
+  end
+  vim.notify(label .. " を読み込めませんでした（" .. plugin .. "）", vim.log.levels.WARN)
+end
+
 function M.preview()
+  -- markdown / typst は各専用プレビューアへ委譲（このプレビューアの発祥である markdown も含む）
+  local ft = vim.bo.filetype
+  if ft == "markdown" then
+    delegate("markdown-preview.nvim", "MarkdownPreviewToggle", "Markdown プレビュー", "mkdp#util#toggle_preview")
+    return
+  end
+  if ft == "typst" then
+    delegate("typst-preview.nvim", "TypstPreview", "Typst プレビュー")
+    return
+  end
+
   local path = vim.fn.expand("%:p")
   if path == "" then
     vim.notify("ファイルが保存されていません", vim.log.levels.WARN)
@@ -34,7 +70,7 @@ function M.preview()
   local kind = SUPPORTED[ext]
   if not kind then
     vim.notify(
-      "プレビュー未対応: ." .. ext .. "（svg/csv/stl/dxf）",
+      "プレビュー未対応: ." .. ext .. "（md/typst/svg/csv/stl/dxf）",
       vim.log.levels.WARN
     )
     return
