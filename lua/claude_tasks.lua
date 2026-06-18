@@ -121,6 +121,14 @@ local function all_projects()
   return out
 end
 
+-- その dir に claude の過去会話ログ(.jsonl)があるか。
+-- あれば停止中タスクの起動を --continue にして前回会話を引き継ぐ。
+local function has_history(dir)
+  local enc = dir:gsub("[^%w]", "-")
+  local pdir = vim.fn.expand("~/.claude/projects/") .. enc
+  return #vim.fn.glob(pdir .. "/*.jsonl", true, true) > 0
+end
+
 -- ソケットにリスナーが居る = タスク稼働中
 local function is_live(sock)
   if not vim.uv.fs_stat(sock) then
@@ -179,14 +187,61 @@ function M.open(dir)
 
   add_history(dir)
   vim.cmd("enew")
-  -- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach
-  vim.fn.jobstart({ "dtach", "-A", sock, claude_cmd }, { term = true, cwd = dir })
+  -- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach。
+  -- 新規作成時、過去ログがあれば --continue で前回会話を引き継ぐ
+  -- (生存時は dtach がコマンド引数を無視するので付けても無害)。
+  local cmd = { "dtach", "-A", sock, claude_cmd }
+  if has_history(dir) then
+    table.insert(cmd, "--continue")
+  end
+  vim.fn.jobstart(cmd, { term = true, cwd = dir })
   vim.b.claude_task = dir
+  -- このターミナルでは <Esc> を端末(claude)へ素通しさせる。
+  -- グローバルの t:<Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
+  -- ノーマルモードへ抜けたいときは組み込みの <C-\><C-n> を使う。
+  vim.keymap.set("t", "<Esc>", "<Esc>", {
+    buffer = vim.api.nvim_get_current_buf(),
+    desc = "claude へ ESC を送る",
+  })
   vim.cmd("startinsert")
 end
 
--- タスクを終了（dtach マスタを kill → ソケットも消える）。履歴には残す。
+-- 稼働中セッションへ入力を流し込む（dtach -p: stdin をセッションの pty に転送 = claude への入力）
+local function push(sock, data)
+  local job = vim.fn.jobstart({ "dtach", "-p", sock })
+  if job <= 0 then
+    return false
+  end
+  vim.fn.chansend(job, data)
+  vim.fn.chanclose(job, "stdin")
+  return true
+end
+
+-- タスクを終了。claude に正規の終了コマンド(/exit)を送り、claude 自身に状態を
+-- 保存させてから抜けさせる。dtach マスタを kill すると claude が SIGHUP で強制
+-- 終了し、会話が保存されず resume が効かなくなるため、それは避ける。
+-- claude 終了 → dtach マスタ終了 → ソケット自動削除、の順で後片付けされる。履歴は残す。
 function M.kill(dir)
+  if not dir or dir == "" then
+    return
+  end
+  dir = vim.fn.fnamemodify(dir, ":p"):gsub("/$", "")
+  local sock = sock_for(dir)
+  if not is_live(sock) then
+    if vim.uv.fs_stat(sock) then
+      os.remove(sock) -- 既に死んでいれば stale ソケットだけ掃除
+    end
+    return
+  end
+  -- まず ESC で生成中断/入力クリアして素のプロンプトへ → 少し待って /exit を実行
+  push(sock, "\27")
+  vim.defer_fn(function()
+    push(sock, "/exit\r")
+  end, 200)
+end
+
+-- 応答しなくなったタスクの強制終了（最終手段）。状態保存は期待できない。
+function M.force_kill(dir)
   if not dir or dir == "" then
     return
   end
@@ -213,7 +268,7 @@ function M.pick()
   end
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open/attach / C-x: kill)",
+    prompt_title = "Claude Tasks  (Enter: open/attach / C-x: exit&save / C-d: force-kill)",
     finder = finders.new_table({
       results = items,
       entry_maker = function(it)
@@ -235,12 +290,22 @@ function M.pick()
       local function kill_action()
         local sel = action_state.get_selected_entry()
         if sel then
-          M.kill(sel.value.dir)
+          M.kill(sel.value.dir) -- claude に /exit を送って状態保存させてから終了
+          actions.close(bufnr)
+          -- claude が保存して抜けるまで少し待ってから一覧を更新（稼働状態が反映される）
+          vim.defer_fn(M.pick, 1200)
+        end
+      end
+      local function force_kill_action()
+        local sel = action_state.get_selected_entry()
+        if sel then
+          M.force_kill(sel.value.dir)
           actions.close(bufnr)
           vim.schedule(M.pick)
         end
       end
       _map({ "i", "n" }, "<C-x>", kill_action)
+      _map({ "i", "n" }, "<C-d>", force_kill_action)
       return true
     end,
   }):find()
