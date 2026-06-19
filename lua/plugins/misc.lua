@@ -425,7 +425,8 @@ return {
     -- 保管先は data/howm/ を流用。画像貼り付けはimg-clip/SmartPaste(sP)を使う
     -- キーマップ（,, プレフィックス）は lua/21_keymap.lua で管理
     {
-        "renerocksai/telekasten.nvim",
+        -- 原作(renerocksai)はメンテ停滞 → コミュニティ後継 fork に差し替え（API互換）
+        "nvim-telekasten/telekasten.nvim",
         dependencies = {
             "nvim-telescope/telescope.nvim",
             "nvim-lua/plenary.nvim",
