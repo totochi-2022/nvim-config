@@ -34,6 +34,9 @@ require('claude_tasks').setup()
 -- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
 require('file_preview').setup()
 
+-- howm_link.lua (telekasten上で howm の come-from(<<<) 連想リンク: :HowmFollow/:HowmDeclare)
+require('howm_link').setup()
+
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
 

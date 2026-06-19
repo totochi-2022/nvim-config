@@ -297,6 +297,11 @@ keymap('n', ',,k', '<cmd>Telekasten show_calendar<CR>',  { noremap = true, desc 
 -- draw.io / 画像（元の sP=<Leader>P / sE=<Leader>E はそのまま、,, 版を追加）
 keymap('n', ',,p', '<cmd>lua SmartPaste()<CR>',          { noremap = true, desc = 'howm: 画像/draw.io貼り付け' })
 keymap('n', ',,e', '<cmd>lua OpenDrawio()<CR>',          { noremap = true, desc = 'howm: draw.io図を再編集' })
+-- come-from(<<<) 連想リンク（telekasten上でhowm風: ,,a=宿主へ飛ぶ / ,,A=宣言を挿入）
+keymap('n', ',,a', '<cmd>lua require("howm_link").follow(false)<CR>',  { noremap = true, desc = 'howm: come-from宿主へ飛ぶ' })
+keymap('x', ',,a', ':<C-u>lua require("howm_link").follow(true)<CR>',  { noremap = true, desc = 'howm: come-from宿主へ飛ぶ(選択)' })
+keymap('n', ',,A', '<cmd>lua require("howm_link").declare(false)<CR>', { noremap = true, desc = 'howm: come-from宣言<<<を挿入' })
+keymap('x', ',,A', ':<C-u>lua require("howm_link").declare(true)<CR>', { noremap = true, desc = 'howm: come-from宣言<<<を挿入(選択)' })
 -- ,,v: ファイルプレビュー。:Preview が filetype を見て md→MarkdownPreview /
 -- typst→TypstPreview / svg・csv・stl・dxf→自作プレビューア、に振り分ける。
 keymap('n', ',,v', '<cmd>Preview<CR>',                   { noremap = true, desc = 'プレビュー(svg/csv/stl/dxf)' })
