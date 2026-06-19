@@ -8,3 +8,5 @@ lazy-lock.json
 *.tmp
 *.cache
 .DS_Store
+# draw.io temporary/backup files
+.$*
