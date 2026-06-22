@@ -260,6 +260,20 @@ do
     })
 end
 
+-- 画面再描画 + nvim-server(web)接続中はブラウザにグリッド再計算を要求
+-- （極小サイズでattachして復活できないときの手動リカバリ）
+keymap('n', '<C-l>', function()
+    -- デフォルトの <C-l> 相当（ハイライト解除 + diff更新 + 強制再描画）
+    vim.cmd('nohlsearch')
+    pcall(vim.cmd, 'diffupdate')
+    vim.cmd('redraw!')
+    -- web接続中ならブラウザ側にビューポート再計測を要求
+    local ch = vim.g.nvim_server_channel
+    if type(ch) == 'number' and ch > 0 then
+        vim.rpcnotify(ch, 'web_resize')
+    end
+end, { noremap = true, silent = true, desc = '再描画 / web再計算' })
+
 -- 行移動
 keymap('n', '<C-Down>', [["zdd"zp]], { noremap = true, desc = '行を下に移動' })
 keymap('n', '<C-Up>', [["zdd<Up>"zP]], { noremap = true, desc = '行を上に移動' })
