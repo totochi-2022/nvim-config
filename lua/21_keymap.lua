@@ -314,6 +314,7 @@ keymap('n', '<F8>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkフ
 keymap('n', ',,,', '<cmd>Telekasten panel<CR>',          { noremap = true, desc = 'howm: コマンドパレット' })
 keymap('n', ',,c', '<cmd>Telekasten new_note<CR>',       { noremap = true, desc = 'howm: 新規メモ作成' })
 keymap('n', ',,d', '<cmd>Telekasten goto_today<CR>',     { noremap = true, desc = 'howm: 今日の日次ノート' })
+keymap('n', ',,n', '<cmd>HowmDiary<CR>',                 { noremap = true, desc = 'howm: 日記エントリ作成(時刻)' })
 keymap('n', ',,g', '<cmd>Telekasten search_notes<CR>',   { noremap = true, desc = 'howm: 全文検索(grep)' })
 keymap('n', ',,f', '<cmd>Telekasten find_notes<CR>',     { noremap = true, desc = 'howm: ノート一覧から開く' })
 keymap('n', ',,l', '<cmd>Telekasten follow_link<CR>',    { noremap = true, desc = 'howm: リンクを辿る' })

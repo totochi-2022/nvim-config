@@ -37,6 +37,9 @@ require('file_preview').setup()
 -- howm_link.lua (telekasten上で howm の come-from(<<<) 連想リンク: :HowmFollow/:HowmDeclare)
 require('howm_link').setup()
 
+-- howm_diary.lua (エントリ単位の日記: :HowmDiary / ,,n で時刻ファイルを作成)
+require('howm_diary').setup()
+
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
 
