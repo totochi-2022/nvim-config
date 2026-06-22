@@ -471,9 +471,6 @@ return {
     -- 構文ファイル
     { "khaveesh/vim-fish-syntax" },
 
-    -- ポップアップメニュー
-    { "kamykn/popup-menu.nvim" },
-
     -- コンテキスト連携
     {
         "osyo-manga/vim-precious",
