@@ -231,6 +231,35 @@ keymap("t", "<Esc>", [[<C-\><C-n>]], { desc = 'ノーマルモードへ' })
 keymap('n', 'ml', [[:%s/\r//g<CR>]], { noremap = true, desc = 'CRを削除（改行コード変換）' })
 keymap('v', 'ml', [[:s/\r//g]], { noremap = true, desc = '選択範囲のCRを削除' })
 
+-- 文字コード / 改行コード変換メニュー（which-keyポップアップ。旧ConversionMenuの代替）
+do
+    local wk = require("which-key")
+    wk.add({
+        { "<LocalLeader>z", group = "convert(文字/改行コード)" },
+
+        -- 保存エンコーディング変更（このあと :w で反映）
+        { "<LocalLeader>zc",  group = "encoding" },
+        { "<LocalLeader>zcu", "<Cmd>set fileencoding=utf-8<CR>",     desc = "utf-8" },
+        { "<LocalLeader>zcb", "<Cmd>set fileencoding=utf-8-bom<CR>", desc = "utf-8-bom" },
+        { "<LocalLeader>zcs", "<Cmd>set fileencoding=cp932<CR>",     desc = "sjis(cp932)" },
+        { "<LocalLeader>zce", "<Cmd>set fileencoding=euc-jp<CR>",    desc = "euc-jp" },
+        { "<LocalLeader>zc?", "<Cmd>set fileencoding?<CR>",          desc = "check" },
+
+        -- 開き直し（文字化け修正）
+        { "<LocalLeader>zr",  group = "reopen(enc)" },
+        { "<LocalLeader>zrs", "<Cmd>e ++enc=cp932<CR>",  desc = "reopen sjis" },
+        { "<LocalLeader>zre", "<Cmd>e ++enc=euc-jp<CR>", desc = "reopen euc-jp" },
+        { "<LocalLeader>zru", "<Cmd>e ++enc=utf-8<CR>",  desc = "reopen utf-8" },
+
+        -- 改行コード変更（このあと :w で反映）
+        { "<LocalLeader>zl",  group = "line-ending" },
+        { "<LocalLeader>zlw", "<Cmd>set fileformat=dos<CR>",  desc = "windows(CRLF)" },
+        { "<LocalLeader>zlu", "<Cmd>set fileformat=unix<CR>", desc = "unix(LF)" },
+        { "<LocalLeader>zlm", "<Cmd>set fileformat=mac<CR>",  desc = "mac(CR)" },
+        { "<LocalLeader>zl?", "<Cmd>set fileformat?<CR>",     desc = "check" },
+    })
+end
+
 -- 行移動
 keymap('n', '<C-Down>', [["zdd"zp]], { noremap = true, desc = '行を下に移動' })
 keymap('n', '<C-Up>', [["zdd<Up>"zP]], { noremap = true, desc = '行を上に移動' })
