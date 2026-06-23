@@ -132,8 +132,16 @@ keymap('', '<Leader>H', ':Telescope oldfiles<CR>', { noremap = true, desc = '最
 keymap('', '<Leader>R', ':Telescope registers<CR>', { noremap = true, desc = 'レジスタ一覧' })
 keymap('n', '<Leader>p', ':Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
 keymap('x', '<Leader>p', '<Esc>:Telescope yank_history<CR>', { noremap = true, desc = 'ヤンク履歴' })
-keymap('n', '<Leader>P', '<cmd>lua SmartPaste()<CR>', { noremap = true, desc = 'クリップボードを貼り付け（画像/draw.io自動判定）' })
-keymap('n', '<Leader>E', '<cmd>lua OpenDrawio()<CR>', { noremap = true, desc = 'カーソル下のdraw.io図を編集（draw.ioで開く）' })
+-- <Leader>P は廃止（SmartPaste は ,,p で利用可能）
+keymap('n', '<Leader>E', function()
+    local path = vim.fn.expand('%:p')
+    if path == '' then
+        vim.notify('現在のバッファはファイルではありません', vim.log.levels.WARN)
+        return
+    end
+    local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
+    vim.fn.jobstart({ 'explorer.exe', '/select,' .. win }, { detach = true })
+end, { noremap = true, desc = '現在のバッファをexplorer.exeで開く（選択表示）' })
 
 -- Claude タスク（dtach 永続セッション）
 keymap('n', '<Leader>z', '<cmd>ClaudePick<CR>', { noremap = true, desc = 'Claude タスク一覧' })
@@ -338,7 +346,7 @@ keymap('n', ',,t', '<cmd>Telekasten show_tags<CR>',      { noremap = true, desc 
 keymap('n', ',,x', '<cmd>Telekasten toggle_todo<CR>',    { noremap = true, desc = 'howm: ToDo切替' })
 keymap('n', ',,w', '<cmd>Telekasten goto_thisweek<CR>',  { noremap = true, desc = 'howm: 今週の週次ノート' })
 keymap('n', ',,k', '<cmd>Telekasten show_calendar<CR>',  { noremap = true, desc = 'howm: カレンダー表示' })
--- draw.io / 画像（元の sP=<Leader>P / sE=<Leader>E はそのまま、,, 版を追加）
+-- draw.io / 画像（SmartPaste / OpenDrawio は ,, 版を使用。旧 <Leader>P/<Leader>E は廃止/変更）
 keymap('n', ',,p', '<cmd>lua SmartPaste()<CR>',          { noremap = true, desc = 'howm: 画像/draw.io貼り付け' })
 keymap('n', ',,e', '<cmd>lua OpenDrawio()<CR>',          { noremap = true, desc = 'howm: draw.io図を再編集' })
 -- come-from(<<<) 連想リンク（telekasten上でhowm風: ,,a=宿主へ飛ぶ / ,,A=宣言を挿入）

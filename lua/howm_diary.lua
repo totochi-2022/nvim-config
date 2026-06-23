@@ -41,6 +41,11 @@ function M.new_entry()
 
   vim.cmd("edit " .. vim.fn.fnameescape(path))
 
+  -- 作成したファイルのフルパスをクリップボードへコピー
+  local fullpath = vim.fn.fnamemodify(path, ":p")
+  vim.fn.setreg("+", fullpath)
+  vim.notify("コピー: " .. fullpath, vim.log.levels.INFO)
+
   -- 空の新規バッファにだけテンプレートを流し込む（既存を開いた場合は触らない）
   if vim.api.nvim_buf_line_count(0) == 1 and vim.fn.getline(1) == "" then
     vim.api.nvim_buf_set_lines(0, 0, -1, false, {
