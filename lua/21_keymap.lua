@@ -181,6 +181,7 @@ keymap('', '<LocalLeader>q', ':q<CR>', { noremap = true, desc = '終了' })
 keymap('', '<LocalLeader>Q', ':q!<CR>', { noremap = true, desc = '強制終了' })
 keymap('', '<LocalLeader>e', ':e!<CR>', { noremap = true, desc = '再読み込み' })
 keymap('', '<LocalLeader>E', ':e .<CR>', { noremap = true, desc = 'カレントディレクトリを開く' })
+keymap('n', '<LocalLeader>o', ':Oil<CR>', { noremap = true, desc = 'oil.nvimでファイラを開く' })
 --
 
 -- WhichKey 関連（<LocalLeader><F1>をヘルプキーとして使用）
