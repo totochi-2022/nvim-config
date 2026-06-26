@@ -290,6 +290,16 @@ keymap('n', '<C-l>', function()
     end
 end, { noremap = true, silent = true, desc = '再描画 / web再計算' })
 
+-- nvim-server(web)接続中: ブラウザをセッション選択画面へ戻す（nvimは生きたまま）
+keymap('n', '<Leader>0', function()
+    local ch = vim.g.nvim_server_channel
+    if type(ch) == 'number' and ch > 0 then
+        vim.rpcnotify(ch, 'web_home')
+    else
+        vim.notify('web版(nvim-server)に接続していません', vim.log.levels.WARN)
+    end
+end, { noremap = true, desc = 'web: セッション選択画面へ戻る' })
+
 -- 行移動
 keymap('n', '<C-Down>', [["zdd"zp]], { noremap = true, desc = '行を下に移動' })
 keymap('n', '<C-Up>', [["zdd<Up>"zP]], { noremap = true, desc = '行を上に移動' })
