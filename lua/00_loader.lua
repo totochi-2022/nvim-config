@@ -40,6 +40,9 @@ require('howm_link').setup()
 -- howm_diary.lua (エントリ単位の日記: :HowmDiary / ,,n で時刻ファイルを作成)
 require('howm_diary').setup()
 
+-- session_xfer.lua (ターミナル版nvimのセッションをweb版サーバへ転送: :ToServer)
+require('session_xfer').setup()
+
 -- 23_cheatsheet.lua (チートシートシステム)
 require '23_cheatsheet'
 
