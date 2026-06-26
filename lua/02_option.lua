@@ -152,7 +152,7 @@ end
 --- フォント ---
 -- GUI用のフォント設定(CUIでは無効)
 -- vim.opt.guifont = [[Cica\ 11]]
-vim.opt.guifont = is_windows and "Cica:h18" or "Cica\\ 18"
+vim.opt.guifont = is_windows and "Cica:h14" or "Cica\\ 14"
 vim.g.WebDevIconsUnicodeDecorateFolderNodes = 1
 
 -- 行間隔の設定
