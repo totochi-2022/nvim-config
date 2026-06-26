@@ -64,24 +64,29 @@
 ## 設定済みキーマップ（lua/21_keymap.lua）
 
 ### コマンドライン履歴
-- `q;` - `q:` コマンド履歴 (line:122)
-- `<LocalLeader>;` - `q:` コマンドライン履歴 (line:123)
-- `<Leader>;` - `:` コマンド入力 (line:121)
-- `;` - `:` 洗練されたコマンドライン（FineCmdline） (line:124-125)
+- `q;` - `q:` コマンド履歴ウィンドウ
+- `<LocalLeader>;` - `q:` コマンドライン履歴ウィンドウ
+- `<Leader>;` - `:Capture {cmd}` コマンド出力をバッファに展開
+- `;` - `:` コマンドライン（noice がフローティング描画）
+- `x;` - `:'<,'>` 選択範囲に対するコマンド
 
 ### ヤンク履歴
-- `<Leader>p` - `:Telescope yank_history` ヤンク履歴 (line:133)
-- `<C-n>` - `<Plug>(YankyCycleForward)` ヤンク履歴を次へ (line:322)
-- `<C-p>` - `<Plug>(YankyCycleBackward)` ヤンク履歴を前へ (line:323)
+- `<Leader>p` - `:Telescope yank_history` ヤンク履歴（ノーマル/ビジュアル）
+- `<C-n>` - `<Plug>(YankyCycleForward)` ヤンク履歴を次へ
+- `<C-p>` - `<Plug>(YankyCycleBackward)` ヤンク履歴を前へ
 
 ### その他の履歴機能
-- `<Leader>Q` - `:Telescope quickfixhistory` クイックフィックス履歴 (line:148)
-- `<Leader>u` - `:Telescope undo` 変更履歴（Telescope） (line:156)
-- `mgD` - `:DiffviewFileHistory %` ファイル履歴 (line:335)
+- `<Leader>h` - `:Telescope frecency` 最近使ったファイル（頻度順）
+- `<Leader>H` - `:Telescope oldfiles` 最近使ったファイル（時間順）
+- `<Leader>Q` - `:Telescope quickfixhistory` クイックフィックス履歴
+- `<Leader>u` - `:Telescope undo` 変更履歴（Telescope）
+- `mgD` - `:DiffviewFileHistory %` ファイル履歴（Git）
 
 ### メッセージ履歴
-- `<LocalLeader>m` - `:messages` メッセージ履歴表示 (line:369)
-- `<LocalLeader>nh` - `require("noice").cmd("history")` メッセージ履歴 (line:456)
+- `<LocalLeader>m` - `:messages` メッセージ履歴表示
+- `<LocalLeader>nh` - `require("noice").cmd("history")` メッセージ履歴
+- `<LocalLeader>nl` - `require("noice").cmd("last")` 最後のメッセージ
+- `<LocalLeader>ne` - `require("noice").cmd("errors")` エラーメッセージ
 
 ### 検索関連
 - `*` - カーソル下の単語を前方検索

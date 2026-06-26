@@ -9,20 +9,19 @@ local cheatsheets = {
     { key = 'i', file = 'index.md', desc = 'インデックス' },
     { key = 'j', file = 'jump.md', desc = 'ジャンプ・移動' },
     { key = 'v', file = 'selection.md', desc = '選択・ビジュアル' },
+    { key = 't', file = 'textobj.md', desc = 'テキストオブジェクト' },
     { key = 'f', file = 'fold.md', desc = 'フォールド' },
     { key = 'c', file = 'comment.md', desc = 'コメント操作' },
     { key = 'm', file = 'multicursor.md', desc = 'マルチカーソル' },
     { key = 'h', file = 'history.md', desc = '履歴・コマンドライン' },
-    -- 以下は未作成（将来作成予定）
-    -- { key = 's', file = 'search.md', desc = '検索・置換' },
-    -- { key = 'l', file = 'lsp.md', desc = 'LSP機能' },
-    -- { key = 'g', file = 'git.md', desc = 'Git操作' },
-    -- { key = 'd', file = 'debug.md', desc = 'デバッグ' },
-    -- { key = 't', file = 'textobj.md', desc = 'テキストオブジェクト' },
-    -- { key = 'w', file = 'window.md', desc = 'ウィンドウ・バッファ' },
-    -- { key = 'T', file = 'terminal.md', desc = 'ターミナル' },
-    -- { key = 'o', file = 'toggle.md', desc = 'トグル機能' },
-    -- { key = 'p', file = 'plugins.md', desc = 'プラグイン' },
+    { key = 's', file = 'search.md', desc = '検索・置換' },
+    { key = 'l', file = 'lsp.md', desc = 'LSP機能' },
+    { key = 'g', file = 'git.md', desc = 'Git操作' },
+    { key = 'd', file = 'debug.md', desc = 'デバッグ(DAP)' },
+    { key = 'w', file = 'window.md', desc = 'ウィンドウ・バッファ' },
+    { key = 'T', file = 'terminal.md', desc = 'ターミナル・Claude' },
+    { key = 'o', file = 'toggle.md', desc = 'トグル機能' },
+    { key = 'p', file = 'plugins.md', desc = 'プラグイン' },
 }
 
 -- プレビュー方法の設定
@@ -75,7 +74,7 @@ function ShowCheatsheetMenu()
     table.insert(lines, '')
     table.insert(lines, '─────────────────────────────────')
     table.insert(lines, string.format('プレビュー: %s', preview_method))
-    table.insert(lines, '[p] プレビュー方法切替 / ESC or q で終了')
+    table.insert(lines, '[<C-p>] プレビュー方法切替 / ESC or q で終了')
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.api.nvim_buf_set_option(buf, 'modifiable', false)
@@ -108,8 +107,8 @@ function ShowCheatsheetMenu()
         end, { buffer = buf, silent = true })
     end
 
-    -- プレビュー方法切替
-    vim.keymap.set('n', 'p', function()
+    -- プレビュー方法切替（'p' はプラグインシート用に空けるため <C-p> に割当）
+    vim.keymap.set('n', '<C-p>', function()
         -- プレビュー方法を切り替え
         if preview_method == 'glow' then
             preview_method = 'markdown_preview'
