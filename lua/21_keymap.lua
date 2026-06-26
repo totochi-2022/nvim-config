@@ -606,6 +606,20 @@ if is_windows then
     keymap('t', '<C-w>', [[<C-\><C-n><C-w>]], { desc = 'ウィンドウ操作' })
 end
 
+-- ターミナルモードで +レジスタ(クリップボード)を貼り付け。
+-- cmdline は <C-v>=<C-r>+ で貼れるが、t モードには経路が無く Claude 等の
+-- TUI に貼れなかった。bracketed paste で囲み、改行を「送信」と誤認させない。
+local function term_paste()
+    local txt = vim.fn.getreg('+')
+    local job = vim.b.terminal_job_id
+    if txt ~= '' and job then
+        vim.api.nvim_chan_send(job, '\27[200~' .. txt .. '\27[201~')
+    end
+end
+keymap('t', '<C-v>', term_paste, { desc = 'ターミナルにクリップボードを貼り付け' })
+keymap('t', '<RightMouse>', term_paste, { desc = 'ターミナルに右クリック貼り付け' })
+keymap('t', '<MiddleMouse>', term_paste, { desc = 'ターミナルに中クリック貼り付け' })
+
 -- アウトライン表示
 keymap('n', '<Leader>o', ':Outline<CR>', { noremap = true, desc = 'アウトライン表示' })
 
