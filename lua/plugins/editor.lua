@@ -26,7 +26,7 @@ return {
             local function fb_open_explorer(_prompt_bufnr)
                 local path = fb_selected_path()
                 if not path then return end
-                local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
+                local win = require('wslpath').to_win(path)
                 -- web/サーバ版は Windows の PATH 非継承で裸の 'explorer.exe' が解決
                 -- できないため、exepath で無ければ絶対パスにフォールバック
                 local exe = vim.fn.exepath('explorer.exe')

@@ -143,7 +143,7 @@ keymap('n', '<Leader>E', function()
     -- 裸の 'explorer.exe' が解決できない。exepath で無ければ絶対パスにフォールバック。
     local exe = vim.fn.exepath('explorer.exe')
     if exe == '' then exe = '/mnt/c/Windows/explorer.exe' end
-    local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
+    local win = require('wslpath').to_win(path)
     vim.fn.jobstart({ exe, '/select,' .. win }, { detach = true })
 end, { noremap = true, desc = '現在のバッファをexplorer.exeで開く（選択表示）' })
 

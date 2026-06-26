@@ -522,91 +522,41 @@ end, {
 --     end,
 -- })
 
--- Windows path to WSL path conversion
-function ConvertWindowsPath(win_path)
-    -- 外部コマンドでパス変換（将来的にカスタムスクリプトに置き換え可能）
-    local converter_cmd = "wslpath" -- 将来的にはカスタムスクリプトのパスに変更可能
+-- パス変換は lua/wslpath.lua に集約（to_wsl / to_win / is_windows_path / exists）
+local wslpath = require('wslpath')
 
-    local handle = io.popen(converter_cmd .. ' "' .. win_path .. '" 2>/dev/null')
-    if handle then
-        local wsl_path = handle:read("*a"):gsub("\n$", "")
-        handle:close()
-
-        -- 変換が成功した場合のみ変換結果を返す
-        if wsl_path ~= "" then
-            return wsl_path
-        end
-    end
-    return win_path
-end
-
--- グローバル変数: 自動パス変換モードの状態
-vim.g.auto_windows_path_mode = false
-
--- ファイル存在チェック関数
-function FileExists(path)
-    local stat = vim.loop.fs_stat(path)
-    return stat and stat.type == 'file'
-end
-
--- Windowsパス判定関数
-function IsWindowsPath(path)
-    return path:match("^%a:[/\\]") or path:match("^\\\\")
-end
-
--- Windows Terminalでは、ドラッグ&ドロップは単純なテキスト貼り付けとして処理される
--- そのため、InsertCharPreイベントなどで文字入力を監視する必要がある
-
--- autocmdのIDを保存する変数
-local auto_path_autocmd_id = nil
-
--- 自動パス変換モードのトグル関数
--- NOTE: This function has been replaced by the toggle library
--- Legacy function - redirects to new toggle library
-function ToggleAutoWindowsPathMode()
-    -- Deprecated: Use new toggle system (<LocalLeader>0 → w)
-    print("Use new toggle system: <LocalLeader>0 → w")
-end
-
--- input()を使ったWindowsパス入力コマンド（存在チェック付き）
+-- input() で Windows/UNC パスを受け取り、WSL パスに変換して開く。
+-- 使い方: :Ew (または ew) → "path:" プロンプトにファイルをドラッグ → Enter。
+-- ファイルでもディレクトリでも、実在すれば開く（ディレクトリは netrw/oil 等で開く）。
 vim.api.nvim_create_user_command('Ew', function()
-    local path = vim.fn.input('Windows path: ')
-    if path and #path > 0 then
-        local converted_path = ConvertWindowsPath(path)
-        if FileExists(converted_path) then
-            vim.cmd('edit ' .. vim.fn.fnameescape(converted_path))
-        else
-            vim.api.nvim_err_writeln("File does not exist: " .. converted_path)
-        end
+    local path = vim.fn.input('path (drag a file here): ')
+    if not path or #path == 0 then
+        return
+    end
+    local converted = wslpath.to_wsl(path)
+    if wslpath.exists(converted) then -- ファイル/ディレクトリ問わず実在チェック
+        vim.cmd('edit ' .. vim.fn.fnameescape(converted))
+    else
+        vim.api.nvim_err_writeln("Not found: " .. converted .. "  (input: " .. path .. ")")
     end
 end, {})
 
 -- 小文字でも使えるようにabbreviation追加
 vim.cmd('cnoreabbrev ew Ew')
 
-if vim.g.neovide and vim.fn.executable('wslpath') == 1 then
+-- Neovide: ドロップで開かれた Windows/UNC パスのバッファを WSL パスで開き直す
+if vim.g.neovide and wslpath.available() then
     vim.api.nvim_create_autocmd({ "BufNewFile" }, {
         callback = function(ev)
             local file = ev.file
-            if file and #file > 0 then
-                if file:match("^\\\\wsl%.localhost\\[^\\]+\\") then
-                    -- WSL UNCパスの場合は直接変換
-                    local path = file:gsub("^\\\\wsl%.localhost\\[^\\]+\\", ""):gsub("\\", "/")
-                    vim.cmd("bdelete")
-                    vim.cmd("edit /" .. path)
-                    vim.cmd("filetype detect") -- ファイルタイプを再判定
-                elseif file:match("^%a:") or file:match("^\\\\[^\\]+\\") then
-                    local handle = io.popen('wslpath "' .. file .. '"')
-                    if handle then
-                        local wsl_path = handle:read("*a"):gsub("\n$", "")
-                        handle:close()
-                        if wsl_path and wsl_path ~= file then
-                            vim.cmd("bdelete")
-                            vim.cmd("edit " .. wsl_path)
-                            vim.cmd("filetype detect") -- ファイルタイプを再判定
-                        end
-                    end
-                end
+            if not file or #file == 0 or not wslpath.is_windows_path(file) then
+                return
+            end
+            local converted = wslpath.to_wsl(file)
+            if converted ~= file and converted:sub(1, 1) == "/" then
+                vim.cmd("bdelete")
+                vim.cmd("edit " .. vim.fn.fnameescape(converted))
+                vim.cmd("filetype detect") -- ファイルタイプを再判定
             end
         end
     })
@@ -790,7 +740,7 @@ function _G.OpenDrawio()
     end
 
     -- WSL → Windowsパスに変換して draw.io に渡す
-    local winpath = vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', '')
+    local winpath = wslpath.to_win(path)
     vim.fn.jobstart({ DRAWIO_EXE, winpath }, { detach = true })
     vim.notify('draw.ioで開く: ' .. vim.fn.fnamemodify(path, ':t'), vim.log.levels.INFO)
 end
