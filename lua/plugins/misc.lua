@@ -348,42 +348,8 @@ return {
         end,
     },
 
-    -- コマンド出力キャプチャ (削除済み - 不要)
-    -- { "tyru/capture.vim" },
-
-    -- コマンドライン改良（noice.nvimに置き換えのため無効化）
-    {
-        "VonHeikemen/fine-cmdline.nvim",
-        enabled = false,  -- noice.nvimと競合するため無効化
-        dependencies = {
-            "MunifTanjim/nui.nvim"
-        },
-        config = function()
-            require('fine-cmdline').setup({
-                cmdline = {
-                    enable_keymaps = true,
-                    smart_history = true,
-                    prompt = ':'
-                },
-                popup = {
-                    position = {
-                        row = '50%',  -- 画面中央に配置
-                        col = '50%',
-                    },
-                    size = {
-                        width = '60%',
-                        height = 1,
-                    },
-                    border = {
-                        style = 'rounded',
-                    },
-                    win_options = {
-                        winhighlight = 'Normal:Normal,FloatBorder:FloatBorder',
-                    },
-                },
-            })
-        end,
-    },
+    -- コマンド出力キャプチャ（:Capture {cmd} で出力をバッファ展開）
+    { "tyru/capture.vim", cmd = "Capture" },
 
     -- 翻訳（denops必須）
     { 

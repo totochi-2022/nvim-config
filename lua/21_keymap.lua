@@ -118,11 +118,11 @@ keymap('n', '<LocalLeader>Cp', '<Plug>NERDCommenterAppend <ESC> p', { noremap = 
 
 --- [;] [:] replace
 keymap('', ':', ';', { noremap = true, desc = 'セミコロン' })
-keymap('n', '<Leader>;', ':', { noremap = true, desc = 'コマンド入力' })
+keymap('n', '<Leader>;', ':<C-u>Capture ', { noremap = true, desc = 'コマンド出力をバッファに展開（:Capture {cmd}）' })
 keymap('n', 'q;', 'q:', { noremap = true, desc = 'コマンド履歴' })
 keymap('n', '<LocalLeader>;', 'q:', { noremap = true, desc = 'コマンドライン履歴' })
-keymap('n', ';', '<cmd>FineCmdline<CR>', { noremap = true, desc = '洗練されたコマンドライン' })
-keymap('x', ';', [[:<C-u>FineCmdline '<,'><CR>]], { noremap = true, desc = '選択範囲に対するコマンド' })
+keymap('n', ';', ':', { noremap = true, desc = 'コマンドライン（noiceがフローティング描画）' })
+keymap('x', ';', ':', { noremap = true, desc = '選択範囲に対するコマンド（:\'<,\'>）' })
 
 --- <Leader>
 keymap('', '<Leader>b', ':Telescope buffers<CR>', { noremap = true, desc = 'バッファ一覧' })
