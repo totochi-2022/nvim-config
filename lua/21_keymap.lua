@@ -139,8 +139,12 @@ keymap('n', '<Leader>E', function()
         vim.notify('現在のバッファはファイルではありません', vim.log.levels.WARN)
         return
     end
+    -- web/サーバ版は非ログインシェル起動で Windows の PATH を継承しないため
+    -- 裸の 'explorer.exe' が解決できない。exepath で無ければ絶対パスにフォールバック。
+    local exe = vim.fn.exepath('explorer.exe')
+    if exe == '' then exe = '/mnt/c/Windows/explorer.exe' end
     local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
-    vim.fn.jobstart({ 'explorer.exe', '/select,' .. win }, { detach = true })
+    vim.fn.jobstart({ exe, '/select,' .. win }, { detach = true })
 end, { noremap = true, desc = '現在のバッファをexplorer.exeで開く（選択表示）' })
 
 -- Claude タスク（dtach 永続セッション）

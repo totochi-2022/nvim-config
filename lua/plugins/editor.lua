@@ -27,10 +27,14 @@ return {
                 local path = fb_selected_path()
                 if not path then return end
                 local win = (vim.fn.system({ 'wslpath', '-w', path }):gsub('%s+$', ''))
+                -- web/サーバ版は Windows の PATH 非継承で裸の 'explorer.exe' が解決
+                -- できないため、exepath で無ければ絶対パスにフォールバック
+                local exe = vim.fn.exepath('explorer.exe')
+                if exe == '' then exe = '/mnt/c/Windows/explorer.exe' end
                 if vim.fn.isdirectory(path) == 1 then
-                    vim.fn.jobstart({ 'explorer.exe', win }, { detach = true })
+                    vim.fn.jobstart({ exe, win }, { detach = true })
                 else
-                    vim.fn.jobstart({ 'explorer.exe', '/select,' .. win }, { detach = true })
+                    vim.fn.jobstart({ exe, '/select,' .. win }, { detach = true })
                 end
             end
 
