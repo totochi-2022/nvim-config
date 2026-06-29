@@ -167,12 +167,90 @@ local function focus_existing(dir)
   return false
 end
 
--- タスクを開く: 生存なら attach、停止中なら dir を cwd にして起動
-function M.open(dir)
+-- dtach 起動コマンドを組み立てる。
+-- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach。
+-- 新規作成時、過去ログがあれば --continue で前回会話を引き継ぐ
+-- (生存時は dtach がコマンド引数を無視するので付けても無害)。
+local function build_cmd(dir)
+  local cmd = { "dtach", "-A", sock_for(dir), claude_cmd }
+  if has_history(dir) then
+    table.insert(cmd, "--continue")
+  end
+  return cmd
+end
+
+-- attach 用バッファの共通セットアップ（タスク識別子 + <Esc> 素通し）。
+local function setup_term_buf(buf, dir)
+  vim.b[buf].claude_task = dir
+  -- このターミナルでは <Esc> を端末(claude)へ素通しさせる。
+  -- グローバルの t:<Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
+  -- ノーマルモードへ抜けたいときは組み込みの <C-\><C-n> を使う。
+  vim.keymap.set("t", "<Esc>", "<Esc>", {
+    buffer = buf,
+    desc = "claude へ ESC を送る",
+  })
+end
+
+-- stale ソケット掃除
+local function clean_stale_sock(dir)
+  local sock = sock_for(dir)
+  if not is_live(sock) and vim.uv.fs_stat(sock) then
+    os.remove(sock)
+  end
+end
+
+-- toggleterm(float) に開く。dir ごとに Terminal インスタンスをキャッシュして
+-- 再オープン時は同じフロートを使い回す（dtach -A なので中身は同一セッション）。
+local tt_terms = {}
+local function open_toggleterm(dir)
+  local ok, tt = pcall(require, "toggleterm.terminal")
+  if not ok then
+    vim.notify("toggleterm が利用できません", vim.log.levels.WARN)
+    return
+  end
+  clean_stale_sock(dir)
+  add_history(dir)
+  local term = tt_terms[dir]
+  if not term then
+    -- cmd は文字列で渡す必要があるので各要素を shellescape
+    local parts = {}
+    for _, a in ipairs(build_cmd(dir)) do
+      table.insert(parts, vim.fn.shellescape(a))
+    end
+    term = tt.Terminal:new({
+      cmd = table.concat(parts, " "),
+      dir = dir,
+      direction = "float",
+      close_on_exit = true,
+      on_open = function(t)
+        setup_term_buf(t.bufnr, dir)
+        vim.cmd("startinsert")
+      end,
+      on_exit = function()
+        tt_terms[dir] = nil -- claude 終了でインスタンスを破棄
+      end,
+    })
+    tt_terms[dir] = term
+  end
+  term:open()
+  vim.cmd("startinsert")
+end
+
+-- タスクを開く: 生存なら attach、停止中なら dir を cwd にして起動。
+-- opts.mode: "current"(既定/現ウィンドウ置換) | "left"(左の縦分割) | "toggleterm"(float)
+function M.open(dir, opts)
+  opts = opts or {}
+  local mode = opts.mode or "current"
+
   dir = vim.fn.fnamemodify(dir and dir ~= "" and dir or default_dir(), ":p")
   dir = dir:gsub("/$", "") -- 末尾スラッシュを正規化
   if dir == "" then
     dir = vim.fn.getcwd()
+  end
+
+  if mode == "toggleterm" then
+    open_toggleterm(dir)
+    return
   end
 
   if focus_existing(dir) then
@@ -180,29 +258,16 @@ function M.open(dir)
     return
   end
 
-  local sock = sock_for(dir)
-  if not is_live(sock) and vim.uv.fs_stat(sock) then
-    os.remove(sock) -- 死んだ後の stale ソケットを掃除
-  end
-
+  clean_stale_sock(dir)
   add_history(dir)
-  vim.cmd("enew")
-  -- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach。
-  -- 新規作成時、過去ログがあれば --continue で前回会話を引き継ぐ
-  -- (生存時は dtach がコマンド引数を無視するので付けても無害)。
-  local cmd = { "dtach", "-A", sock, claude_cmd }
-  if has_history(dir) then
-    table.insert(cmd, "--continue")
+
+  if mode == "left" then
+    vim.cmd("topleft vnew") -- 画面左に縦分割して新規バッファ
+  else
+    vim.cmd("enew")
   end
-  vim.fn.jobstart(cmd, { term = true, cwd = dir })
-  vim.b.claude_task = dir
-  -- このターミナルでは <Esc> を端末(claude)へ素通しさせる。
-  -- グローバルの t:<Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
-  -- ノーマルモードへ抜けたいときは組み込みの <C-\><C-n> を使う。
-  vim.keymap.set("t", "<Esc>", "<Esc>", {
-    buffer = vim.api.nvim_get_current_buf(),
-    desc = "claude へ ESC を送る",
-  })
+  vim.fn.jobstart(build_cmd(dir), { term = true, cwd = dir })
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir)
   vim.cmd("startinsert")
 end
 
@@ -268,7 +333,7 @@ function M.pick()
   end
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open/attach / C-x: exit&save / C-d: force-kill)",
+    prompt_title = "Claude Tasks  (Enter: open / C-v: left split / C-f: float / C-x: exit&save / C-d: force-kill)",
     finder = finders.new_table({
       results = items,
       entry_maker = function(it)
@@ -287,6 +352,18 @@ function M.pick()
           M.open(sel.value.dir)
         end
       end)
+      -- 開き方バリエーション: C-v=左の縦分割 / C-f=toggleterm(float)
+      local function open_with(mode)
+        return function()
+          local sel = action_state.get_selected_entry()
+          if sel then
+            actions.close(bufnr)
+            M.open(sel.value.dir, { mode = mode })
+          end
+        end
+      end
+      _map({ "i", "n" }, "<C-v>", open_with("left"))
+      _map({ "i", "n" }, "<C-f>", open_with("toggleterm"))
       local function kill_action()
         local sel = action_state.get_selected_entry()
         if sel then
