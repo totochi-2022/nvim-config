@@ -526,6 +526,25 @@ local definitions = {
             vim.o.cursorcolumn = enable
         end
     },
+
+    k = { -- キー = K (markdown preview follow / web版プレビュー追従)
+        name = 'preview_follow',
+        states = { 'off', 'on' },
+        colors = {
+            { fg = 'Normal', bg = 'Normal' },          -- off: Normal色
+            { fg = '#000000', bg = 'DiagnosticInfo' }, -- on: 黒文字/Info背景
+        },
+        default_state = 'off',
+        desc = 'プレビュー追従(web)',
+        display_char = '󰍔 ', -- nf-md-language_markdown（末尾スペース付き）
+        auto_hide = true,
+        get_state = function()
+            return vim.g.preview_follow and 'on' or 'off'
+        end,
+        set_state = function(state)
+            require('preview_pane').set_follow(state == 'on')
+        end,
+    },
 }
 
 -- ========== セットアップ実行 ==========

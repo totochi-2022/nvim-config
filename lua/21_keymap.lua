@@ -77,7 +77,18 @@ minor_mode.define_mode({
         { key = '=', action = '<C-w>=', desc = 'ウィンドウの高さと幅を均等にする' },
         { key = 'b', action = ':bp<CR>', desc = '前のバッファへ移動' },
         { key = 'B', action = ':bn<CR>', desc = '次のバッファへ移動' },
-    }
+        -- プレビューペイン操作（web版, preview_pane.lua / 端末では no-op）
+        { key = ']', action = '<cmd>lua require("preview_pane").resize(1, true)<CR>',  desc = 'プレビュー幅を広げる' },
+        { key = '[', action = '<cmd>lua require("preview_pane").resize(-1, true)<CR>', desc = 'プレビュー幅を狭める' },
+        { key = 'p', action = '<cmd>lua require("preview_pane").close(true)<CR>', desc = 'プレビューを閉じる' },
+    },
+    hooks = {
+        -- submode を抜けた時、連打中に保留したプレビュー幅変更をまとめて reflow。
+        -- （reflow=nvim_ui_try_resize は pending 中の submode を壊すので終了時に1回だけ）
+        exit = function()
+            pcall(function() require("preview_pane").commit() end)
+        end,
+    },
 })
 --
 
