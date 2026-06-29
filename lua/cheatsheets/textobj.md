@@ -28,16 +28,41 @@
 | パラメータ（引数） | `i,` / `a,` | vim-textobj-parameter |
 | コメント | `ic` / `ac` | vim-textobj-comment |
 
-## TreeSitter テキストオブジェクト
+## TreeSitter テキストオブジェクト（nvim-treesitter-textobjects）
+
+構文ベース。パーサのある言語で関数・クラス等を正確に選択。`select.lookahead=true`
+なので対象が少し先にあっても賢くジャンプして選択する。
 
 | オブジェクト | 内側 / 外側 | 説明 |
 |------|------|------|
 | 関数 | `if` / `af` | inner / a function |
-| クラス | `ic` / `ac` | inner / a class |
-| 条件分岐 | `ii` / `ai` | if 文 |
-| ループ | `il` / `al` | loop |
+| クラス | `ik` / `ak` | inner / a class（k=klass） |
+| ループ | `iL` / `aL` | loop（`il`/`al` は行textobjなので大文字L） |
+| 条件分岐 | `io` / `ao` | if/else（o=cOnditional） |
+| 引数 | `ia` / `aa` | parameter/argument |
 
-※ プラグイン間で `ic`/`il` 等のキーが重複する場合がある。filetype に応じて有効なものが優先される。
+### 関数間ジャンプ（移動）
+| キー | 動作 |
+|------|------|
+| `]m` / `[m` | 次 / 前の関数の先頭へ |
+| `]M` / `[M` | 次 / 前の関数の末尾へ |
+
+## 正規表現ベース（nvim-various-textobjs）
+
+TreeSitter不要・全filetypeで動く。インデントや value など標準に無いものを補う。
+
+| オブジェクト | 内側 / 外側 | 説明 |
+|------|------|------|
+| インデント | `ii` / `ai` | 同インデント / +直上の行（Python/YAML/設定に強力） |
+| インデント+上下 | — / `aI` | 上下の囲み行も含める |
+| 以下インデント | `R` | カーソル位置から下のインデント全部 |
+| value | `iv` / `av` | `key = value` / `key: value` の右辺だけ |
+| subword | `iS` / `aS` | camelCase / snake_case の一語分 |
+| チェーン要素 | `im` / `am` | `foo.bar().baz` の一区切り |
+| 数値 | `iN` / `aN` | 符号・小数も賢く（dial.nvim の `+`/`-` と相性良） |
+| 引用符（種類問わず） | `iq` / `aq` | `" ' \`` のどれでも対象 |
+
+※ value の counterpart の key textobj は TS クラス(`ik`/`ak`)とキーが衝突するため未割当て。
 
 ## TreeSitter ユニット（treesitter-unit）
 
@@ -64,5 +89,7 @@
 ---
 💡 **Tips**:
 - `ci(`（括弧内変更）、`dap`（段落削除）、`yaf`（関数まるごとヤンク）が定番
+- Python等インデント言語では `dii`/`vai` が便利。設定ファイルの値だけ変えるなら `civ`
+- `cigS`… ではなく subword は `ciS`（`getUserName` の一語だけ変更）
 - 構文単位で素早く選ぶなら `<LocalLeader>j`（expand_region）や `<LocalLeader>s`（TS hop）
-- 引数の入れ替えは `i,` で選択 → `ms`（ISwap）も便利（plugins.md 参照）
+- 引数は `ia`(TS) か `i,` で選択 → `ms`（ISwap）で入れ替え（plugins.md 参照）

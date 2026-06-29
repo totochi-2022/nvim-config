@@ -48,6 +48,12 @@ return {
         "glts/vim-textobj-comment",
         dependencies = { "kana/vim-textobj-user" },
     },
+    {
+        -- TreeSitter不要・正規表現ベースの便利テキストオブジェクト集
+        "chrisgrieser/nvim-various-textobjs",
+        event = "VeryLazy",
+        opts = { keymaps = { useDefaults = false } }, -- マッピングは21_keymap.luaで個別設定
+    },
 
     -- 領域拡張
     {

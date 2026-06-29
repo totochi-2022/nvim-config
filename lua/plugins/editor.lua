@@ -276,6 +276,22 @@ return {
         end,
     },
 
+    -- TreeSitterベースのテキストオブジェクト（関数/クラス/ループ等）
+    -- 本体が main ブランチなので textobjects も main を使う。
+    -- マッピングは 21_keymap.lua で select_textobject を手書き。
+    {
+        'nvim-treesitter/nvim-treesitter-textobjects',
+        branch = 'main',
+        event = "VeryLazy",
+        dependencies = { 'nvim-treesitter/nvim-treesitter' },
+        config = function()
+            require('nvim-treesitter-textobjects').setup({
+                select = { lookahead = true }, -- 直近の対象まで賢く前方ジャンプ
+                move = { set_jumps = true },   -- 移動をジャンプリストに記録
+            })
+        end,
+    },
+
     -- treesitter-context: 関数階層表示
     {
         'nvim-treesitter/nvim-treesitter-context',

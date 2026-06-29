@@ -600,6 +600,67 @@ minor_mode.define_mode({
 keymap('o', 'iu', ':<c-u>lua require"treesitter-unit".select()<CR>', { noremap = true, desc = 'TS:ユニット内選択（操作）' })
 keymap('o', 'au', ':<c-u>lua require"treesitter-unit".select(true)<CR>', { noremap = true, desc = 'TS:ユニット全体選択（操作）' })
 
+-- nvim-treesitter-textobjects(main): 構文ベースのテキストオブジェクト。
+-- select は select_textobject、移動は move を遅延requireで呼ぶ（VeryLazy対応）。
+do
+    local function sel(query)
+        return function()
+            require('nvim-treesitter-textobjects.select').select_textobject(query, 'textobjects')
+        end
+    end
+    local function move(fn, query)
+        return function()
+            require('nvim-treesitter-textobjects.move')[fn](query, 'textobjects')
+        end
+    end
+    -- 選択（operator / visual）
+    keymap({ 'x', 'o' }, 'if', sel('@function.inner'), { desc = 'TS: 関数内' })
+    keymap({ 'x', 'o' }, 'af', sel('@function.outer'), { desc = 'TS: 関数全体' })
+    keymap({ 'x', 'o' }, 'ik', sel('@class.inner'), { desc = 'TS: クラス内' })
+    keymap({ 'x', 'o' }, 'ak', sel('@class.outer'), { desc = 'TS: クラス全体' })
+    keymap({ 'x', 'o' }, 'iL', sel('@loop.inner'), { desc = 'TS: ループ内' })
+    keymap({ 'x', 'o' }, 'aL', sel('@loop.outer'), { desc = 'TS: ループ全体' })
+    keymap({ 'x', 'o' }, 'io', sel('@conditional.inner'), { desc = 'TS: 条件分岐内' })
+    keymap({ 'x', 'o' }, 'ao', sel('@conditional.outer'), { desc = 'TS: 条件分岐全体' })
+    keymap({ 'x', 'o' }, 'ia', sel('@parameter.inner'), { desc = 'TS: 引数内' })
+    keymap({ 'x', 'o' }, 'aa', sel('@parameter.outer'), { desc = 'TS: 引数全体' })
+    -- 関数間ジャンプ（vim慣習の ]m/[m）
+    keymap({ 'n', 'x', 'o' }, ']m', move('goto_next_start', '@function.outer'), { desc = 'TS: 次の関数頭へ' })
+    keymap({ 'n', 'x', 'o' }, '[m', move('goto_previous_start', '@function.outer'), { desc = 'TS: 前の関数頭へ' })
+    keymap({ 'n', 'x', 'o' }, ']M', move('goto_next_end', '@function.outer'), { desc = 'TS: 次の関数末へ' })
+    keymap({ 'n', 'x', 'o' }, '[M', move('goto_previous_end', '@function.outer'), { desc = 'TS: 前の関数末へ' })
+end
+
+-- nvim-various-textobjs: 正規表現ベース（TS不要・全filetype）。遅延requireで呼ぶ。
+do
+    local function vt(method, ...)
+        local args = { ... }
+        return function()
+            require('various-textobjs')[method](unpack(args))
+        end
+    end
+    -- インデント（Python/YAML/設定ファイルで強力。ii/ai は現状フリー）
+    keymap({ 'x', 'o' }, 'ii', vt('indentation', 'inner', 'inner'), { desc = 'various: インデント内' })
+    keymap({ 'x', 'o' }, 'ai', vt('indentation', 'outer', 'inner'), { desc = 'various: インデント+上行' })
+    keymap({ 'x', 'o' }, 'aI', vt('indentation', 'outer', 'outer'), { desc = 'various: インデント+上下行' })
+    keymap({ 'x', 'o' }, 'R', vt('restOfIndentation'), { desc = 'various: 以下のインデント全部' })
+    -- value（=や:の右側）。key は TS class(ik/ak) と衝突するため割当てない
+    keymap({ 'x', 'o' }, 'iv', vt('value', 'inner'), { desc = 'various: value(右辺)内' })
+    keymap({ 'x', 'o' }, 'av', vt('value', 'outer'), { desc = 'various: value(右辺)全体' })
+    -- subword（camelCase/snake_caseの一語）
+    keymap({ 'x', 'o' }, 'iS', vt('subword', 'inner'), { desc = 'various: subword内' })
+    keymap({ 'x', 'o' }, 'aS', vt('subword', 'outer'), { desc = 'various: subword全体' })
+    -- chain member（foo.bar().baz の一区切り）
+    keymap({ 'x', 'o' }, 'im', vt('chainMember', 'inner'), { desc = 'various: チェーン要素内' })
+    keymap({ 'x', 'o' }, 'am', vt('chainMember', 'outer'), { desc = 'various: チェーン要素全体' })
+    -- number（符号・小数も賢く。dial.nvim の +/- と相性良）
+    keymap({ 'x', 'o' }, 'iN', vt('number', 'inner'), { desc = 'various: 数値(内)' })
+    keymap({ 'x', 'o' }, 'aN', vt('number', 'outer'), { desc = 'various: 数値(外)' })
+    -- any quote（" ' ` のいずれでも）
+    keymap({ 'x', 'o' }, 'iq', vt('anyQuote', 'inner'), { desc = 'various: 引用符内(種類問わず)' })
+    keymap({ 'x', 'o' }, 'aq', vt('anyQuote', 'outer'), { desc = 'various: 引用符全体(種類問わず)' })
+end
+
 -- LSPコマンド（LspAttachイベントでバッファローカルに設定するため移動）
 -- Telescope版のLSPナビゲーション（全体で使用）
 keymap('n', 'md', '<cmd>Telescope lsp_definitions<CR>', { noremap = true, desc = '定義一覧（Telescope）' })
