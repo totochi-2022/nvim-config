@@ -159,8 +159,9 @@ keymap('n', '<Leader>E', function()
 end, { noremap = true, desc = '現在のバッファをexplorer.exeで開く（選択表示）' })
 
 -- Claude タスク（dtach 永続セッション）
-keymap('n', '<Leader>z', '<cmd>ClaudePick<CR>', { noremap = true, desc = 'Claude タスク一覧' })
-keymap('n', '<Leader>Z', '<cmd>ClaudeOpen<CR>', { noremap = true, desc = 'Claude 現プロジェクトで起動' })
+keymap('n', '<Leader>c', '<cmd>ClaudePick<CR>', { noremap = true, desc = 'Claude タスク一覧' })
+keymap('n', '<Leader>C', '<cmd>ClaudeOpen<CR>', { noremap = true, desc = 'Claude 現プロジェクトで起動' })
+keymap('n', '<Leader>z', function() require('z_jump').pick() end, { noremap = true, desc = 'z ジャンプ履歴（cd）' })
 
 -- セッションを web版 nvim-server へ転送（:ToServer [name]）
 keymap('n', '<Leader>T', ':ToServer ', { noremap = true, desc = 'セッションをweb版サーバへ転送' })
@@ -183,7 +184,7 @@ keymap('', '<Leader>d', ':Telescope diagnostics<CR>', { noremap = true, desc = '
 keymap('', '<Leader>f', ':Telescope fd<CR>', { noremap = true, desc = 'ファイル検索' })
 keymap('', '<Leader>e', ':Telescope file_browser path=%:p:h<CR>', { noremap = true, desc = 'ファイルブラウザ（現在のディレクトリ）' })
 keymap('', '<Leader>j', ':Telescope jumplist<CR>', { noremap = true, desc = 'ジャンプリスト' })
-keymap('', '<Leader>c', ':Telescope highlights<CR>', { noremap = true, desc = 'ハイライトグループ一覧' })
+keymap('', '<Leader>y', ':Telescope highlights<CR>', { noremap = true, desc = 'ハイライトグループ一覧' })
 keymap('', '<Leader>S', ':SearchSession<CR>', { noremap = true, desc = 'セッション検索' })
 keymap('n', '<Leader>u', ':Telescope undo<CR>', { noremap = true, desc = '変更履歴（Telescope）' })
 keymap('n', '<Leader>t', ':terminal<CR>', { noremap = true, desc = 'ターミナル起動' })
