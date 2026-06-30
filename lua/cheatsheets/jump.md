@@ -118,14 +118,17 @@ DIAGNOSTICモード中は以下のキーが使用可能：
 | `.` | 次のHINT | ヒントのみ |
 | `,` | 前のHINT | ヒントのみ |
 
-## EasyMotion（プラグイン）
+## 画面内ジャンプ（flash.nvim）
 
 | キー | 動作 | 説明 |
 |------|------|------|
-| `<LocalLeader><Space>` | 2文字ジャンプ | 画面内の任意位置へ2文字でジャンプ |
-| `x<LocalLeader><Space>` | 2文字ジャンプ（選択） | ビジュアルモードで2文字ジャンプ |
+| `<LocalLeader><Space>` | ラベルジャンプ | 入力した文字のマッチにラベルが出て、ラベルキーで飛ぶ（n/x/o） |
 
-※ Migemoモード有効時（toggle: m）は日本語も検索可能
+- 表示中の全ウィンドウ（分割画面）が対象（multi_window）。非表示バッファには飛べない。
+- **migemo 連動**: toggle `m`（`<LocalLeader>0` → m）が ON のとき、ローマ字入力を
+  cmigemo で変換して**日本語へジャンプ**できる（例: `kensaku` → 検索/けんさく）。
+- ラベル色は固定（ピンク=ラベル / シアン=一致 / 金=現在）でランダムスキームでも判別可。
+- 旧 EasyMotion から移行（Noice と競合して入力が処理されなかったため）。
 
 ## Telescope 統合
 
@@ -152,12 +155,11 @@ DIAGNOSTICモード中は以下のキーが使用可能：
 
 ## 使用プラグイン
 
-- **vim-easymotion**: 2文字でのクイックジャンプ
-- **jumpcursor.vim**: カーソルジャンプ補助（コメントアウト中）
+- **flash.nvim**: ラベルジャンプ（`<LocalLeader><Space>`）。migemo 連動で日本語も可
 - **telescope.nvim**: ジャンプリストの可視化
 
 ---
 💡 **Tips**: 
-- `<LocalLeader><Space>`（2文字ジャンプ）が最も高速
+- `<LocalLeader><Space>`（flash ラベルジャンプ）が最も高速
 - ジャンプモード切り替え（toggle: j）でファイル内限定移動が可能
-- Migemo有効時（toggle: m）は日本語もジャンプ可能
+- 日本語へ飛びたいときは toggle `m`（migemo）を ON にしてローマ字入力

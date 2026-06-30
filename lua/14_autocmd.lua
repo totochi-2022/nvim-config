@@ -88,6 +88,14 @@ autocmd('ColorScheme', {
         -- Foldcc
         hl(0, 'Folded', { fg = '#1090d0' })
 
+        -- flash.nvim: ラベル(ジャンプ文字)と一致箇所が同色にならないよう固定色で上書き。
+        -- ランダムスキーム(RandomScheme)でデフォルトのリンク先(Substitute/Search)が
+        -- 似た色になり区別できなくなるのを防ぐ。
+        hl(0, 'FlashLabel', { fg = '#ffffff', bg = '#ff007c', bold = true }) -- ジャンプ文字: ピンク背景
+        hl(0, 'FlashMatch', { fg = '#000000', bg = '#00dfff' })             -- 一致箇所: シアン背景
+        hl(0, 'FlashCurrent', { fg = '#000000', bg = '#ffd700' })           -- 現在の一致: 金背景
+        hl(0, 'FlashBackdrop', { fg = '#777777' })                          -- 背景(減光)
+
         hl(0, 'CursorColumn', { link = 'CursorLine' })
         if vim.g.colors_name == 'zephyr' then
             hl(0, 'FoldColumn', { link = 'lineNr' })

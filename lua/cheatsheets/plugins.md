@@ -20,14 +20,15 @@
 | `+` / `-`（v） | 選択範囲を増減 |
 | `g+` / `g-`（v） | 連番作成（累積増減） |
 
-## EasyMotion（クイックジャンプ）
+## flash.nvim（ラベルジャンプ）
 
 | キー | 動作 |
 |------|------|
-| `<LocalLeader><Space>`（n） | 2文字で画面内ジャンプ |
-| `<LocalLeader><Space>`（x） | 2文字でジャンプ（選択） |
+| `<LocalLeader><Space>`（n/x/o） | 入力文字のマッチにラベル→ラベルキーで飛ぶ |
 
-※ migemo（toggle: m）ON で日本語もジャンプ可能。
+- 表示中の全ウィンドウが対象。`/`(incsearch-migemo)・`f/F/t/T`(clever-f) は奪わない設定。
+- migemo（toggle: m）ON でローマ字入力→日本語へジャンプ（cmigemo を `search.mode` に接続）。
+- 旧 EasyMotion から移行（Noice 競合のため）。
 
 ## ナビゲーション
 

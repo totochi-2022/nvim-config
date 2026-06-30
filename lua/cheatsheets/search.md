@@ -14,7 +14,7 @@
 
 ## migemo（日本語ローマ字検索） — toggle: m
 
-`<LocalLeader>0` → `m` で migemo をトグル。**ON のとき** `/` `?` `g/` が migemo 検索に置き換わり、ローマ字で日本語を検索できる（EasyMotion も日本語対応になる）。
+`<LocalLeader>0` → `m` で migemo をトグル。**ON のとき** `/` `?` `g/` が migemo 検索に置き換わり、ローマ字で日本語を検索できる（flash の画面内ジャンプ `<LocalLeader><Space>` も日本語対応になる）。
 
 | キー | 動作 |
 |------|------|

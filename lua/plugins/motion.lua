@@ -18,13 +18,20 @@ return {
         end,
     },
 
+    -- 画面内ジャンプ（EasyMotionの後継・Noice互換）。
+    -- step1: 単体動作確認。`/`検索は incsearch-migemo、f/F/t/T は clever-f に任せ、
+    -- flash は <LocalLeader><Space> の jump だけ担当する（modesを無効化して競合回避）。
     {
-        'easymotion/vim-easymotion',
+        "folke/flash.nvim",
+        event = "VeryLazy",
         config = function()
-            vim.g.EasyMotion_do_mapping = 0
-            vim.g.EasyMotion_smartcase = 1
-            vim.g.EasyMotion_use_migemo = 1
-        end
+            require("flash").setup({
+                modes = {
+                    search = { enabled = false }, -- / 検索は incsearch-migemo に任せる
+                    char = { enabled = false },   -- f/F/t/T は clever-f に任せる
+                },
+            })
+        end,
     },
 
     {

@@ -415,9 +415,26 @@ keymap('v', 'g-', function()
     require("dial.map").manipulate("decrement", "gvisual")
 end, { noremap = true, desc = '数値・文字列を連続減少' })
 
--- EasyMotion
-keymap('n', '<LocalLeader><Space>', '<Plug>(easymotion-overwin-f2)', { noremap = true, desc = '2文字で画面内ジャンプ' })
-keymap('x', '<LocalLeader><Space>', '<Plug>(easymotion-bd-f2)', { noremap = true, desc = '2文字でジャンプ' })
+-- 画面内ジャンプ: flash.nvim（Noice互換。旧 EasyMotion はNoice競合で置換）。
+-- migemo トグル(<LocalLeader>0 → m / vim.g.migemo_enabled)が ON のときは
+-- 入力ローマ字を cmigemo で Vim 正規表現に変換して flash に渡す＝日本語へ飛べる。
+local migemo_dict = '/usr/share/cmigemo/utf-8/migemo-dict'
+-- flash の search.mode 関数: mode(input) -> (search_pattern, skip_pattern?)。
+-- cmigemo -v は Vim 正規表現(\%(...\|...\))を出すのでそのまま返す。
+local function flash_migemo_mode(str)
+    if str == nil or str == '' then return str end
+    if vim.fn.executable('cmigemo') == 0 then return str end
+    local out = vim.fn.system({ 'cmigemo', '-v', '-w', str, '-d', migemo_dict })
+    if vim.v.shell_error ~= 0 or out == '' then return str end
+    return (out:gsub('%s+$', '')) -- 末尾改行を除去
+end
+keymap({ 'n', 'x', 'o' }, '<LocalLeader><Space>', function()
+    if vim.g.migemo_enabled then
+        require('flash').jump({ search = { mode = flash_migemo_mode } })
+    else
+        require('flash').jump()
+    end
+end, { noremap = true, desc = '画面内ジャンプ(flash/migemo連動)' })
 
 -- VisualModeトグル
 keymap('v', 'v', ':<C-u>VmodeToggle<CR>', { noremap = true, desc = 'ビジュアルモード切替' })

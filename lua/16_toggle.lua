@@ -232,27 +232,13 @@ local definitions = {
                 vim.keymap.set('n', '/', migemo.forward, { desc = 'Migemo forward search' })
                 vim.keymap.set('n', '?', migemo.backward, { desc = 'Migemo backward search' })
                 vim.keymap.set('n', 'g/', migemo.stay, { desc = 'Migemo stay search' })
-                -- EasyMotionのmigemoも有効化
-                vim.g.EasyMotion_use_migemo = 1
-                -- 別の方法でEasyMotion再初期化を試行
-                pcall(function()
-                    -- lazy.nvim経由で再読み込み
-                    local lazy = require('lazy')
-                    lazy.reload({ plugins = { 'vim-easymotion' } })
-                end)
+                -- flash の画面内ジャンプ(<LocalLeader><Space>)も migemo モードになる
                 vim.g.migemo_enabled = true
             else
                 -- 標準の検索に戻す
                 pcall(vim.keymap.del, 'n', '/')
                 pcall(vim.keymap.del, 'n', '?')
                 pcall(vim.keymap.del, 'n', 'g/')
-                -- EasyMotionのmigemoも無効化
-                vim.g.EasyMotion_use_migemo = 0
-                -- lazy.nvim経由で再読み込み
-                pcall(function()
-                    local lazy = require('lazy')
-                    lazy.reload({ plugins = { 'vim-easymotion' } })
-                end)
                 vim.g.migemo_enabled = false
             end
         end

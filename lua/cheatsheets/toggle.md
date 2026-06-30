@@ -22,7 +22,7 @@
 
 - **d (diagnostics)**: `signs_only`=サインのみ / `cursor_only`=カーソル行のみinline / `full_with_underline`=virtual text+下線
 - **j (jump_mode)**: `file_local` 時は `<C-o>/<C-i>` が現在ファイル内のみジャンプ（`:FileJumpBack/Forward`）。`global` で通常の Vim ジャンプリスト（ファイル間移動可）
-- **m (migemo)**: ON で `/` `?` `g/` が migemo 検索に置換、EasyMotion も日本語対応
+- **m (migemo)**: ON で `/` `?` `g/` が migemo 検索に置換、flash の画面内ジャンプ(`<LocalLeader><Space>`)も日本語対応
 - **n (noice_mode)**: `all`=フローティングcmdline+LSP進捗+通知 / `below`=下部cmdline+通知のみ / `off`=Noice無効（トラブル時）
 - **c (colors)**: nvim-highlight-colors / mini.hipatterns によるカラーコード可視化
 
