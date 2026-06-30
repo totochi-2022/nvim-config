@@ -267,6 +267,37 @@ local definitions = {
         end
     },
 
+    r = { -- キー = R (render-markdown インライン描画)
+        name = 'render_markdown',
+        states = { 'off', 'on' },
+        colors = {
+            { fg = 'Normal', bg = 'Normal' }, -- off: Normal色
+            { fg = 'Normal', bg = 'Normal' }, -- on: Normal色
+        },
+        default_state = 'off',
+        desc = 'Markdownインライン描画',
+        display_char = '📝', -- lualineで表示する文字
+        auto_hide = true,    -- off の時は lualine から自動非表示
+        get_state = function()
+            return vim.g.render_markdown_enabled and 'on' or 'off'
+        end,
+        set_state = function(state)
+            -- lazy の require フックでロードされる。markdown未オープンでも require可。
+            local ok, rm = pcall(require, 'render-markdown')
+            if not ok then
+                vim.notify('render-markdown.nvim not found', vim.log.levels.WARN)
+                return
+            end
+            if state == 'on' then
+                vim.g.render_markdown_enabled = true
+                rm.enable()
+            else
+                vim.g.render_markdown_enabled = false
+                rm.disable()
+            end
+        end
+    },
+
     j = { -- キー = J (jump_mode)
         name = 'jump_mode',
         states = { 'global', 'file_local' },

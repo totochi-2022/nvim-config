@@ -13,6 +13,7 @@
 | `c` | colors | off / on(all) | on | カラーコードの色表示（） |
 | `m` | migemo | off / on | off | ローマ字で日本語検索（み） |
 | `f` | quickscope | off / on | on | f/F移動時のハイライト |
+| `r` | render_markdown | off / on | off | Markdownのインライン描画（📝） |
 | `j` | jump_mode | global / file_local | file_local | `<C-o>/<C-i>` をファイル内限定にするか（󱀼） |
 | `n` | noice_mode | off / all / below | all | Noice 表示モード（💬） |
 | `l` | laststatus | 2 / 3 | 3 | ステータスライン表示 |

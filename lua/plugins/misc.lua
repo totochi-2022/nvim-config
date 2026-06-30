@@ -386,11 +386,13 @@ return {
     },
 
     -- マークダウンのインライン描画（バッファ内で見出し・表・コードブロック等を装飾）
+    -- デフォルトは描画OFF（素のmarkdown表示）。toggle `r`（<LocalLeader>0 → r）で
+    -- 描画ON/OFFを切り替える（16_toggle.lua）。
     {
         "MeanderingProgrammer/render-markdown.nvim",
         dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
         ft = { "markdown" },
-        opts = {},
+        opts = { enabled = false },
     },
 
     -- howm的なmarkdownメモ管理（telescope駆動のZettelkasten）
