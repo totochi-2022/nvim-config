@@ -13,6 +13,7 @@ return {
         vim.g.use_local_plugins and vim.g.use_local_plugins.incsearch_migemo
             and { dir = "/home/motoki/work/repo/nvim_plugin/incsearch-migemo.nvim" }  -- ローカル開発版
             or "totochi-2022/incsearch-migemo.nvim",  -- GitHub版
+        lazy = true, -- migemoトグル(m)が require('incsearch-migemo') した時にロード
         config = function()
             require('incsearch-migemo').setup()
         end,

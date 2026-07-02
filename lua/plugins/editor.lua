@@ -129,6 +129,7 @@ return {
     -- 数値・文字列増減プラグイン
     {
         'monaqa/dial.nvim',
+        lazy = true, -- +/- キーマップが require("dial.map") 経由なので初回操作でロード
         config = function()
             local augend = require("dial.augend")
             require("dial.config").augends:register_group {

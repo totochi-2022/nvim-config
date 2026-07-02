@@ -1,19 +1,22 @@
 -- plugins/ui.lua - UI関連
 return {
-    -- カラースキーム
-    { "EdenEast/nightfox.nvim" },
-    { "folke/tokyonight.nvim" },
-    { "glepnir/zephyr-nvim" },
-    { "morhetz/gruvbox" },
+    -- カラースキーム（lazy=true: :colorscheme 実行時に lazy が自動ロード。
+    -- RandomScheme も vim.cmd('colorscheme X') 経由なので問題なし）
+    { "EdenEast/nightfox.nvim", lazy = true },
+    { "folke/tokyonight.nvim", lazy = true },
+    { "glepnir/zephyr-nvim", lazy = true },
+    { "morhetz/gruvbox", lazy = true },
     {
         "kyoz/purify",
-        rtp = 'vim'
+        rtp = 'vim',
+        lazy = true,
     },
 
     -- 新しく追加するカラースキーム
     {
         "catppuccin/nvim",
         name = "catppuccin",
+        lazy = true,
         config = function()
             require("catppuccin").setup({
                 flavour = "mocha", -- latte, frappe, macchiato, mocha
@@ -23,6 +26,7 @@ return {
     {
         "rose-pine/neovim",
         name = "rose-pine",
+        lazy = true,
         config = function()
             require("rose-pine").setup({
                 variant = "auto", -- auto, main, moon, dawn
@@ -31,6 +35,7 @@ return {
     },
     {
         "rebelot/kanagawa.nvim",
+        lazy = true,
         config = function()
             require("kanagawa").setup({
                 compile = false,
@@ -38,7 +43,7 @@ return {
             })
         end
     },
-    { "sainnhe/everforest" },
+    { "sainnhe/everforest", lazy = true },
 
     -- スタート画面（デバッグ用）
     {

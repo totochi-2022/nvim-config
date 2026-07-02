@@ -2,7 +2,7 @@
 return {
     -- 括弧マッチング・自動補完
     { "andymass/vim-matchup" },
-    { "windwp/nvim-autopairs" },
+    { "windwp/nvim-autopairs", event = "InsertEnter" },
     { "kylechui/nvim-surround" },
     
     -- Markdownプレビュー（チートシート表示用）
@@ -102,6 +102,7 @@ return {
 
     (vim.g.use_local_plugins and vim.g.use_local_plugins.jaq) and {
         dir = "/home/motoki/work/repo/nvim_plugin/jaq-nvim",  -- ローカル開発版
+        cmd = { "Jaq", "JaqList", "JaqKillCurrent", "JaqKillAll" },
         config = function()
             require('jaq-nvim').setup({
                 cmds = {
@@ -148,6 +149,7 @@ return {
         end
     } or {
         "totochi-2022/jaq-nvim",  -- GitHub版（フォーク予定）
+        cmd = { "Jaq", "JaqList", "JaqKillCurrent", "JaqKillAll" },
         config = function()
             require('jaq-nvim').setup({
                 cmds = {
@@ -199,6 +201,7 @@ return {
     {
         "jiaoshijie/undotree",
         dependencies = "nvim-lua/plenary.nvim",
+        lazy = true, -- キーマップ無し。require("undotree").toggle() 呼び出し時にロード
         config = true,
     },
 
@@ -284,6 +287,7 @@ return {
     -- 要素交換
     {
         "mizlan/iswap.nvim",
+        cmd = { "ISwap", "ISwapWith", "ISwapNode", "ISwapNodeWith" }, -- ms/mS で :ISwap* を呼ぶ
         config = function()
             require('iswap').setup()
         end
@@ -298,7 +302,7 @@ return {
     },
 
     -- バイナリエディタ
-    { "Shougo/vinarise" },
+    { "Shougo/vinarise", cmd = "Vinarise" },
 
 
     -- マルチカーソル
@@ -450,7 +454,7 @@ return {
     },
 
     -- 構文ファイル
-    { "khaveesh/vim-fish-syntax" },
+    { "khaveesh/vim-fish-syntax", ft = "fish" },
 
     -- コンテキスト連携
     {
