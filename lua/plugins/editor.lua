@@ -446,7 +446,6 @@ return {
     -- フォールディング
     {
         "LeafCage/foldCC.vim",
-        event = "VeryLazy",
         config = function()
             vim.opt.foldtext = "FoldCCtext()"
             vim.g.foldCCtext_head = 'printf("   %-7s", v:folddashes)'

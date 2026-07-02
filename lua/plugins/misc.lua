@@ -1,7 +1,7 @@
 -- plugins/misc.lua - その他・実験的
 return {
     -- 括弧マッチング・自動補完
-    { "andymass/vim-matchup", event = "VeryLazy" },
+    { "andymass/vim-matchup" },
     { "windwp/nvim-autopairs", event = "InsertEnter" },
     { "kylechui/nvim-surround" },
     
@@ -64,7 +64,6 @@ return {
     -- マーク管理
     {
         "chentoast/marks.nvim",
-        event = "VeryLazy",
         config = function()
             require('marks').setup {
                 default_mappings = false,
@@ -246,7 +245,6 @@ return {
     -- バッファリサイズ
     {
         "kwkarlwang/bufresize.nvim",
-        event = "VeryLazy",
         config = function()
             require("bufresize").setup()
         end
@@ -298,7 +296,6 @@ return {
     -- 引数ハイライト
     {
         "m-demare/hlargs.nvim",
-        event = "VeryLazy",
         config = function()
             require('hlargs').setup()
         end
