@@ -37,12 +37,13 @@ local check_items = {
     },
 }
 
--- コマンドの存在をチェック（whichコマンドで実行）
-local function check_command(check_cmd)
-    local result = vim.fn.system(check_cmd)
-    if vim.v.shell_error == 0 and result ~= '' then
-        -- 改行を削除してパスを返す
-        local path = result:gsub('\n$', '')
+-- コマンドの存在をチェック。
+-- 以前は vim.fn.system('which X') でシェルを spawn していたが、WSL+fish では
+-- 1回数百ms×コマンド数で起動が数秒遅延していた。組み込みの exepath()（シェル
+-- 非起動・即時のPATH探索）に変更して解消。引数はコマンド名。
+local function check_command(name)
+    local path = vim.fn.exepath(name)
+    if path ~= '' then
         return true, path
     end
     return false, nil
@@ -69,9 +70,9 @@ local function setup_env()
     local env_has = {}
     local env_paths = {}
     
-    -- コマンドチェック
-    for name, item in pairs(check_items.commands) do
-        local available, path = check_command(item.check_cmd)
+    -- コマンドチェック（name がコマンド名。exepath で即時判定）
+    for name, _item in pairs(check_items.commands) do
+        local available, path = check_command(name)
         env_has[name] = available
         if path then
             env_paths[name] = path
