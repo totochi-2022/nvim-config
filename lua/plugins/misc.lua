@@ -357,14 +357,21 @@ return {
     -- コマンド出力キャプチャ（:Capture {cmd} で出力をバッファ展開）
     { "tyru/capture.vim", cmd = "Capture" },
 
-    -- 翻訳（denops必須）
-    { 
+    -- 翻訳（denops必須）。denops は Deno プロセスを spawn して重いので、
+    -- :Translate 初回まで遅延（翻訳でしか denops を使っていないため）。
+    -- ※ denops_disable_version_check は init(起動時)で先に立てておく。
+    {
         "vim-denops/denops.vim",
+        lazy = true, -- 単体では読まない。denops-translate の依存として読まれる
         init = function()
             vim.g.denops_disable_version_check = 1
         end
     },
-    { "skanehira/denops-translate.vim", dependencies = { "vim-denops/denops.vim" } },
+    {
+        "skanehira/denops-translate.vim",
+        dependencies = { "vim-denops/denops.vim" },
+        cmd = "Translate", -- <LocalLeader>t → :Translate 初回でロード
+    },
 
     -- ブラウザ
     { "tyru/open-browser.vim" },
