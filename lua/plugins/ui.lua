@@ -265,6 +265,7 @@ return {
     -- カーソルアニメーション（Terminal版Neovide風）
     {
         "sphamba/smear-cursor.nvim",
+        event = "VeryLazy",
         config = function()
             require('smear_cursor').setup({
                 -- Neovide設定に近づける
@@ -731,6 +732,7 @@ return {
     -- ハイライトグループの色を可視化
     {
         "brenoprata10/nvim-highlight-colors",
+        event = "VeryLazy",
         config = function()
             require('nvim-highlight-colors').setup({
                 render = 'virtual',  -- 'background' または 'virtual'
@@ -758,6 +760,7 @@ return {
     {
         "echasnovski/mini.hipatterns",
         version = false,
+        event = "VeryLazy",
         config = function()
             local hipatterns = require('mini.hipatterns')
 
