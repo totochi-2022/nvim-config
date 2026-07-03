@@ -400,6 +400,10 @@ return {
     -- 本体 `viv` は ~/.local/bin に別途インストール（PATH 必須）。:Vivify で現バッファを表示。
     {
         "jannis-baum/vivify.vim",
+        -- ft でロード: スクロール/内容同期の autocmd(CursorMoved/TextChanged)は
+        -- markdown バッファ進入時に仕込まれるため、cmd 遅延だと :Vivify 後も
+        -- 現バッファで追従が効かない。ft ロードで md を開いた時点で武装する。
+        ft = { "markdown" },
         cmd = "Vivify",
         init = function()
             vim.g.vivify_instant_refresh = 1  -- 編集に即追従
