@@ -396,6 +396,17 @@ return {
         ft = { "markdown" },
     },
 
+    -- Vivify（ブラウザ表示・拡張可能な md/notebook ビューア。markdown-preview と併用）
+    -- 本体 `viv` は ~/.local/bin に別途インストール（PATH 必須）。:Vivify で現バッファを表示。
+    {
+        "jannis-baum/vivify.vim",
+        cmd = "Vivify",
+        init = function()
+            vim.g.vivify_instant_refresh = 1  -- 編集に即追従
+            vim.g.vivify_auto_scroll = 1      -- カーソル位置にスクロール同期
+        end,
+    },
+
     -- マークダウンのインライン描画（バッファ内で見出し・表・コードブロック等を装飾）
     -- デフォルトは描画OFF（素のmarkdown表示）。toggle `r`（<LocalLeader>0 → r）で
     -- 描画ON/OFFを切り替える（16_toggle.lua）。

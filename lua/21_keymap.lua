@@ -390,6 +390,8 @@ keymap('x', ',,A', ':<C-u>lua require("howm_link").declare(true)<CR>', { noremap
 -- ,,v: ファイルプレビュー。:Preview が filetype を見て md→MarkdownPreview /
 -- typst→TypstPreview / svg・csv・stl・dxf→自作プレビューア、に振り分ける。
 keymap('n', ',,v', '<cmd>Preview<CR>',                   { noremap = true, desc = 'プレビュー(svg/csv/stl/dxf)' })
+-- ,,V: Vivify でプレビュー（markdown-preview と併用。mermaid/dot/katex/[[ ]]/callout 標準対応）
+keymap('n', ',,V', '<cmd>Vivify<CR>',                    { noremap = true, desc = 'Vivify プレビュー(md/notebook)' })
 
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
