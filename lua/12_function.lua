@@ -707,11 +707,6 @@ end
 
 -- [draw.io] カーソル下の .drawio(.svg) を draw.io で開く（再編集）
 function _G.OpenDrawio()
-    if vim.fn.executable(DRAWIO_EXE) == 0 then
-        vim.notify('draw.io.exeが見つかりません: ' .. DRAWIO_EXE, vim.log.levels.ERROR)
-        return
-    end
-
     -- カーソル下のファイル名。なければ現在行から各記法でパスを抽出
     -- （markdown ](path) / typst #image("path") / コメント drawio: path）。
     local cfile = vim.fn.expand('<cfile>')
@@ -739,7 +734,14 @@ function _G.OpenDrawio()
         return
     end
 
-    -- WSL → Windowsパスに変換して draw.io に渡す
+    -- schemdraw 等、埋込ソース付き SVG なら nvim 側エディタで再編集（draw.io.exe 不要）
+    if require('diagram').try_edit_file(path) then return end
+
+    -- それ以外は draw.io.exe で開く（WSL → Windowsパス変換）
+    if vim.fn.executable(DRAWIO_EXE) == 0 then
+        vim.notify('draw.io.exeが見つかりません: ' .. DRAWIO_EXE, vim.log.levels.ERROR)
+        return
+    end
     local winpath = wslpath.to_win(path)
     vim.fn.jobstart({ DRAWIO_EXE, winpath }, { detach = true })
     vim.notify('draw.ioで開く: ' .. vim.fn.fnamemodify(path, ':t'), vim.log.levels.INFO)
@@ -750,6 +752,9 @@ end
 --   2. 画像データあり → PasteImage
 --   3. どちらでもない → メッセージ表示
 function _G.SmartPaste()
+    -- 0. カーソルが ```schemdraw 等の対応フェンス内なら図を SVG 化してリンク化
+    if require('diagram').try_render() then return end
+
     local clip = vim.fn.getreg('+')
     if clip == nil or clip == '' then clip = vim.fn.getreg('*') end
 
