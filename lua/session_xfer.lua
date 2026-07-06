@@ -27,30 +27,56 @@ local function candidate_socks()
   return out
 end
 
--- name(ベース名) または既定ルールで送信先 socket を決める
+-- 一意な socket パスを作る（既存があれば -1, -2… を付ける）
+local function unique_sock(base)
+  local name, sock = base, SERVER_DIR .. "/" .. base .. ".sock"
+  local i = 1
+  while vim.fn.getftype(sock) ~= "" do
+    name = base .. "-" .. i
+    sock = SERVER_DIR .. "/" .. name .. ".sock"
+    i = i + 1
+  end
+  return sock, name
+end
+
+-- 新しい headless nvim を <base>.sock で起動し、RPC を受け付けるまで待つ。
+-- 成功で socket パスを返す（失敗は nil）。
+local function spawn_session(base)
+  vim.fn.mkdir(SERVER_DIR, "p")
+  local sock = unique_sock(base)
+  local id = vim.fn.jobstart(
+    { vim.v.progpath, "--headless", "--listen", sock },
+    { detach = true }
+  )
+  if id <= 0 then return nil end
+  local ready = vim.wait(8000, function()
+    local ok, ch = pcall(vim.fn.sockconnect, "pipe", sock, { rpc = true })
+    if ok and ch and ch > 0 then
+      pcall(vim.fn.chanclose, ch)
+      return true
+    end
+    return false
+  end, 100)
+  if not ready then return nil end
+  return sock
+end
+
+-- 送信先 socket を決める。既存の使用中セッションは上書きしない方針:
+--   name あり: そのソケットが在れば使う／無ければ新規に <name>.sock を起こす
+--   name なし: 毎回あたらしい term-HHMM セッションを起こす
 local function resolve_target(name)
   if name and name ~= "" then
     local p = SERVER_DIR .. "/" .. name .. ".sock"
-    return vim.fn.filereadable(p) == 1 and p or nil, p
+    if vim.fn.getftype(p) == "socket" then return p end
+    return spawn_session(name)
   end
-  local cands = candidate_socks()
-  -- nvim.sock を優先、無ければ最初の候補
-  for _, s in ipairs(cands) do
-    if vim.fn.fnamemodify(s, ":t") == "nvim.sock" then return s end
-  end
-  return cands[1]
+  return spawn_session(os.date("term-%H%M"))
 end
 
 function M.to_server(name)
-  local target, wanted = resolve_target(name)
+  local target = resolve_target(name)
   if not target then
-    vim.notify(
-      "送信先 socket が見つかりません" .. (wanted and ("（" .. wanted .. "）") or "")
-        .. "\n候補: " .. table.concat(vim.tbl_map(function(s)
-          return vim.fn.fnamemodify(s, ":t")
-        end, candidate_socks()), ", "),
-      vim.log.levels.WARN
-    )
+    vim.notify("送信先セッションを用意できませんでした（新規 nvim の起動に失敗）", vim.log.levels.ERROR)
     return
   end
 
