@@ -25,9 +25,12 @@ local function ensure_server()
 end
 
 function M.open()
-    -- ビュー時に schemdraw 等フェンスを自動 SVG 化（フェンス→![]）。
-    -- 無効化: vim.g.diagram_autorender = false
-    if vim.g.diagram_autorender ~= false and vim.bo.filetype == 'markdown' then
+    -- ビュー時の自動 SVG 化(フェンス→![])は既定 OFF。
+    -- auto にするとバッファが書き換わり、ブラウザ(端末モードはディスクを表示)と
+    -- 行番号がズレてスクロール追従が壊れる（フェンスより下が全ズレ）ため。
+    -- 使うなら :DiagramRender で変換→保存してからプレビュー、が整合する。
+    -- 有効化: vim.g.diagram_autorender = true
+    if vim.g.diagram_autorender == true and vim.bo.filetype == 'markdown' then
         pcall(function() require('diagram').render_all() end)
     end
 

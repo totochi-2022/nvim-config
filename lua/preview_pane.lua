@@ -81,10 +81,9 @@ function M.close(defer)
   end
 end
 
--- 指定バッファの markdown プレビューを起動して URL を web ペインへ送る。
--- mkdp のコマンドは command!-buffer なので、そのバッファ文脈で実行する必要がある。
--- 起動すると g:mkdp_browserfunc(=NvimServerOpenPreview) 経由で open_preview が飛び、
--- iframe の src が差し替わる＝追従になる。
+-- 指定バッファを標準ビューア(Vivify)でペインに出す。バッファ文脈で vivify.open()
+-- を呼ぶと web 接続中は右ペインへ web_open_url される（=追従）。
+-- （旧: markdown-preview を起動していたが、標準ビューア入替に伴い Vivify へ変更）
 local function preview_buf(buf)
   if not (buf and vim.api.nvim_buf_is_valid(buf)) then
     return
@@ -97,16 +96,7 @@ local function preview_buf(buf)
   end
   shown_buf = buf
   vim.api.nvim_buf_call(buf, function()
-    -- lazy(ft) ロード直後はコマンド未定義のことがあるので file_preview と同じ対策
-    if vim.fn.exists(":MarkdownPreview") ~= 2 then
-      pcall(function()
-        require("lazy").load({ plugins = { "markdown-preview.nvim" } })
-      end)
-      pcall(vim.cmd, "doautocmd <nomodeline> FileType")
-    end
-    if vim.fn.exists(":MarkdownPreview") == 2 then
-      pcall(vim.cmd, "MarkdownPreview")
-    end
+    pcall(function() require("vivify").open() end)
   end)
 end
 
