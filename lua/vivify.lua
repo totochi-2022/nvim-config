@@ -24,6 +24,28 @@ local function ensure_server()
     end
 end
 
+-- 現バッファの内容を Vivify に POST して liveContent を最新化する。
+-- Vivify の viewer は「liveContent があればファイルより優先」で、これはディスク変更では
+-- 更新されない（fs.watch→RELOAD しても古いキャッシュを再送する）。開くたびに1回押し込む
+-- ことで「古いスナップショットを配信し続ける取り残し」を防ぐ。POST は接続中クライアントへ
+-- ws UPDATE も飛ばすので、既に開いているページもその場で更新される。vivify.vim の
+-- sync_content と同一エンドポイント/同一形式。curl は -m で握らせず落とす（mirrored 対策）。
+local function sync_content(path, buf)
+    if not path or path == '' or not vim.api.nvim_buf_is_valid(buf) then return end
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local body = vim.fn.json_encode({ content = table.concat(lines, '\n') })
+    local url = string.format('http://localhost:%d/viewer%s', PORT, (path:gsub(' ', '%%20')))
+    local job = vim.fn.jobstart(
+        { 'curl', '-s', '-m', '2', '-X', 'POST', '-H', 'Content-type: application/json',
+            '--data', '@-', url },
+        { detach = true }
+    )
+    if type(job) == 'number' and job > 0 then
+        vim.fn.chansend(job, body)
+        vim.fn.chanclose(job, 'stdin')
+    end
+end
+
 -- 指定パスを Vivify で開く（web=右ペイン / 端末=ブラウザタブ）。auto描画はしない。
 -- SVG を開くと Vivify がそのファイルを監視し、再生成(上書き)で自動リロード＝ライブプレビュー。
 function M.open_path(path)
@@ -48,7 +70,10 @@ function M.open()
 
     if not web then
         -- 端末/Neovide: 従来どおりブラウザタブ（vivify.vim を cmd ロード）
+        local tpath = vim.fn.expand('%:p')
+        local tbuf = vim.api.nvim_get_current_buf()
         vim.cmd('Vivify')
+        vim.defer_fn(function() sync_content(tpath, tbuf) end, 800)
         return
     end
 
@@ -59,11 +84,13 @@ function M.open()
     end
 
     ensure_server()
+    local buf = vim.api.nvim_get_current_buf()
     -- パスはフルパスで渡す（サーバが preferHomeTilde で ~ 形へリダイレクト。
     -- ws 登録パスと sync POST 先は共に urlToPath 解決で一致する）。
     local url = string.format('http://localhost:%d/viewer%s', PORT, path)
     -- 初回起動直後は listen まで数百ms要る（起動済みなら実質待たない）。
     vim.defer_fn(function()
+        sync_content(path, buf) -- 先に現バッファを push して古いキャッシュ配信を防ぐ
         vim.rpcnotify(ch, 'web_open_url', url, 'Vivify')
     end, 700)
 end
