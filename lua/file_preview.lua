@@ -53,7 +53,8 @@ function M.preview()
   -- markdown / typst は各専用プレビューアへ委譲（このプレビューアの発祥である markdown も含む）
   local ft = vim.bo.filetype
   if ft == "markdown" then
-    delegate("markdown-preview.nvim", "MarkdownPreviewToggle", "Markdown プレビュー", "mkdp#util#toggle_preview")
+    -- 標準ビューアは Vivify（mkdp は ,,V / :MarkdownPreview で明示的に使う）
+    require("vivify").open()
     return
   end
   if ft == "typst" then
@@ -90,6 +91,11 @@ function M.preview()
       vim.notify("プレビューを開けません（web未接続で opener も無し）", vim.log.levels.WARN)
     end
   end
+end
+
+-- ,,V 用: markdown-preview を明示的に開く（従来の md 分岐＝mkdp 委譲を保持）
+function M.markdown_preview()
+  delegate("markdown-preview.nvim", "MarkdownPreviewToggle", "Markdown プレビュー", "mkdp#util#toggle_preview")
 end
 
 function M.setup()

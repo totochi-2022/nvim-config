@@ -25,6 +25,12 @@ local function ensure_server()
 end
 
 function M.open()
+    -- ビュー時に schemdraw 等フェンスを自動 SVG 化（フェンス→![]）。
+    -- 無効化: vim.g.diagram_autorender = false
+    if vim.g.diagram_autorender ~= false and vim.bo.filetype == 'markdown' then
+        pcall(function() require('diagram').render_all() end)
+    end
+
     local ch = vim.g.nvim_server_channel
     local web = type(ch) == 'number' and ch > 0
 

@@ -390,9 +390,9 @@ keymap('x', ',,A', ':<C-u>lua require("howm_link").declare(true)<CR>', { noremap
 -- ,,v: ファイルプレビュー。:Preview が filetype を見て md→MarkdownPreview /
 -- typst→TypstPreview / svg・csv・stl・dxf→自作プレビューア、に振り分ける。
 keymap('n', ',,v', '<cmd>Preview<CR>',                   { noremap = true, desc = 'プレビュー(svg/csv/stl/dxf)' })
--- ,,V: Vivify でプレビュー（markdown-preview と併用。mermaid/dot/katex/[[ ]]/callout 標準対応）
--- web(nvim-server)接続中は右ペイン、端末はブラウザタブ（vivify.lua でモード分岐）
-keymap('n', ',,V', '<cmd>lua require("vivify").open()<CR>', { noremap = true, desc = 'Vivify プレビュー(web=ペイン/端末=ブラウザ)' })
+-- ,,V(グローバル): Vivify でプレビュー（ipynb/画像等の非md用）。
+-- ※ markdown バッファでは buffer-local で ,,V=markdown-preview に上書きされる（下の FileType md 参照）。
+keymap('n', ',,V', '<cmd>lua require("vivify").open()<CR>', { noremap = true, desc = 'Vivify プレビュー(非md)' })
 
 -- Dial.nvim（数値・文字列増減）
 keymap('n', '+', function()
@@ -843,9 +843,10 @@ end, { desc = "Buffer Local Keymaps (which-key)" })
 vim.api.nvim_create_autocmd("FileType", {
     pattern = "markdown",
     callback = function()
-        keymap('n', 'mp', '<Plug>MarkdownPreviewToggle', { buffer = true, noremap = false, desc = 'Markdownプレビュートグル' })
-        -- mp の代わりに ,,v でもプレビュー（mp も残す）
-        keymap('n', ',,v', '<Plug>MarkdownPreviewToggle', { buffer = true, noremap = false, desc = 'howm: Markdownプレビュー' })
+        -- 標準ビューアは Vivify（mp / ,,v）。markdown-preview は ,,V で。
+        keymap('n', 'mp', '<cmd>lua require("vivify").open()<CR>', { buffer = true, noremap = true, desc = 'Vivify プレビュー' })
+        keymap('n', ',,v', '<cmd>lua require("vivify").open()<CR>', { buffer = true, noremap = true, desc = 'howm: Vivify プレビュー' })
+        keymap('n', ',,V', '<cmd>lua require("file_preview").markdown_preview()<CR>', { buffer = true, noremap = true, desc = 'markdown-preview(mkdp)' })
     end,
 })
 
