@@ -109,12 +109,6 @@ return {
     },
 
     {
-        "skanehira/jumpcursor.vim",
-    },
-
-    { "rbtnn/vim-jumptoline" },
-
-    {
         "unblevable/quick-scope",
         enabled = false,  -- トグルのバグでクリア問題の原因になるため無効化
         config = function()
