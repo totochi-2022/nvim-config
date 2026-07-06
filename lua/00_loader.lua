@@ -34,7 +34,7 @@ require('claude_tasks').setup()
 -- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
 require('file_preview').setup()
 
--- diagram.lua (schemdraw フェンス→ソース埋込SVG: :DiagramRender / :DiagramEdit)
+-- diagram.lua (図は figure studio(Python→SVG)で作成/編集: :Studio / ,,e で埋込SVGを studio 起動)
 require('diagram').setup()
 
 -- howm_link.lua (telekasten上で howm の come-from(<<<) 連想リンク: :HowmFollow/:HowmDeclare)

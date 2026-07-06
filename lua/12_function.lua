@@ -752,9 +752,6 @@ end
 --   2. 画像データあり → PasteImage
 --   3. どちらでもない → メッセージ表示
 function _G.SmartPaste()
-    -- 0. カーソルが ```schemdraw 等の対応フェンス内なら図を SVG 化してリンク化
-    if require('diagram').try_render() then return end
-
     local clip = vim.fn.getreg('+')
     if clip == nil or clip == '' then clip = vim.fn.getreg('*') end
 
