@@ -24,6 +24,24 @@ local function ensure_server()
     end
 end
 
+-- 指定パスを Vivify で開く（web=右ペイン / 端末=ブラウザタブ）。auto描画はしない。
+-- SVG を開くと Vivify がそのファイルを監視し、再生成(上書き)で自動リロード＝ライブプレビュー。
+function M.open_path(path)
+    if not path or path == '' then return end
+    local ch = vim.g.nvim_server_channel
+    if type(ch) == 'number' and ch > 0 then
+        ensure_server()
+        local url = string.format('http://localhost:%d/viewer%s', PORT, path)
+        vim.defer_fn(function()
+            vim.rpcnotify(ch, 'web_open_url', url, 'Vivify')
+        end, 700)
+    else
+        local viv = vim.fn.exepath('viv')
+        if viv == '' then viv = vim.fn.expand('~/.local/bin/viv') end
+        vim.fn.jobstart({ viv, path }, { detach = true })
+    end
+end
+
 function M.open()
     -- ビュー時の自動 SVG 化(フェンス→![])は既定 OFF。
     -- auto にするとバッファが書き換わり、ブラウザ(端末モードはディスクを表示)と
