@@ -682,8 +682,10 @@ function _G.PasteDrawio()
     local is_typst = vim.bo.filetype == 'typst' or vim.fn.expand('%:e') == 'typ'
     local fname, link
     if is_svg then
-        -- Editable SVG: 表示も再編集も可能。画像として埋め込む
-        fname = ts .. '.drawio.svg'
+        -- Editable SVG: 表示も再編集も可能。画像として埋め込む。
+        -- 我々の figure studio SVG(diagram-source 埋込)は .fig.svg、draw.io は .drawio.svg。
+        local is_studio = clip:match('id="diagram%-source"')
+        fname = ts .. (is_studio and '.fig.svg' or '.drawio.svg')
         if is_typst then
             link = '#image("assets/' .. fname .. '")'
         else
