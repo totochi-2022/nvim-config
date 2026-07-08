@@ -411,6 +411,19 @@ return {
         end,
     },
 
+    -- KVニーモニック→ラダー図（Vivify の ```kvlist フェンス描画用）。
+    -- vim plugin ではなく JS ライブラリ。lazy には clone/update と build フックだけさせる:
+    -- install/update 時に vivify-glue.sh が vivify/scripts/ladder.glue.js を再生成し
+    -- vivify-server を kill（次の ,,V で新プロセスが上がり glue が反映される）。
+    -- dev = true: ~/work/ladder_viewer があればそれを直接使用（11_plugin.lua の dev.fallback
+    -- により、無いマシンでは GitHub から clone されるので他環境でも壊れない）。
+    {
+        "totochi-2022/ladder_viewer",
+        lazy = true,
+        dev = true,
+        build = "sh vivify-glue.sh",
+    },
+
     -- マークダウンのインライン描画（バッファ内で見出し・表・コードブロック等を装飾）
     -- デフォルトは描画OFF（素のmarkdown表示）。toggle `r`（<LocalLeader>0 → r）で
     -- 描画ON/OFFを切り替える（16_toggle.lua）。

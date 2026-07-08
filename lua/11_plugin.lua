@@ -64,6 +64,12 @@ end
 
 require("lazy").setup(all_plugins, {
     concurrency = config.concurrency,
+    -- dev = true のプラグインは ~/work/<name> があればそれを直接使う(push不要で即反映)。
+    -- fallback = true により、無いマシンでは普通に GitHub から clone される(壊れない)
+    dev = {
+        path = "~/work",
+        fallback = true,
+    },
     ui = {
         border = "rounded"
     },

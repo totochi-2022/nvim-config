@@ -10,3 +10,6 @@ lazy-lock.json
 .DS_Store
 # draw.io temporary/backup files
 .$*
+
+# lazy の ladder_viewer build フックが生成 (ソース: github:totochi-2022/ladder_viewer)
+vivify/scripts/ladder.glue.js
