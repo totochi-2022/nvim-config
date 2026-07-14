@@ -31,6 +31,9 @@ require '21_keymap'
 -- claude_tasks.lua (dtach ベースの Claude Code タスク管理: :ClaudeOpen/:ClaudePick/:ClaudeKill)
 require('claude_tasks').setup()
 
+-- claude_attention.lua (複数セッションの応答待ちを下バーに可視化+待ちペインへジャンプ)
+require('claude_attention').setup()
+
 -- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
 require('file_preview').setup()
 

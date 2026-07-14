@@ -123,6 +123,30 @@ return {
         },
         config = function()
             -- require('fidget').setup {}  -- noice.nvimのLSP進捗表示を使うため無効化
+
+            -- Claude Code「応答待ち」表示。各ペインの下バーに、その端末が
+            -- 待ち(claude_attention.queue)なら 🔔 を出す。inactive ペインでも
+            -- 光るので、別ペインで作業中に「どのセッションが自分の番か」が分かる。
+            -- lualine は描画中ウィンドウを vim.g.actual_curwin で渡す。
+            local claude_attn = {
+                function()
+                    local ok, ca = pcall(require, 'claude_attention')
+                    if not ok then return '' end
+                    local win = tonumber(vim.g.actual_curwin)
+                    local buf = (win and vim.api.nvim_win_is_valid(win))
+                        and vim.api.nvim_win_get_buf(win)
+                        or vim.api.nvim_get_current_buf()
+                    local dir = vim.b[buf].claude_task
+                    if not dir then return '' end
+                    local e = ca.status_for(dir)
+                    if not e then return '' end
+                    local label = ({ permission = '許可待ち', idle = '放置', stop = '応答' })[e.kind] or ''
+                    return '🔔 ' .. label
+                end,
+                -- TODO: 色は後で好みに調整(いまはアンバーのプレースホルダ)
+                color = { fg = '#1c1c1c', bg = '#e5c07b', gui = 'bold' },
+            }
+
             require('lualine').setup {
                 options = {
                     disabled_filetypes = {
@@ -140,7 +164,7 @@ return {
                 sections = {
                     lualine_a = { 'mode' },
                     lualine_b = { 'branch', 'diff', 'diagnostics' },
-                    lualine_c = { 'filename' },
+                    lualine_c = { claude_attn, 'filename' },
                     lualine_x = {
                         'encoding',
                         'fileformat',
@@ -166,7 +190,7 @@ return {
                 inactive_sections = {
                     lualine_a = {},
                     lualine_b = {},
-                    lualine_c = { 'filename' },
+                    lualine_c = { claude_attn, 'filename' },
                     lualine_x = { 'location' },
                     lualine_y = {},
                     lualine_z = {}

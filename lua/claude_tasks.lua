@@ -25,10 +25,19 @@ if claude_cmd == "" then
   claude_cmd = "claude"
 end
 
+-- claude-tasks も絶対パスで解決する。nvim-server(systemd user service)経由で
+-- 起動された nvim は PATH に ~/.claude_plugin/scripts を含まないため、bare名のままだと
+-- E475(not executable)になる。exepath で見つからなければ既知の設置先へフォールバック。
+local ct_cmd = vim.fn.exepath("claude-tasks")
+if ct_cmd == "" then
+  local fallback = vim.fn.expand("~/.claude_plugin/scripts/claude-tasks")
+  ct_cmd = vim.fn.executable(fallback) == 1 and fallback or "claude-tasks"
+end
+
 -- ===== claude-tasks 委譲ヘルパ =====
 -- 出力(行配列)を返す
 local function ct(args)
-  return vim.fn.systemlist(vim.list_extend({ "claude-tasks" }, args))
+  return vim.fn.systemlist(vim.list_extend({ ct_cmd }, args))
 end
 -- 単一行の出力を返す
 local function ct1(args)
@@ -37,7 +46,7 @@ local function ct1(args)
 end
 -- 終了コード 0 なら true（is-live / needs-continue 用）
 local function ct_ok(args)
-  vim.fn.system(vim.list_extend({ "claude-tasks" }, args))
+  vim.fn.system(vim.list_extend({ ct_cmd }, args))
   return vim.v.shell_error == 0
 end
 
@@ -57,7 +66,7 @@ local function has_history(dir)
   return ct_ok({ "needs-continue", dir })
 end
 local function add_history(dir)
-  vim.fn.system({ "claude-tasks", "add-history", dir })
+  vim.fn.system({ ct_cmd, "add-history", dir })
 end
 
 -- 編集中ファイルの git ルート（無ければファイルのdir、無ければ cwd）
@@ -161,6 +170,12 @@ local function open_toggleterm(dir)
   vim.cmd("startinsert")
 end
 
+-- その dir の attach ペインが既にあればフォーカスを移す(claude_attention から使う)。
+-- 表示中のウィンドウが無ければ false(呼び側で open にフォールバック)。
+function M.focus(dir)
+  return focus_existing(norm(dir))
+end
+
 -- タスクを開く: 生存なら attach、停止中なら dir を cwd にして起動。
 -- opts.mode: "current"(既定/現ウィンドウ置換) | "left"(左の縦分割) | "toggleterm"(float)
 function M.open(dir, opts)
@@ -203,7 +218,7 @@ function M.kill(dir)
     return
   end
   dir = norm(dir)
-  vim.fn.jobstart({ "claude-tasks", "exit", dir })
+  vim.fn.jobstart({ ct_cmd, "exit", dir })
 end
 
 -- 応答しなくなったタスクの強制終了（最終手段）。状態保存は期待できない。
@@ -212,7 +227,7 @@ function M.force_kill(dir)
     return
   end
   dir = norm(dir)
-  vim.fn.system({ "claude-tasks", "kill", dir })
+  vim.fn.system({ ct_cmd, "kill", dir })
 end
 
 -- Telescope: claude-tasks list（稼働状態付き・最終利用順）から選んで開く。
@@ -241,7 +256,7 @@ function M.pick()
   local previewer = previewers.new_buffer_previewer({
     title = "Claude 最新会話",
     define_preview = function(self, entry)
-      local lines = vim.fn.systemlist({ "claude-tasks", "preview", entry.value.dir })
+      local lines = vim.fn.systemlist({ ct_cmd, "preview", entry.value.dir })
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
     end,
   })
