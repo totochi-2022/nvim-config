@@ -140,8 +140,15 @@ return {
                     if not dir then return '' end
                     local e = ca.status_for(dir)
                     if not e then return '' end
-                    local label = ({ permission = '許可待ち', idle = '放置', stop = '応答' })[e.kind] or ''
-                    return '🔔 ' .. label
+                    -- kind → 表示(グリフ + ラベル)。working=考え中はあなたの番ではない。
+                    local disp = ({
+                        working    = '⏳ 考え中',
+                        ask        = '❓ 選択待ち',
+                        permission = '🔒 許可待ち',
+                        stop       = '🔔 応答',
+                        idle       = '💤 放置',
+                    })[e.kind]
+                    return disp or ''
                 end,
                 -- TODO: 色は後で好みに調整(いまはアンバーのプレースホルダ)
                 color = { fg = '#1c1c1c', bg = '#e5c07b', gui = 'bold' },

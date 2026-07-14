@@ -24,11 +24,15 @@ end
 
 local ATT_DIR = vim.fn.expand("~/.cache/claude-tasks/attention")
 
--- どの kind を「注目」として扱うか(:ClaudeAttn で実行時トグル)。
--- 3 イベント全部を hook は積むが、ここで表示/ジャンプ対象を絞る。
-M.enabled = { stop = true, permission = true, idle = false }
+-- 待ち(あなたの番)の kind。working(考え中)はここに含めない=キュー外・表示専用。
+local WAITING = { ask = true, permission = true, stop = true, idle = true }
 
--- 待ち行列キャッシュ: { {dir=, kind=}, ... }(claude-tasks 側で既に優先度→FIFO順)
+-- どの待ち kind を注目対象にするか(:ClaudeAttn で実行時トグル)。
+M.enabled = { ask = true, permission = true, stop = true, idle = false }
+
+-- 全状態キャッシュ: norm(dir) -> kind(working 含む。lualine 表示用)
+M.states = {}
+-- ジャンプ待ち行列: { {dir=, kind=}, ... }(優先度→FIFO順。working は入らない)
 M.queue = {}
 
 -- dir 正規化(claude_tasks と揃える。b.claude_task もこの形)
@@ -44,44 +48,49 @@ local function current_task_dir()
   return vim.b.claude_task
 end
 
--- 待ち一覧を読み直して M.queue を更新。表示中(=見ているペイン)の待ちは即クリア。
+-- 状態を読み直して M.states / M.queue を更新。
+-- 見ているペイン(現バッファ)の「待ち」は即クリア(考え中=working は残す)。
 function M.refresh()
   local out = vim.fn.systemlist({ ct_cmd, "attention-list" })
   local cur = current_task_dir()
   cur = cur and norm(cur) or nil
 
-  local q = {}
+  local states, q = {}, {}
   for _, line in ipairs(out) do
     local kind, dir = line:match("^(%S+)\t(.+)$")
-    if dir and M.enabled[kind] then
-      if cur and norm(dir) == cur then
-        -- 今このペインを見ている → 待ちにしない(消費済み扱い)
+    if dir then
+      local ndir = norm(dir)
+      if cur and ndir == cur and WAITING[kind] then
+        -- 今このペインを見ている待ち → 消費済み扱いで消す
         vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
       else
-        table.insert(q, { dir = dir, kind = kind })
+        states[ndir] = kind
+        if WAITING[kind] and M.enabled[kind] then
+          table.insert(q, { dir = dir, kind = kind }) -- out は既に優先度→FIFO順
+        end
       end
     end
   end
+  M.states = states
   M.queue = q
 
-  -- lualine を再描画(待ちの点灯/消灯を反映)
+  -- lualine を再描画(状態の点灯/消灯を反映)
   pcall(function()
     require("lualine").refresh()
   end)
 end
 
--- lualine コンポーネント用: この dir が待ちなら {kind=} を返す
+-- lualine コンポーネント用: この dir の現在状態 {kind=} を返す(working 含む)
 function M.status_for(dir)
   dir = norm(dir)
   if dir == "" then
     return nil
   end
-  for _, e in ipairs(M.queue) do
-    if norm(e.dir) == dir then
-      return e
-    end
+  local kind = M.states[dir]
+  if not kind then
+    return nil
   end
-  return nil
+  return { kind = kind }
 end
 
 -- スタック先頭(飛ぶべき待ち)を pop。dir を返す。無ければ nil。
@@ -155,15 +164,19 @@ end
 function M.setup()
   start_watch()
 
-  -- claude ペインに入ったら(BufEnter/WinEnter/TermEnter/FocusGained)その待ちを消す
+  -- claude ペインに入ったら(BufEnter/WinEnter/TermEnter/FocusGained)その待ちを消す。
+  -- 考え中(working)は消さない(離れたら ⏳ を出し続けたいので)。
   vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "TermEnter", "FocusGained" }, {
     callback = function(ev)
       local dir = vim.b[ev.buf].claude_task
       if dir then
-        vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
+        local kind = M.states[norm(dir)]
+        if kind and WAITING[kind] then
+          vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
+        end
       end
     end,
-    desc = "claude ペインに入ったら応答待ちを消す",
+    desc = "claude ペインに入ったら応答待ちを消す(考え中は残す)",
   })
 
   vim.api.nvim_create_user_command("ClaudeAttnFocus", function()
@@ -179,9 +192,9 @@ function M.setup()
   end, {
     nargs = 1,
     complete = function()
-      return { "stop", "permission", "idle" }
+      return { "ask", "permission", "stop", "idle" }
     end,
-    desc = "attention 対象イベントをトグル(stop|permission|idle)",
+    desc = "attention 対象イベントをトグル(ask|permission|stop|idle)",
   })
 
   -- 初回同期
