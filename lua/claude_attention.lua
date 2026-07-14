@@ -151,7 +151,7 @@ function M.toggle_event(kind)
 end
 
 -- attention ディレクトリを監視(変化で refresh)。バースト吸収に軽いデバウンス。
-local watcher, debounce
+local watcher, debounce, poll_timer
 local function start_watch()
   vim.fn.mkdir(ATT_DIR, "p")
   watcher = vim.uv.new_fs_event()
@@ -174,6 +174,19 @@ end
 
 function M.setup()
   start_watch()
+
+  -- 定期 refresh: 固着した working は attention ファイルが変わらず fs_event が来ないので、
+  -- タイマーで claude-tasks の自己修復(reconcile)を回して表示を実状態に追従させる。
+  poll_timer = vim.uv.new_timer()
+  if poll_timer then
+    poll_timer:start(
+      15000,
+      15000,
+      vim.schedule_wrap(function()
+        M.refresh()
+      end)
+    )
+  end
 
   -- claude ペインに入ったら(BufEnter/WinEnter/TermEnter/FocusGained)その待ちを消す。
   -- 考え中(working)は消さない(離れたら ⏳ を出し続けたいので)。
