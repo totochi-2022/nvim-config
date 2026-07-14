@@ -124,19 +124,17 @@ return {
         config = function()
             -- require('fidget').setup {}  -- noice.nvimのLSP進捗表示を使うため無効化
 
-            -- Claude Code「応答待ち」表示。各ペインの下バーに、その端末が
-            -- 待ち(claude_attention.queue)なら 🔔 を出す。inactive ペインでも
-            -- 光るので、別ペインで作業中に「どのセッションが自分の番か」が分かる。
-            -- lualine は描画中ウィンドウを vim.g.actual_curwin で渡す。
+            -- Claude Code の状態表示。各ペインの下バーに、その端末セッションの
+            -- 状態(考え中/応答/選択待ち…)を出す。inactive ペインでも出るので、
+            -- 別ペインで作業中に「どのセッションが自分の番か」が分かる。
+            -- lualine は各ウィンドウを nvim_win_call(win) の中で描画するため、
+            -- ここでの vim.b は描画対象ウィンドウのバッファを指す(actual_curwin は
+            -- フォーカス窓固定なので使わない)。
             local claude_attn = {
                 function()
                     local ok, ca = pcall(require, 'claude_attention')
                     if not ok then return '' end
-                    local win = tonumber(vim.g.actual_curwin)
-                    local buf = (win and vim.api.nvim_win_is_valid(win))
-                        and vim.api.nvim_win_get_buf(win)
-                        or vim.api.nvim_get_current_buf()
-                    local dir = vim.b[buf].claude_task
+                    local dir = vim.b.claude_task
                     if not dir then return '' end
                     local e = ca.status_for(dir)
                     if not e then return '' end
