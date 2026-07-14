@@ -7,8 +7,9 @@
 --   * nvim はそのディレクトリを fs_event で監視し、待ちを M.queue にキャッシュ。
 --   * lualine コンポーネント(plugins/ui.lua)が b.claude_task を見て、その dir が
 --     待ちなら下バーに 🔔 を出す(inactive ペインでも光る=別ペイン作業中に気づける)。
---   * 消費: <Leader>n=フォーカス移す(多画面) / <Leader>N=切り替えて飛ぶ(1画面)。
---     どちらもスタック先頭(permission 優先→FIFO)を pop する。
+--   * <Leader>n=多画面: 画面上の待ちペインのうち最優先へカーソル移動(画面外は開かない/
+--     画面上に待ちが無ければメッセージのみ)。<Leader>N=1画面: 次の待ち(グローバル優先度→
+--     FIFO)へ確実に移る(表示中は移動・隠れ/無しは現ウィンドウに出す/作る)。
 --
 -- ★ 待ちの実体(積む/消す/並べる)は claude-tasks に集約(fish の ccpick とも共有)。
 --   このファイルは監視・表示・ジャンプという nvim 固有部分だけを持つ。
@@ -105,26 +106,36 @@ local function pop_top()
   return e.dir
 end
 
--- 多画面運用: 既に開いているペインへフォーカスを移す(無ければ開く)
+-- 多画面運用: いま画面に出ているペインのうち、待ち状態で最優先のものへカーソルを移す。
+-- 画面外のセッションは開かない(レイアウトを壊さない)。画面上に待ちが無ければ通知のみ。
 function M.next_focus()
-  local dir = pop_top()
-  if not dir then
-    return
+  -- 画面に出ている claude ペインを norm(dir) -> win で集める
+  local win_by_dir = {}
+  for _, w in ipairs(vim.api.nvim_list_wins()) do
+    local d = vim.b[vim.api.nvim_win_get_buf(w)].claude_task
+    if d then
+      win_by_dir[norm(d)] = w
+    end
   end
-  local claude = require("claude_tasks")
-  if not claude.focus(dir) then
-    claude.open(dir)
+  -- M.queue は既に優先度(ask>permission>stop>idle)→FIFO 順。画面上の最初の一致へ。
+  for _, e in ipairs(M.queue) do
+    local w = win_by_dir[norm(e.dir)]
+    if w then
+      vim.api.nvim_set_current_win(w) -- WinEnter autocmd がその待ちをクリアする
+      return
+    end
   end
-  M.refresh()
+  vim.notify("画面上に待ちのセッションはありません", vim.log.levels.INFO)
 end
 
--- 1画面運用: 今のウィンドウにそのセッションを出す(表示を切り替える)
+-- 1画面運用: 次の待ち(グローバル優先度→FIFO の先頭)へ確実に移る。
+-- 表示中ならそのウィンドウへ、隠れていれば現ウィンドウに、無ければ作って attach。
 function M.next_switch()
   local dir = pop_top()
   if not dir then
     return
   end
-  require("claude_tasks").open(dir) -- mode=current(既定): 現ウィンドウに出す
+  require("claude_tasks").open(dir) -- mode=current(既定): 表示中は移動/無ければ現ウィンドウに出す
   M.refresh()
 end
 
@@ -181,11 +192,11 @@ function M.setup()
 
   vim.api.nvim_create_user_command("ClaudeAttnFocus", function()
     M.next_focus()
-  end, { desc = "待ちセッション先頭へフォーカス(多画面)" })
+  end, { desc = "画面上の待ちペイン最優先へカーソル移動(多画面)" })
 
   vim.api.nvim_create_user_command("ClaudeAttnSwitch", function()
     M.next_switch()
-  end, { desc = "待ちセッション先頭を現ウィンドウに出す(1画面)" })
+  end, { desc = "次の待ちへ確実に移る(1画面/無ければ作る)" })
 
   vim.api.nvim_create_user_command("ClaudeAttn", function(o)
     M.toggle_event(o.args)
