@@ -111,15 +111,28 @@ local function build_cmd(dir)
   return cmd
 end
 
--- attach 用バッファの共通セットアップ（タスク識別子 + <Esc> 素通し）。
+-- attach 用バッファの共通セットアップ（タスク識別子 + <Esc> キーマップ）。
 local function setup_term_buf(buf, dir)
   vim.b[buf].claude_task = dir
-  -- このターミナルでは <Esc> を端末(claude)へ素通しさせる。
-  -- グローバルの t:<Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
-  -- ノーマルモードへ抜けたいときは組み込みの <C-\><C-n> を使う。
-  vim.keymap.set("t", "<Esc>", "<Esc>", {
+  -- このターミナルでは <Esc> 単発=ノーマルモード、<Esc><Esc>=claude へ ESC 送信。
+  -- 無変換キーに Esc を割てているので、応答中断（claude 側 ESC）は二連打で行う。
+  -- グローバルの t:<Esc><Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
+  vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], {
     buffer = buf,
-    desc = "claude へ ESC を送る",
+    desc = "ノーマルモードへ",
+  })
+  -- <Esc><Esc> は claude へ ESC を送る（応答中断）。中断は Stop フックが飛ばず
+  -- 「考え中(⏳)」が最大120秒残る問題があるが、この二連打は "中断確定" の信号なので、
+  -- ここで attention を即クリアして ⏳ を即座に落とす（nvimターミナル限定の確実な経路）。
+  vim.keymap.set("t", "<Esc><Esc>", function()
+    vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
+    local chan = vim.b[buf].terminal_job_id
+    if chan then
+      vim.fn.chansend(chan, "\27") -- ESC(0x1b) を claude へ
+    end
+  end, {
+    buffer = buf,
+    desc = "claude へ ESC 送信（応答中断）+ 考え中を即クリア",
   })
 end
 
