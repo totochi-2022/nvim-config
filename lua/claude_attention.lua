@@ -131,11 +131,15 @@ end
 -- 1画面運用: 次の待ち(グローバル優先度→FIFO の先頭)へ確実に移る。
 -- 表示中ならそのウィンドウへ、隠れていれば現ウィンドウに、無ければ作って attach。
 function M.next_switch()
-  local dir = pop_top()
-  if not dir then
+  -- 飛び先は claude-tasks に集約(母集団=live非working / 未対応待ち優先→last_visit古い順LRU)。
+  local out = vim.fn.systemlist({ ct_cmd, "next-jump" })
+  local dir = out and out[1]
+  if not dir or dir == "" then
+    vim.notify("巡回対象のセッションはありません", vim.log.levels.INFO)
     return
   end
   require("claude_tasks").open(dir) -- mode=current(既定): 表示中は移動/無ければ現ウィンドウに出す
+  vim.fn.jobstart({ ct_cmd, "visit-mark", dir }) -- last_visit=now(WinEnterでも更新されるが確実に)
   M.refresh()
 end
 
@@ -194,6 +198,7 @@ function M.setup()
     callback = function(ev)
       local dir = vim.b[ev.buf].claude_task
       if dir then
+        vim.fn.jobstart({ ct_cmd, "visit-mark", dir }) -- LRU巡回用: 最終訪問時刻を更新
         local kind = M.states[norm(dir)]
         if kind and WAITING[kind] then
           vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
