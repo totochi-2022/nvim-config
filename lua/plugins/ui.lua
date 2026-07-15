@@ -130,26 +130,44 @@ return {
             -- lualine は各ウィンドウを nvim_win_call(win) の中で描画するため、
             -- ここでの vim.b は描画対象ウィンドウのバッファを指す(actual_curwin は
             -- フォーカス窓固定なので使わない)。
+            -- 状態 → 表示ラベルと色。色は「ハイライトグループ名」で指定するので配色テーマに
+            -- 追従する。好みで任意のグループに変えてOK(例: 'Search' 'IncSearch' 'Todo'
+            -- 'Function' 'String' 'ErrorMsg' 'DiffChange' …。`:Telescope highlights` で一覧)。
+            -- Diff*/Search 系は背景色を持つテーマが多く、4分割でも「自分の番」が目立つ。
+            local CA = {
+                stop       = { label = '🔔 応答',     hl = 'DiffAdd' },        -- あなたの番(緑系)
+                ask        = { label = '❓ 選択待ち', hl = 'Search' },         -- 質問/選択(強調)
+                permission = { label = '🔒 許可待ち', hl = 'DiffDelete' },     -- ブロック(赤系)
+                idle       = { label = '💤 放置',     hl = 'DiagnosticWarn' }, -- 橙系(控えめ)
+                working    = { label = '⏳ 考え中',   hl = 'Comment' },        -- 考え中=控えめ(灰)
+            }
+            local function ca_state()
+                local ok, ca = pcall(require, 'claude_attention')
+                if not ok then return nil end
+                local dir = vim.b.claude_task
+                if not dir then return nil end
+                local e = ca.status_for(dir)
+                return e and CA[e.kind] or nil
+            end
+            -- ハイライトグループ名 → lualine 用の色テーブル{fg,bg,gui}に解決(テーマ追従)。
+            local function hl_to_color(name)
+                local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = name, link = false })
+                if not ok or not hl then return nil end
+                local c = {}
+                if hl.fg then c.fg = string.format('#%06x', hl.fg) end
+                if hl.bg then c.bg = string.format('#%06x', hl.bg) end
+                if hl.bold then c.gui = 'bold' end
+                return next(c) and c or nil
+            end
             local claude_attn = {
                 function()
-                    local ok, ca = pcall(require, 'claude_attention')
-                    if not ok then return '' end
-                    local dir = vim.b.claude_task
-                    if not dir then return '' end
-                    local e = ca.status_for(dir)
-                    if not e then return '' end
-                    -- kind → 表示(グリフ + ラベル)。working=考え中はあなたの番ではない。
-                    local disp = ({
-                        working    = '⏳ 考え中',
-                        ask        = '❓ 選択待ち',
-                        permission = '🔒 許可待ち',
-                        stop       = '🔔 応答',
-                        idle       = '💤 放置',
-                    })[e.kind]
-                    return disp or ''
+                    local s = ca_state()
+                    return s and s.label or ''
                 end,
-                -- TODO: 色は後で好みに調整(いまはアンバーのプレースホルダ)
-                color = { fg = '#1c1c1c', bg = '#e5c07b', gui = 'bold' },
+                color = function()
+                    local s = ca_state()
+                    return s and hl_to_color(s.hl) or nil
+                end,
             }
 
             require('lualine').setup {

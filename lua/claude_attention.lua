@@ -106,8 +106,9 @@ local function pop_top()
   return e.dir
 end
 
--- 多画面運用: いま画面に出ているペインのうち、待ち状態で最優先のものへカーソルを移す。
--- 画面外のセッションは開かない(レイアウトを壊さない)。画面上に待ちが無ければ通知のみ。
+-- 多画面運用: 変換+m と同じ巡回順(jump-order = 未対応待ち優先→LRU)で、
+-- 「いま画面に出ているペイン」の最初の候補へカーソルを移すだけ。画面外は開かない
+-- (レイアウトを壊さない)。画面内に候補が無ければ通知のみ。
 function M.next_focus()
   -- 画面に出ている claude ペインを norm(dir) -> win で集める
   local win_by_dir = {}
@@ -117,15 +118,16 @@ function M.next_focus()
       win_by_dir[norm(d)] = w
     end
   end
-  -- M.queue は既に優先度(ask>permission>stop>idle)→FIFO 順。画面上の最初の一致へ。
-  for _, e in ipairs(M.queue) do
-    local w = win_by_dir[norm(e.dir)]
+  -- claude-tasks の巡回順(変換+m と同一)を上から見て、画面内の最初の1つへ。
+  for _, dir in ipairs(vim.fn.systemlist({ ct_cmd, "jump-order" })) do
+    local w = win_by_dir[norm(dir)]
     if w then
-      vim.api.nvim_set_current_win(w) -- WinEnter autocmd がその待ちをクリアする
+      vim.api.nvim_set_current_win(w) -- WinEnter autocmd が待ちをクリア
+      vim.fn.jobstart({ ct_cmd, "visit-mark", dir }) -- LRU 更新(連打で巡回)
       return
     end
   end
-  vim.notify("画面上に待ちのセッションはありません", vim.log.levels.INFO)
+  vim.notify("画面内に巡回対象のセッションはありません", vim.log.levels.INFO)
 end
 
 -- 1画面運用: 次の待ち(グローバル優先度→FIFO の先頭)へ確実に移る。
