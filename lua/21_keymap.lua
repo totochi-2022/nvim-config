@@ -98,7 +98,7 @@ end
 
 -- ── IME 状態表示（端末で日本語入力かどうかを可視化）─────────────────
 -- kanata が 変換/無変換/カナ の tap で「IME状態マーカー(単独ファンクションキー)」を送る:
---   カナ=ON → S-f7(<F19>/<S-F7>) / 無変換=OFF → S-f8(<F20>/<S-F8>) / 変換=toggle → S-f9(<F21>/<S-F9>)
+--   カナ=ON → S-f7 / 無変換=OFF → S-f8 / 変換=toggle → S-f9。WT では legacy の <F19>/<F20>/<F21> で届く。
 -- 受けて g:ime_on を更新し、端末カーソル色(TermCursor)で「日本語ON=赤 / 直接入力=青」を表示。
 -- ズレ許容: トグルや他手段の切替は 無変換(OFF)/カナ(ON) の絶対キーで自己補正。マーカーは
 -- t モードでも飲む(ジョブに渡さない)ので Claude Code 等に副作用なし。g:ime_on はステータス等でも参照可。
@@ -123,15 +123,19 @@ local function ime_marker(keys, fn)
             { noremap = true, desc = 'IME状態マーカー(表示更新)' })
     end
 end
-ime_marker({ '<F19>', '<S-F7>' }, function() vim.g.ime_on = true end)               -- カナ = ON
-ime_marker({ '<F20>', '<S-F8>' }, function() vim.g.ime_on = false end)              -- 無変換 = OFF
-ime_marker({ '<F21>', '<S-F9>' }, function() vim.g.ime_on = not vim.g.ime_on end)   -- 変換 = toggle
+-- WT 専用。端末は kanata の Shift+Fn を legacy の <F19>/<F20>/<F21> で送る(実測)。
+-- ttyd(<S-F7-9>)は OSC 12 が効かず色が出ないので未対応(バインドしない)。
+-- 変換=toggle でOK: WT は「変換候補中の変換」の marker が IME に飲まれて届かないのでズレない。
+ime_marker({ '<F19>' }, function() vim.g.ime_on = true end)             -- カナ = ON
+ime_marker({ '<F20>' }, function() vim.g.ime_on = false end)            -- 無変換 = OFF
+ime_marker({ '<F21>' }, function() vim.g.ime_on = not vim.g.ime_on end) -- 変換 = toggle
 ime_refresh()
 -- nvim 終了時は端末のカーソル色を既定へ戻す(OSC 112)。色が残らないように。
 vim.api.nvim_create_autocmd('VimLeavePre', {
     callback = function() pcall(function() io.write('\27]112\7'); io.flush() end) end,
     desc = 'IME表示: カーソル色を既定に戻す',
 })
+-- 表示は WT のカーソル色(OSC 12)のみ。ttyd は OSC 12 を無視し色が出ないので未対応と割り切る。
 --
 
 --- undo
