@@ -95,6 +95,33 @@ end
 for _, lhs in ipairs({ '<F13><S-F3><F14>', '<S-F1><S-F3><S-F2>' }) do
     keymap('t', lhs, '<Esc>', { noremap = true, desc = '端末へ Esc を送る (変換/無変換+Esc)' })
 end
+
+-- ── IME 状態表示（端末で日本語入力かどうかを可視化）─────────────────
+-- kanata が 変換/無変換/カナ の tap で「IME状態マーカー(単独ファンクションキー)」を送る:
+--   カナ=ON → S-f7(<F19>/<S-F7>) / 無変換=OFF → S-f8(<F20>/<S-F8>) / 変換=toggle → S-f9(<F21>/<S-F9>)
+-- 受けて g:ime_on を更新し、端末カーソル色(TermCursor)で「日本語ON=赤 / 直接入力=青」を表示。
+-- ズレ許容: トグルや他手段の切替は 無変換(OFF)/カナ(ON) の絶対キーで自己補正。マーカーは
+-- t モードでも飲む(ジョブに渡さない)ので Claude Code 等に副作用なし。g:ime_on はステータス等でも参照可。
+vim.g.ime_on = false
+local function ime_refresh()
+    local on = vim.g.ime_on
+    pcall(vim.api.nvim_set_hl, 0, 'TermCursor',
+        on and { bg = '#e0555f', fg = '#141414' } or { bg = '#5599cc', fg = '#141414' })
+    -- タイプ不要の可視フィードバック(画面下)。診断＆簡易インジケータ兼用。
+    pcall(vim.api.nvim_echo,
+        { { on and '🈂 IME: ON  日本語' or 'IME: OFF  直接入力', on and 'ErrorMsg' or 'MoreMsg' } },
+        false, {})
+end
+local function ime_marker(keys, fn)
+    for _, k in ipairs(keys) do
+        keymap({ 'n', 'i', 't' }, k, function() fn(); ime_refresh() end,
+            { noremap = true, desc = 'IME状態マーカー(表示更新)' })
+    end
+end
+ime_marker({ '<F19>', '<S-F7>' }, function() vim.g.ime_on = true end)               -- カナ = ON
+ime_marker({ '<F20>', '<S-F8>' }, function() vim.g.ime_on = false end)              -- 無変換 = OFF
+ime_marker({ '<F21>', '<S-F9>' }, function() vim.g.ime_on = not vim.g.ime_on end)   -- 変換 = toggle
+ime_refresh()
 --
 
 --- undo
