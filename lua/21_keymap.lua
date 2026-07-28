@@ -65,20 +65,35 @@ local function open_cwd_in_explorer()
     local win = require('wslpath').to_win(dir)
     vim.fn.jobstart({ exe, win }, { detach = true })
 end
+-- 窓移動: kanata が 無変換+hjkl を「<F13>/<S-F1> プレフィックス + 文字」で送る(2ストローク)。
+-- 窓移動は Normal で使うことが多く hjkl は矢印にも割当済みなので従来方式のまま。
 for _, pfx in ipairs({ '<F13>', '<S-F1>' }) do
     keymap({ 'n', 'i', 't' }, pfx .. 'h', '<Cmd>wincmd h<CR>', { noremap = true, desc = '左のウィンドウへ (無変換+h)' })
     keymap({ 'n', 'i', 't' }, pfx .. 'j', '<Cmd>wincmd j<CR>', { noremap = true, desc = '下のウィンドウへ (無変換+j)' })
     keymap({ 'n', 'i', 't' }, pfx .. 'k', '<Cmd>wincmd k<CR>', { noremap = true, desc = '上のウィンドウへ (無変換+k)' })
     keymap({ 'n', 'i', 't' }, pfx .. 'l', '<Cmd>wincmd l<CR>', { noremap = true, desc = '右のウィンドウへ (無変換+l)' })
-    -- 変換/無変換 + Esc → 端末(terminal)モードで literal Esc をジョブへ送る（自前の <Esc> remap を迂回）
-    keymap('t', pfx .. '<Esc>', '<Esc>', { noremap = true, desc = '端末へ Esc を送る (変換/無変換+Esc)' })
-    -- 変換/無変換 + c → Claudeタスク一覧(ClaudePick)。端末モードからも起動できるよう t も含む
-    keymap({ 'n', 'i', 't' }, pfx .. 'c', '<Cmd>ClaudePick<CR>', { noremap = true, desc = 'Claudeタスク一覧 (変換/無変換+c)' })
-    -- 変換/無変換 + n/m → Claude待ちペイン操作（m は Shift不要な N の代替）
-    keymap({ 'n', 'i', 't' }, pfx .. 'n', '<Cmd>ClaudeAttnFocus<CR>', { noremap = true, desc = 'Claude待ちペインへフォーカス (変換/無変換+n)' })
-    keymap({ 'n', 'i', 't' }, pfx .. 'm', '<Cmd>ClaudeAttnSwitch<CR>', { noremap = true, desc = 'Claude待ちを現窓に (変換/無変換+m ※N代替)' })
-    -- 変換/無変換 + e → 作業ディレクトリ(cwd)を explorer で開く。端末モードでもcwdなので確実
-    keymap({ 'n', 'i', 't' }, pfx .. 'e', open_cwd_in_explorer, { noremap = true, desc = '作業ディレクトリをexplorerで開く (変換/無変換+e)' })
+end
+-- Claude系/explorer/端末Esc: kanata が 変換/無変換+<key> を「F13〜F15 の3打」で送る。
+-- 全キーがファンクションキー＝IME もブラウザも絶対に奪わない → 日本語入力中・全モード・WT/ttyd で確実。
+-- 体系: F13(leader) → F14=Claude群/F15=ツール群 → 選択。WT=<F13..>/ttyd=<S-F1..> の両表記を割当。
+local henkan_seq = {
+    -- { WTシーケンス, ttydシーケンス, rhs, desc }
+    -- 注: kanata の S-f3 は端末で <F15> でなく <S-F3> として届く(Shift+F1/F2 は F13/F14 に
+    -- 化けるのに F3 は化けない=不揃い)。なので S-f3 の位置は <S-F3> を割当てる。
+    -- S-f1→<F13>/<S-F1>, S-f2→<F14>/<S-F2>, S-f3→<S-F3>(WT/ttyd 共通)。
+    { '<F13><F14><F13>',  '<S-F1><S-F2><S-F1>', '<Cmd>ClaudePick<CR>',       'Claudeタスク一覧 (変換/無変換+c)' },
+    { '<F13><F14><F14>',  '<S-F1><S-F2><S-F2>', '<Cmd>ClaudeAttnFocus<CR>',  'Claude待ちペインへフォーカス (変換/無変換+n)' },
+    { '<F13><F14><S-F3>', '<S-F1><S-F2><S-F3>', '<Cmd>ClaudeAttnSwitch<CR>', 'Claude待ちを現窓に (変換/無変換+m ※N代替)' },
+    { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
+}
+for _, s in ipairs(henkan_seq) do
+    for _, lhs in ipairs({ s[1], s[2] }) do
+        keymap({ 'n', 'i', 't' }, lhs, s[3], { noremap = true, desc = s[4] })
+    end
+end
+-- 端末Esc は terminal モードのみ（ジョブへ literal Esc を送る）[F13 <S-F3> F14]
+for _, lhs in ipairs({ '<F13><S-F3><F14>', '<S-F1><S-F3><S-F2>' }) do
+    keymap('t', lhs, '<Esc>', { noremap = true, desc = '端末へ Esc を送る (変換/無変換+Esc)' })
 end
 --
 
