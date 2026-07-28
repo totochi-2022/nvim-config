@@ -103,14 +103,19 @@ end
 -- ズレ許容: トグルや他手段の切替は 無変換(OFF)/カナ(ON) の絶対キーで自己補正。マーカーは
 -- t モードでも飲む(ジョブに渡さない)ので Claude Code 等に副作用なし。g:ime_on はステータス等でも参照可。
 vim.g.ime_on = false
+-- IME ON=日本語 / OFF=直接入力 のカーソル色(端末の実際のカーソル色)
+local IME_CURSOR = { on = '#e0555f', off = '#5599cc' }
 local function ime_refresh()
     local on = vim.g.ime_on
-    pcall(vim.api.nvim_set_hl, 0, 'TermCursor',
-        on and { bg = '#e0555f', fg = '#141414' } or { bg = '#5599cc', fg = '#141414' })
-    -- タイプ不要の可視フィードバック(画面下)。診断＆簡易インジケータ兼用。
-    pcall(vim.api.nvim_echo,
-        { { on and '🈂 IME: ON  日本語' or 'IME: OFF  直接入力', on and 'ErrorMsg' or 'MoreMsg' } },
-        false, {})
+    local color = on and IME_CURSOR.on or IME_CURSOR.off
+    -- ★端末のカーソル色は OSC 12 を送って変える(colorscheme が起動時にやってるのと同じ手段を動的に)。
+    --   nvim_set_hl(Cursor) だけでは nvim が OSC を再送しないので直接書く。BEL(0x07)終端で WT が解釈。
+    pcall(function() io.write('\27]12;' .. color .. '\7'); io.flush() end)
+    -- highlight も更新(GUI/将来用・害なし)
+    local c = on and { bg = IME_CURSOR.on, fg = '#141414' } or { bg = IME_CURSOR.off, fg = '#141414' }
+    for _, grp in ipairs({ 'Cursor', 'lCursor', 'TermCursor' }) do
+        pcall(vim.api.nvim_set_hl, 0, grp, c)
+    end
 end
 local function ime_marker(keys, fn)
     for _, k in ipairs(keys) do
@@ -122,6 +127,11 @@ ime_marker({ '<F19>', '<S-F7>' }, function() vim.g.ime_on = true end)           
 ime_marker({ '<F20>', '<S-F8>' }, function() vim.g.ime_on = false end)              -- 無変換 = OFF
 ime_marker({ '<F21>', '<S-F9>' }, function() vim.g.ime_on = not vim.g.ime_on end)   -- 変換 = toggle
 ime_refresh()
+-- nvim 終了時は端末のカーソル色を既定へ戻す(OSC 112)。色が残らないように。
+vim.api.nvim_create_autocmd('VimLeavePre', {
+    callback = function() pcall(function() io.write('\27]112\7'); io.flush() end) end,
+    desc = 'IME表示: カーソル色を既定に戻す',
+})
 --
 
 --- undo
