@@ -105,12 +105,25 @@ end
 vim.g.ime_on = false
 -- IME ON=日本語 / OFF=直接入力 のカーソル色(端末の実際のカーソル色)
 local IME_CURSOR = { on = '#e0555f', off = '#5599cc' }
+-- 点滅で IME を表す(ttyd は OSC 12 色が効かないので点滅が主表示になる)。形(block/ver25)はモードのまま。
+-- 02_option の guicursor(点滅なし=基準)を元に、各モードに blink を付けた版を生成しておく。
+local GC_STEADY = vim.o.guicursor
+local GC_BLINK = (function()
+    local segs = {}
+    for seg in GC_STEADY:gmatch('[^,]+') do segs[#segs + 1] = seg .. '-blinkon400-blinkoff400' end
+    return table.concat(segs, ',')
+end)()
 local function ime_refresh()
     local on = vim.g.ime_on
     local color = on and IME_CURSOR.on or IME_CURSOR.off
     -- ★端末のカーソル色は OSC 12 を送って変える(colorscheme が起動時にやってるのと同じ手段を動的に)。
     --   nvim_set_hl(Cursor) だけでは nvim が OSC を再送しないので直接書く。BEL(0x07)終端で WT が解釈。
     pcall(function() io.write('\27]12;' .. color .. '\7'); io.flush() end)
+    -- ★点滅: ON=全モード点滅 / OFF=点滅なし。guicursor経由で形(モード)を保ったまま blink だけ切替。
+    --   ttyd では色(OSC12)が出ないので、この点滅が日本語ON/OFFの主たる可視表示になる。
+    vim.o.guicursor = on and GC_BLINK or GC_STEADY
+    -- IME ON になったら開いてる補完ポップアップを閉じる(日本語入力中は補完を出さない方針。enabled とセット)。
+    if on then pcall(function() require('blink.cmp').hide() end) end
     -- highlight も更新(GUI/将来用・害なし)
     local c = on and { bg = IME_CURSOR.on, fg = '#141414' } or { bg = IME_CURSOR.off, fg = '#141414' }
     for _, grp in ipairs({ 'Cursor', 'lCursor', 'TermCursor' }) do
@@ -123,11 +136,11 @@ local function ime_marker(keys, fn)
             { noremap = true, desc = 'IME状態マーカー(表示更新)' })
     end
 end
--- WT 専用。端末は kanata の Shift+Fn を legacy の <F19>/<F20>/<F21> で送る(実測)。
--- ttyd(<S-F7-9>)は OSC 12 が効かず色が出ないので未対応(バインドしない)。
+-- kanata の Shift+Fn は端末で届き方が違う: WT=legacy <F19>/<F20>/<F21>, ttyd=modern <S-F7>/<S-F8>/<S-F9>。両方束ねる。
+-- ttyd は OSC 12(色)が効かないが、点滅(guicursor blink)で IME ON/OFF が分かるので対応する。
 -- 変換=toggle でOK: WT は「変換候補中の変換」の marker が IME に飲まれて届かないのでズレない。
-ime_marker({ '<F19>' }, function() vim.g.ime_on = true end)             -- カナ = ON
-ime_marker({ '<F20>' }, function()                                     -- 無変換 = OFF(＋補完消し＋normalへ)
+ime_marker({ '<F19>', '<S-F7>' }, function() vim.g.ime_on = true end)   -- カナ = ON
+ime_marker({ '<F20>', '<S-F8>' }, function()                           -- 無変換 = OFF(＋補完消し＋normalへ)
     vim.g.ime_on = false
     -- 無変換は「英語＋normalへ」の意味。補完ポップアップを消して insert を抜ける。
     -- ※Escは kanata から送らない＝blinkのEsc食い/他アプリ副作用を回避し、ここで明示処理。
@@ -140,7 +153,7 @@ ime_marker({ '<F20>' }, function()                                     -- 無変
         vim.cmd('stopinsert')                                          -- 通常の insert/replace → normal
     end
 end)
-ime_marker({ '<F21>' }, function() vim.g.ime_on = not vim.g.ime_on end) -- 変換 = toggle
+ime_marker({ '<F21>', '<S-F9>' }, function() vim.g.ime_on = not vim.g.ime_on end) -- 変換 = toggle
 ime_refresh()
 -- nvim 終了時は端末のカーソル色を既定へ戻す(OSC 112)。色が残らないように。
 vim.api.nvim_create_autocmd('VimLeavePre', {

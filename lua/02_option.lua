@@ -126,8 +126,9 @@ vim.opt.termguicolors = true
 -- カーソル形状(モード別): ノーマル=ブロック / ターミナル=縦線(ver25)。
 -- t: に TermCursor を残して IME 状態のカーソル色(OSC 12)も効かせる。
 -- ※ :terminal 内でフルスクリーンTUI(Claude Code等)が形状を上書きする場合は端末側優先になる。
+-- 点滅は IME 状態で切替(21_keymap の ime_refresh)。ここは形(shape)のみ＝点滅なしが基準。
 vim.opt.guicursor =
-    'n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20,t:ver25-blinkon500-blinkoff500-TermCursor'
+    'n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20,t:ver25-TermCursor'
 
 --- マウス ---
 -- どのモードでもマウスを使えるようにする

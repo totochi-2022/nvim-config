@@ -134,8 +134,8 @@ return {
         },
         opts = {
             enabled = function()
-                -- 実験用: vim.g.disable_blink_cmp でセッション全体、vim.b で当該バッファのみオフ
-                return not vim.b.disable_blink_cmp and not vim.g.disable_blink_cmp
+                -- vim.g/vim.b.disable_blink_cmp で無効化。IME ON(日本語入力中)は補完を出さない(buffer候補のノイズ回避)。
+                return not vim.b.disable_blink_cmp and not vim.g.disable_blink_cmp and not vim.g.ime_on
             end,
             keymap = {
                 preset = "default",
@@ -170,6 +170,9 @@ return {
                     window = { border = "rounded" },
                 },
                 ghost_text = { enabled = true },
+                -- Enter で先頭候補を勝手に確定しない。何も選んでなければ直値のまま(CRはfallback=改行)。
+                -- 候補を使うときは Tab / C-n で明示選択してから確定。
+                list = { selection = { preselect = false, auto_insert = false } },
                 accept = {
                     auto_brackets = { enabled = false },
                 },
@@ -195,6 +198,14 @@ return {
                         name = "LazyDev",
                         module = "lazydev.integrations.blink",
                         score_offset = 100,
+                    },
+                    buffer = {
+                        -- 英数入力中の buffer 補完で「日本語/日本語混じり(あああaa 等)」の候補を除外。
+                        transform_items = function(_, items)
+                            return vim.tbl_filter(function(item)
+                                return not (item.label or ""):find("[\128-\255]")
+                            end, items)
+                        end,
                     },
                 },
             },
