@@ -127,7 +127,19 @@ end
 -- ttyd(<S-F7-9>)は OSC 12 が効かず色が出ないので未対応(バインドしない)。
 -- 変換=toggle でOK: WT は「変換候補中の変換」の marker が IME に飲まれて届かないのでズレない。
 ime_marker({ '<F19>' }, function() vim.g.ime_on = true end)             -- カナ = ON
-ime_marker({ '<F20>' }, function() vim.g.ime_on = false end)            -- 無変換 = OFF
+ime_marker({ '<F20>' }, function()                                     -- 無変換 = OFF(＋補完消し＋normalへ)
+    vim.g.ime_on = false
+    -- 無変換は「英語＋normalへ」の意味。補完ポップアップを消して insert を抜ける。
+    -- ※Escは kanata から送らない＝blinkのEsc食い/他アプリ副作用を回避し、ここで明示処理。
+    pcall(function() require('blink.cmp').hide() end)
+    local m = vim.fn.mode()
+    if m == 't' then
+        -- terminal(挿入) → terminal-normal へは <C-\><C-n>
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, false, true), 'n', false)
+    elseif m:match('^[iR]') then
+        vim.cmd('stopinsert')                                          -- 通常の insert/replace → normal
+    end
+end)
 ime_marker({ '<F21>' }, function() vim.g.ime_on = not vim.g.ime_on end) -- 変換 = toggle
 ime_refresh()
 -- nvim 終了時は端末のカーソル色を既定へ戻す(OSC 112)。色が残らないように。

@@ -134,7 +134,8 @@ return {
         },
         opts = {
             enabled = function()
-                return not vim.b.disable_blink_cmp
+                -- 実験用: vim.g.disable_blink_cmp でセッション全体、vim.b で当該バッファのみオフ
+                return not vim.b.disable_blink_cmp and not vim.g.disable_blink_cmp
             end,
             keymap = {
                 preset = "default",
