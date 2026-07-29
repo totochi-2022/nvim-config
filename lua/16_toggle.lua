@@ -152,6 +152,31 @@ local definitions = {
         end
     },
 
+    b = { -- キー = B (blink補完 ON/OFF)
+        name = 'blink_cmp',
+        states = { 'on', 'off' }, -- on先頭 → auto_hideで通常(on)は非表示、offの時だけ「補」を出す
+        colors = {
+            { fg = 'Normal', bg = 'Normal' }, -- on
+            { fg = 'Normal', bg = 'Normal' }, -- off
+        },
+        default_state = 'on',
+        desc = '補完(blink)',
+        display_char = '補', -- lualine表示(OFF時のみ)
+        auto_hide = true,
+        get_state = function()
+            -- enabled() が not vim.g.disable_blink_cmp を見ている(plugins/lsp.lua)
+            return vim.g.disable_blink_cmp and 'off' or 'on'
+        end,
+        set_state = function(state)
+            if state == 'off' then
+                vim.g.disable_blink_cmp = true
+                pcall(function() require('blink.cmp').hide() end) -- 開いてる候補も消す
+            else
+                vim.g.disable_blink_cmp = nil
+            end
+        end
+    },
+
     c = { -- キー = C (color highlighting)
         name = 'colors',
         states = { 'off', 'on' },
