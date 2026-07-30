@@ -56,11 +56,11 @@ local function norm(dir)
   return dir
 end
 
-local function sock_for(dir)
-  return ct1({ "sock", dir })
+local function sock_for(dir, id)
+  return ct1({ "sock", dir, id or "" })
 end
-local function is_live(dir)
-  return ct_ok({ "is-live", dir })
+local function is_live(dir, id)
+  return ct_ok({ "is-live", dir, id or "" })
 end
 local function has_history(dir)
   return ct_ok({ "needs-continue", dir })
@@ -82,10 +82,12 @@ local function default_dir()
   return vim.fn.getcwd()
 end
 
--- 既にこの dir の attach バッファ/ウィンドウがあればそこへ移動
-local function focus_existing(dir)
+-- 既にこの (dir,id) の attach バッファ/ウィンドウがあればそこへ移動。
+-- id="" は主、"chat" は fork。同フォルダ複数を取り違えないよう id も一致判定。
+local function focus_existing(dir, id)
+  id = id or ""
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(b) and vim.b[b].claude_task == dir then
+    if vim.api.nvim_buf_is_loaded(b) and vim.b[b].claude_task == dir and (vim.b[b].claude_task_id or "") == id then
       for _, w in ipairs(vim.api.nvim_list_wins()) do
         if vim.api.nvim_win_get_buf(w) == b then
           vim.api.nvim_set_current_win(w)
@@ -105,17 +107,19 @@ end
 -- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach。
 -- 新規作成時、過去ログがあれば --continue で前回会話を引き継ぐ
 -- (生存時は dtach がコマンド引数を無視するので付けても無害)。
-local function build_cmd(dir)
-  local cmd = { "dtach", "-A", sock_for(dir), claude_cmd }
-  if has_history(dir) then
+local function build_cmd(dir, id)
+  local cmd = { "dtach", "-A", sock_for(dir, id), claude_cmd }
+  -- --continue は主セッションの新規起動時のみ(fork は fork 起動側で --continue --fork-session 済)
+  if (id or "") == "" and has_history(dir) then
     table.insert(cmd, "--continue")
   end
   return cmd
 end
 
 -- attach 用バッファの共通セットアップ（タスク識別子 + <Esc> キーマップ）。
-local function setup_term_buf(buf, dir)
+local function setup_term_buf(buf, dir, id)
   vim.b[buf].claude_task = dir
+  vim.b[buf].claude_task_id = id or "" -- "" 主 / "chat" fork(同フォルダ複数の識別)
   -- Claude端末ウィンドウの上部(winbar)に status(dir/branch/ctx%)を出す(claude_status.lua)。
   -- autocmd 頼みだと開き順(b.claude_task 設定が窓入場より後)で取りこぼすので、ここで確実に張る。
   pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
@@ -142,9 +146,9 @@ local function setup_term_buf(buf, dir)
 end
 
 -- stale ソケット掃除
-local function clean_stale_sock(dir)
-  if not is_live(dir) then
-    local sock = sock_for(dir)
+local function clean_stale_sock(dir, id)
+  if not is_live(dir, id) then
+    local sock = sock_for(dir, id)
     if sock ~= "" and vim.uv.fs_stat(sock) then
       os.remove(sock)
     end
@@ -199,6 +203,7 @@ end
 function M.open(dir, opts)
   opts = opts or {}
   local mode = opts.mode or "current"
+  local id = opts.id or "" -- "" 主 / "chat" fork(同フォルダ複数)
 
   dir = norm(dir and dir ~= "" and dir or default_dir())
   if dir == "" then
@@ -210,12 +215,12 @@ function M.open(dir, opts)
     return
   end
 
-  if focus_existing(dir) then
+  if focus_existing(dir, id) then
     vim.cmd("startinsert")
     return
   end
 
-  clean_stale_sock(dir)
+  clean_stale_sock(dir, id)
   add_history(dir)
 
   if mode == "left" then
@@ -223,29 +228,50 @@ function M.open(dir, opts)
   else
     vim.cmd("enew")
   end
-  vim.fn.jobstart(build_cmd(dir), { term = true, cwd = dir })
-  setup_term_buf(vim.api.nvim_get_current_buf(), dir)
+  vim.fn.jobstart(build_cmd(dir, id), { term = true, cwd = dir })
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir, id)
+  vim.cmd("startinsert")
+end
+
+-- 会話モード(fork): 同フォルダに fork セッションを新規起動(現会話を引き継いで独立)。
+function M.open_fork(dir, opts)
+  opts = opts or {}
+  dir = norm(dir and dir ~= "" and dir or default_dir())
+  if dir == "" then
+    return
+  end
+  add_history(dir)
+  clean_stale_sock(dir, "chat")
+  if opts.mode == "left" then
+    vim.cmd("topleft vnew")
+  else
+    vim.cmd("enew")
+  end
+  -- dtach -A (fork socket) claude --continue --fork-session
+  local cmd = { "dtach", "-A", sock_for(dir, "chat"), claude_cmd, "--continue", "--fork-session" }
+  vim.fn.jobstart(cmd, { term = true, cwd = dir })
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir, "chat")
   vim.cmd("startinsert")
 end
 
 -- タスクを正常終了(resume 可能)。claude に /exit を送って状態を保存させてから
 -- 抜けさせる（claude-tasks exit に委譲）。ESC→/exit→保存待ちを内部で行い ~1.4s かかるため
 -- jobstart で非同期に実行して nvim をブロックしない。
-function M.kill(dir)
+function M.kill(dir, id)
   if not dir or dir == "" then
     return
   end
   dir = norm(dir)
-  vim.fn.jobstart({ ct_cmd, "exit", dir })
+  vim.fn.jobstart({ ct_cmd, "exit", dir, id or "" })
 end
 
 -- 応答しなくなったタスクの強制終了（最終手段）。状態保存は期待できない。
-function M.force_kill(dir)
+function M.force_kill(dir, id)
   if not dir or dir == "" then
     return
   end
   dir = norm(dir)
-  vim.fn.system({ ct_cmd, "kill", dir })
+  vim.fn.system({ ct_cmd, "kill", dir, id or "" })
 end
 
 -- Telescope: claude-tasks list（稼働状態付き・最終利用順）から選んで開く。
@@ -280,7 +306,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-v: split / C-f: float / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open / C-o: 会話fork / C-v: split / C-f: float / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finders.new_table({
       results = items,
       entry_maker = function(it)
@@ -296,7 +322,7 @@ function M.pick()
         actions.close(bufnr)
         local sel = action_state.get_selected_entry()
         if sel then
-          M.open(sel.value.dir)
+          M.open(sel.value.dir, { id = sel.value.id }) -- fork 行(id=chat)ならその fork へ
         end
       end)
       -- 開き方バリエーション: C-v=左の縦分割 / C-f=toggleterm(float)
@@ -305,16 +331,24 @@ function M.pick()
           local sel = action_state.get_selected_entry()
           if sel then
             actions.close(bufnr)
-            M.open(sel.value.dir, { mode = mode })
+            M.open(sel.value.dir, { mode = mode, id = sel.value.id })
           end
         end
       end
       _map({ "i", "n" }, "<C-v>", open_with("left"))
       _map({ "i", "n" }, "<C-f>", open_with("toggleterm"))
+      -- C-o: 会話モード(fork)を選択 dir に新規起動(現会話を引き継いで独立)
+      _map({ "i", "n" }, "<C-o>", function()
+        local sel = action_state.get_selected_entry()
+        if sel then
+          actions.close(bufnr)
+          M.open_fork(sel.value.dir)
+        end
+      end)
       local function kill_action()
         local sel = action_state.get_selected_entry()
         if sel then
-          M.kill(sel.value.dir) -- claude に /exit を送って状態保存させてから終了(非同期)
+          M.kill(sel.value.dir, sel.value.id) -- claude に /exit を送って状態保存させてから終了(非同期)
           actions.close(bufnr)
           -- claude が保存して抜けるまで少し待ってから一覧を更新（稼働状態が反映される）
           vim.defer_fn(M.pick, 1600)
@@ -323,7 +357,7 @@ function M.pick()
       local function force_kill_action()
         local sel = action_state.get_selected_entry()
         if sel then
-          M.force_kill(sel.value.dir)
+          M.force_kill(sel.value.dir, sel.value.id)
           actions.close(bufnr)
           vim.schedule(M.pick)
         end
