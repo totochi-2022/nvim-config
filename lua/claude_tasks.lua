@@ -262,12 +262,12 @@ function M.pick()
   local action_state = require("telescope.actions.state")
   local previewers = require("telescope.previewers")
 
-  -- "<mark>\t<表示パス>\t<フルパス>" を parse
+  -- "<mark>\t<表示パス>\t<フルパス>\t<id>" を parse(id="" 主 / "chat" fork)
   local items = {}
   for _, line in ipairs(ct({ "list" })) do
-    local mark, disp, full = line:match("^(%S+)\t(.-)\t(.+)$")
+    local mark, disp, full, id = line:match("^(%S+)\t(.-)\t([^\t]+)\t?(.*)$")
     if full then
-      table.insert(items, { dir = full, mark = mark, disp = disp, live = (mark == "●") })
+      table.insert(items, { dir = full, id = id or "", mark = mark, disp = disp, live = (mark == "●") })
     end
   end
 
