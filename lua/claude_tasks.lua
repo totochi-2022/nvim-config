@@ -240,17 +240,23 @@ function M.open_fork(dir, opts)
   if dir == "" then
     return
   end
+  -- 空き fork slot を発番(N個まで並列可)。埋まってれば中止。
+  local slot = ct1({ "next-fork-slot", dir })
+  if slot == "" then
+    vim.notify("会話モード: 空き slot がありません(同時数上限)", vim.log.levels.WARN)
+    return
+  end
   add_history(dir)
-  clean_stale_sock(dir, "chat")
+  clean_stale_sock(dir, slot)
   if opts.mode == "left" then
     vim.cmd("topleft vnew")
   else
     vim.cmd("enew")
   end
   -- dtach -A (fork socket) claude --continue --fork-session
-  local cmd = { "dtach", "-A", sock_for(dir, "chat"), claude_cmd, "--continue", "--fork-session" }
+  local cmd = { "dtach", "-A", sock_for(dir, slot), claude_cmd, "--continue", "--fork-session" }
   vim.fn.jobstart(cmd, { term = true, cwd = dir })
-  setup_term_buf(vim.api.nvim_get_current_buf(), dir, "chat")
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
   vim.cmd("startinsert")
 end
 
