@@ -34,6 +34,9 @@ require('claude_tasks').setup()
 -- claude_attention.lua (複数セッションの応答待ちを下バーに可視化+待ちペインへジャンプ)
 require('claude_attention').setup()
 
+-- claude_status.lua (Claude端末の winbar に dir(branch) ctx:% を上部表示。statusLineスクリプト連携)
+require('claude_status').setup()
+
 -- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
 require('file_preview').setup()
 

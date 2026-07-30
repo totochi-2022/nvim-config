@@ -89,10 +89,12 @@ local function focus_existing(dir)
       for _, w in ipairs(vim.api.nvim_list_wins()) do
         if vim.api.nvim_win_get_buf(w) == b then
           vim.api.nvim_set_current_win(w)
+          pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
           return true
         end
       end
       vim.api.nvim_set_current_buf(b)
+      pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
       return true
     end
   end
@@ -114,6 +116,9 @@ end
 -- attach 用バッファの共通セットアップ（タスク識別子 + <Esc> キーマップ）。
 local function setup_term_buf(buf, dir)
   vim.b[buf].claude_task = dir
+  -- Claude端末ウィンドウの上部(winbar)に status(dir/branch/ctx%)を出す(claude_status.lua)。
+  -- autocmd 頼みだと開き順(b.claude_task 設定が窓入場より後)で取りこぼすので、ここで確実に張る。
+  pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
   -- このターミナルでは <Esc> 単発=ノーマルモード、<Esc><Esc>=claude へ ESC 送信。
   -- 無変換キーに Esc を割てているので、応答中断（claude 側 ESC）は二連打で行う。
   -- グローバルの t:<Esc><Esc>=ノーマルモード(21_keymap.lua) をバッファローカルで上書き。
