@@ -306,7 +306,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-o: 会話fork / C-v: split / C-f: float / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finders.new_table({
       results = items,
       entry_maker = function(it)
@@ -336,9 +336,8 @@ function M.pick()
         end
       end
       _map({ "i", "n" }, "<C-v>", open_with("left"))
-      _map({ "i", "n" }, "<C-f>", open_with("toggleterm"))
-      -- C-o: 会話モード(fork)を選択 dir に新規起動(現会話を引き継いで独立)
-      _map({ "i", "n" }, "<C-o>", function()
+      -- C-f: 会話モード(fork)を選択 dir に新規起動(現会話を引き継いで独立。ccpick と統一)
+      _map({ "i", "n" }, "<C-f>", function()
         local sel = action_state.get_selected_entry()
         if sel then
           actions.close(bufnr)
