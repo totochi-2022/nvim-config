@@ -280,7 +280,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-v: left split / C-f: float / C-x: exit&save / C-d: force-kill)",
+    prompt_title = "Claude Tasks  (Enter: open / C-v: split / C-f: float / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finders.new_table({
       results = items,
       entry_maker = function(it)
@@ -328,8 +328,55 @@ function M.pick()
           vim.schedule(M.pick)
         end
       end
+      -- C-a: 起動中(●=live)の Claude を一括で exit&save。
+      -- 確認は vim.fn.confirm だと noice 環境で操作しづらいので Telescope の Yes/No ピッカーで行う。
+      local function confirm_via_telescope(prompt, on_yes)
+        pickers.new({}, {
+          prompt_title = prompt,
+          finder = finders.new_table({
+            results = {
+              { label = "No   やめる",      yes = false },
+              { label = "Yes  一括終了する", yes = true },
+            },
+            entry_maker = function(e)
+              return { value = e, display = e.label, ordinal = e.label }
+            end,
+          }),
+          sorter = conf.generic_sorter({}),
+          attach_mappings = function(cbuf)
+            actions.select_default:replace(function()
+              local sel = action_state.get_selected_entry()
+              actions.close(cbuf)
+              if sel and sel.value.yes then on_yes() else vim.schedule(M.pick) end
+            end)
+            return true
+          end,
+        }):find()
+      end
+      local function kill_all_live_action()
+        local live = {}
+        for _, it in ipairs(items) do
+          if it.live then live[#live + 1] = it.dir end
+        end
+        if #live == 0 then
+          vim.notify("起動中の Claude セッションはありません", vim.log.levels.INFO)
+          return
+        end
+        actions.close(bufnr)
+        vim.schedule(function()
+          confirm_via_telescope(
+            ("起動中 %d 個を exit&save で終了しますか?"):format(#live),
+            function()
+              for _, dir in ipairs(live) do
+                M.kill(dir) -- /exit 送信→保存→終了(非同期)
+              end
+              vim.defer_fn(M.pick, 1800) -- 全部抜けるのを待って再表示
+            end)
+        end)
+      end
       _map({ "i", "n" }, "<C-x>", kill_action)
       _map({ "i", "n" }, "<C-d>", force_kill_action)
+      _map({ "i", "n" }, "<C-a>", kill_all_live_action)
       return true
     end,
   }):find()
