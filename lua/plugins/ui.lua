@@ -136,6 +136,7 @@ return {
             -- Diff*/Search 系は背景色を持つテーマが多く、4分割でも「自分の番」が目立つ。
             local CA = {
                 stop       = { label = '🔔 応答',     hl = 'DiffAdd' },        -- あなたの番(緑系)
+                waiting    = { label = '⌨ 入力待ち',  hl = 'Search' },         -- 入力待ち=あなたの番(強調)
                 ask        = { label = '❓ 選択待ち', hl = 'Search' },         -- 質問/選択(強調)
                 permission = { label = '🔒 許可待ち', hl = 'DiffDelete' },     -- ブロック(赤系)
                 idle       = { label = '💤 放置',     hl = 'DiagnosticWarn' }, -- 橙系(控えめ)

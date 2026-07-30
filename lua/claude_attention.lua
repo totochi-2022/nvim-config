@@ -1,12 +1,14 @@
 -- claude_attention.lua
 -- 複数 Claude Code セッションの「応答待ち」を可視化し、待ちペインへ素早く飛ぶ。
 --
--- 仕組み:
---   * 各セッションの Claude が Stop/Notification hook(claude-attention-hook)で
---     「待ち」を claude-tasks の attention スタック(~/.cache/claude-tasks/attention/)に積む。
---   * nvim はそのディレクトリを fs_event で監視し、待ちを M.queue にキャッシュ。
---   * lualine コンポーネント(plugins/ui.lua)が b.claude_task を見て、その dir が
---     待ちなら下バーに 🔔 を出す(inactive ペインでも光る=別ペイン作業中に気づける)。
+-- 仕組み(登録簿ベース / hook 不要版):
+--   * 情報源は Claude Code ネイティブの登録簿 ~/.claude/sessions/(走行プロセスごとの status)。
+--     claude-tasks native-attn が status を attention 相当に導出:
+--       busy→working(考え中) / waiting→入力待ち / idle かつ最終訪問後に変化→stop(未見の応答)。
+--   * nvim は ~/.claude/sessions/ を fs_event 監視し、native-attn を M.states/M.queue にキャッシュ。
+--   * lualine コンポーネント(plugins/ui.lua)が b.claude_task を見て、その dir の状態を下バーに出す
+--     (inactive ペインでも光る=別ペイン作業中に気づける)。
+--   * 「見た」= visit-mark(最終訪問時刻)。idle の stop は visit-mark で消える。hook/transcript/watchdog 不要。
 --   * <Leader>n=多画面: 画面上の待ちペインのうち最優先へカーソル移動(画面外は開かない/
 --     画面上に待ちが無ければメッセージのみ)。<Leader>N=1画面: 次の待ち(グローバル優先度→
 --     FIFO)へ確実に移る(表示中は移動・隠れ/無しは現ウィンドウに出す/作る)。
@@ -23,13 +25,14 @@ if ct_cmd == "" then
   ct_cmd = vim.fn.executable(fallback) == 1 and fallback or "claude-tasks"
 end
 
-local ATT_DIR = vim.fn.expand("~/.cache/claude-tasks/attention")
+-- 監視対象 = ネイティブ登録簿(status がここで更新される)。
+local SESS_DIR = vim.fn.expand("~/.claude/sessions")
 
 -- 待ち(あなたの番)の kind。working(考え中)はここに含めない=キュー外・表示専用。
-local WAITING = { ask = true, permission = true, stop = true, idle = true }
+local WAITING = { ask = true, waiting = true, permission = true, stop = true, idle = true }
 
 -- どの待ち kind を注目対象にするか(:ClaudeAttn で実行時トグル)。
-M.enabled = { ask = true, permission = true, stop = true, idle = false }
+M.enabled = { ask = true, waiting = true, permission = true, stop = true, idle = false }
 
 -- 全状態キャッシュ: norm(dir) -> kind(working 含む。lualine 表示用)
 M.states = {}
@@ -52,18 +55,22 @@ end
 -- 状態を読み直して M.states / M.queue を更新。
 -- 見ているペイン(現バッファ)の「待ち」は即クリア(考え中=working は残す)。
 function M.refresh()
-  local out = vim.fn.systemlist({ ct_cmd, "attention-list" })
+  local out = vim.fn.systemlist({ ct_cmd, "native-attn" })
   local cur = current_task_dir()
   cur = cur and norm(cur) or nil
+  -- 見ているペインは「見た」ことにする(idle の stop 抑制。次回 native-attn から消える)
+  if cur then
+    vim.fn.jobstart({ ct_cmd, "visit-mark", cur })
+  end
 
   local states, q = {}, {}
   for _, line in ipairs(out) do
     local kind, dir = line:match("^(%S+)\t(.+)$")
     if dir then
       local ndir = norm(dir)
-      if cur and ndir == cur and WAITING[kind] then
-        -- 今このペインを見ている待ち → 消費済み扱いで消す
-        vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
+      -- 見ているペインの「未見応答(stop)」は即抑制(あなたが見てるので🔔不要。working/waiting は残す)
+      if cur and ndir == cur and kind == "stop" then
+        -- skip
       else
         states[ndir] = kind
         if WAITING[kind] and M.enabled[kind] then
@@ -159,13 +166,13 @@ end
 -- attention ディレクトリを監視(変化で refresh)。バースト吸収に軽いデバウンス。
 local watcher, debounce, poll_timer
 local function start_watch()
-  vim.fn.mkdir(ATT_DIR, "p")
+  vim.fn.mkdir(SESS_DIR, "p")
   watcher = vim.uv.new_fs_event()
   if not watcher then
     return
   end
   watcher:start(
-    ATT_DIR,
+    SESS_DIR,
     {},
     vim.schedule_wrap(function()
       if debounce then
@@ -181,8 +188,7 @@ end
 function M.setup()
   start_watch()
 
-  -- 定期 refresh: 固着した working は attention ファイルが変わらず fs_event が来ないので、
-  -- タイマーで claude-tasks の自己修復(reconcile)を回して表示を実状態に追従させる。
+  -- 定期 refresh: 登録簿の status 変化を fs_event が取り逃しても表示を追従させる保険。
   poll_timer = vim.uv.new_timer()
   if poll_timer then
     poll_timer:start(
@@ -200,14 +206,12 @@ function M.setup()
     callback = function(ev)
       local dir = vim.b[ev.buf].claude_task
       if dir then
-        vim.fn.jobstart({ ct_cmd, "visit-mark", dir }) -- LRU巡回用: 最終訪問時刻を更新
-        local kind = M.states[norm(dir)]
-        if kind and WAITING[kind] then
-          vim.fn.jobstart({ ct_cmd, "attention-clear", dir })
-        end
+        -- 「見た」= visit-mark。これで idle の未見応答(stop)は次回 native-attn から消える。
+        -- LRU 巡回の最終訪問時刻も兼ねる。working/waiting は状態自体なので消えない。
+        vim.fn.jobstart({ ct_cmd, "visit-mark", dir })
       end
     end,
-    desc = "claude ペインに入ったら応答待ちを消す(考え中は残す)",
+    desc = "claude ペインに入ったら visit-mark(未見応答を消す/LRU更新)",
   })
 
   vim.api.nvim_create_user_command("ClaudeAttnFocus", function()
@@ -223,9 +227,9 @@ function M.setup()
   end, {
     nargs = 1,
     complete = function()
-      return { "ask", "permission", "stop", "idle" }
+      return { "waiting", "stop", "idle" }
     end,
-    desc = "attention 対象イベントをトグル(ask|permission|stop|idle)",
+    desc = "attention 対象イベントをトグル(waiting|stop|idle)",
   })
 
   -- 初回同期
