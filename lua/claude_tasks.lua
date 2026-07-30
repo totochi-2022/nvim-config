@@ -393,9 +393,10 @@ function M.pick()
         }):find()
       end
       local function kill_all_live_action()
+        -- 各行(= 主/fork の1セッション)を (dir,id) で拾う。fork も slot ごとに個別 exit。
         local live = {}
         for _, it in ipairs(items) do
-          if it.live then live[#live + 1] = it.dir end
+          if it.live then live[#live + 1] = { dir = it.dir, id = it.id or "" } end
         end
         if #live == 0 then
           vim.notify("起動中の Claude セッションはありません", vim.log.levels.INFO)
@@ -404,10 +405,10 @@ function M.pick()
         actions.close(bufnr)
         vim.schedule(function()
           confirm_via_telescope(
-            ("起動中 %d 個を exit&save で終了しますか?"):format(#live),
+            ("起動中 %d 個(fork 含む)を exit&save で終了しますか?"):format(#live),
             function()
-              for _, dir in ipairs(live) do
-                M.kill(dir) -- /exit 送信→保存→終了(非同期)
+              for _, s in ipairs(live) do
+                M.kill(s.dir, s.id) -- slot ごとに /exit 送信→保存→終了(非同期)
               end
               vim.defer_fn(M.pick, 1800) -- 全部抜けるのを待って再表示
             end)
