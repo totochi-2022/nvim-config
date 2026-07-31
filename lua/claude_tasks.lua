@@ -294,14 +294,27 @@ function M.pick()
   local action_state = require("telescope.actions.state")
   local previewers = require("telescope.previewers")
 
-  -- "<mark>\t<表示パス>\t<フルパス>\t<id>" を parse(id="" 主 / "chat" fork)
-  local items = {}
-  for _, line in ipairs(ct({ "list" })) do
-    local mark, disp, full, id = line:match("^(%S+)\t(.-)\t([^\t]+)\t?(.*)$")
-    if full then
-      table.insert(items, { dir = full, id = id or "", mark = mark, disp = disp, live = (mark == "●") })
-    end
-  end
+  -- 一覧は「ストリーミング」で受ける(new_oneshot_job)。ピッカーが即開き、行は届き次第流れ込む。
+  -- 以前は ct({"list"})=systemlist で全出力(≈1.7s)を待つ間 nvim がブロックしていた。
+  -- ccpick が速く感じるのは fzf が同じ list を逐次描画しているから(1行目 ≈0.2s)で、
+  -- こちらも同じ体感に揃える。行の並び(list の優先度→最終利用順)はそのまま維持される。
+  -- "<mark>\t<表示パス>\t<フルパス>\t<id>" を parse(id="" 主 / "chat" 等 fork)
+  local items = {} -- C-a(一括終了)用に、届いた行を溜めておく
+  local seen = {}
+  local finder = finders.new_oneshot_job({ ct_cmd, "list" }, {
+    entry_maker = function(line)
+      local mark, disp, full, id = line:match("^(%S+)\t(.-)\t([^\t]+)\t?(.*)$")
+      if not full then return nil end
+      local it = { dir = full, id = id or "", mark = mark, disp = disp, live = (mark == "●") }
+      local key = it.dir .. "\t" .. it.id
+      if not seen[key] then
+        seen[key] = true
+        items[#items + 1] = it
+      end
+      -- 並びは list の順を維持。ordinal はパスのみ(フィルタ用)
+      return { value = it, display = it.mark .. " " .. it.disp, ordinal = it.disp }
+    end,
+  })
 
   local previewer = previewers.new_buffer_previewer({
     title = "Claude 最新会話",
@@ -313,14 +326,7 @@ function M.pick()
 
   pickers.new({}, {
     prompt_title = "Claude Tasks  (Enter: open / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
-    finder = finders.new_table({
-      results = items,
-      entry_maker = function(it)
-        local display = it.mark .. " " .. it.disp
-        -- 並びは claude-tasks list の最終利用順を維持。ordinal はパスのみ(フィルタ用)
-        return { value = it, display = display, ordinal = it.disp }
-      end,
-    }),
+    finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
     attach_mappings = function(bufnr, _map)
