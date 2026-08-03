@@ -82,25 +82,34 @@ local function default_dir()
   return vim.fn.getcwd()
 end
 
--- 既にこの (dir,id) の attach バッファ/ウィンドウがあればそこへ移動。
--- id="" は主、"chat" は fork。同フォルダ複数を取り違えないよう id も一致判定。
-local function focus_existing(dir, id)
+-- この (dir,id) に attach 済みのバッファを返す（無ければ nil）。
+-- id="" は主、"chat" 等は fork。同フォルダ複数を取り違えないよう id も一致判定。
+local function find_task_buf(dir, id)
   id = id or ""
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_loaded(b) and vim.b[b].claude_task == dir and (vim.b[b].claude_task_id or "") == id then
-      for _, w in ipairs(vim.api.nvim_list_wins()) do
-        if vim.api.nvim_win_get_buf(w) == b then
-          vim.api.nvim_set_current_win(w)
-          pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
-          return true
-        end
-      end
-      vim.api.nvim_set_current_buf(b)
+      return b
+    end
+  end
+  return nil
+end
+
+-- 既にこの (dir,id) の attach バッファ/ウィンドウがあればそこへ移動。
+local function focus_existing(dir, id)
+  local b = find_task_buf(dir, id)
+  if not b then
+    return false
+  end
+  for _, w in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(w) == b then
+      vim.api.nvim_set_current_win(w)
       pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
       return true
     end
   end
-  return false
+  vim.api.nvim_set_current_buf(b)
+  pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
+  return true
 end
 
 -- dtach 起動コマンドを組み立てる。
@@ -215,7 +224,19 @@ function M.open(dir, opts)
     return
   end
 
-  if focus_existing(dir, id) then
+  -- mode="left" は「分割で開く」という明示指示なので、既に開いていても
+  -- focus(既存ウィンドウへジャンプ)で済ませず、必ず新しい縦分割を作って
+  -- そこに同じ端末バッファを出す(dtach セッションは 1 つのまま二画面で見える)。
+  local existing = find_task_buf(dir, id)
+  if mode == "left" and existing then
+    vim.cmd("topleft vsplit")
+    vim.api.nvim_win_set_buf(0, existing)
+    pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
+    vim.cmd("startinsert")
+    return
+  end
+
+  if mode ~= "left" and focus_existing(dir, id) then
     vim.cmd("startinsert")
     return
   end
@@ -319,7 +340,9 @@ function M.pick()
   local previewer = previewers.new_buffer_previewer({
     title = "Claude 最新会話",
     define_preview = function(self, entry)
-      local lines = vim.fn.systemlist({ ct_cmd, "preview", entry.value.dir })
+      -- id も渡す（同フォルダに主+fork が居ると、id 無しでは「dir の最新ログ」に
+      -- 落ちてどの行を選んでも同じ会話が出てしまう）
+      local lines = vim.fn.systemlist({ ct_cmd, "preview", entry.value.dir, entry.value.id or "" })
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
     end,
   })
