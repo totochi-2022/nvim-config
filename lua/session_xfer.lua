@@ -125,17 +125,71 @@ function M.to_server(name)
   end
 end
 
+-- :ToServerLink [name] — コピー(mksession)ではなく、この“生”端末 nvim の待受 socket
+-- (v:servername) を ~/.cache/nvim-server/<name>.sock へ **symlink** して nvim-server に露出する。
+-- ブラウザは preview-only 接続でこの生 nvim に橋を架け（g:nvim_server_channel）、pull を効かせる。
+-- WT=編集専用、ブラウザ=preview だけ、という構成用。既存があればエラー（-f しない）。
+local function to_server_link(name)
+  local self = vim.v.servername
+  if not self or self == "" then
+    vim.notify("この nvim は待受 socket を持っていません（v:servername が空）", vim.log.levels.ERROR)
+    return
+  end
+  vim.fn.mkdir(SERVER_DIR, "p")
+  if not name or name == "" then
+    name = os.date("link-%H%M") -- symlink 露出はコピー(term-)と別名で区別
+  end
+  local link = SERVER_DIR .. "/" .. name .. ".sock"
+  if vim.fn.getftype(link) ~= "" then -- socket/link/file 何であれ在ればエラー
+    vim.notify("既に存在します: " .. link .. "（別名を指定してください）", vim.log.levels.ERROR)
+    return
+  end
+  local uv = vim.uv or vim.loop
+  local ok, err = uv.fs_symlink(self, link) -- ln -s <self> <link>
+  if not ok then
+    vim.notify("symlink 作成失敗: " .. tostring(err), vim.log.levels.ERROR)
+    return
+  end
+  -- 終了時に dangling symlink を掃除（無くても probe で除外されるが綺麗に）
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    once = true,
+    callback = function() pcall(uv.fs_unlink, link) end,
+    desc = "ToServerLink: 終了時に symlink を掃除",
+  })
+  vim.notify("この nvim を '" .. name .. "' として nvim-server に露出（preview-only 接続用）",
+    vim.log.levels.INFO)
+end
+
 function M.setup()
+  -- :ToServer [name]        コピー転送（mksession → 新 headless nvim）。従来どおり。
+  -- :ToServer -s [name]     symlink 露出（この生 nvim を preview-only 用に出す）。
   vim.api.nvim_create_user_command("ToServer", function(o)
-    M.to_server(o.args)
+    if o.fargs[1] == "-s" then
+      to_server_link(o.fargs[2]) -- -s: symlink 露出（preview-only 用）
+    else
+      M.to_server(o.args) -- 従来: コピー転送
+    end
   end, {
-    nargs = "?",
-    complete = function()
-      return vim.tbl_map(function(s)
+    nargs = "*",
+    complete = function(arglead)
+      -- 先頭が -s 相当なら候補は出さない。素の候補（既存 socket 名）+ -s フラグ。
+      local names = vim.tbl_map(function(s)
         return (vim.fn.fnamemodify(s, ":t"):gsub("%.sock$", ""))
       end, candidate_socks())
+      if arglead == "" or ("-s"):find(arglead, 1, true) == 1 then
+        table.insert(names, 1, "-s")
+      end
+      return names
     end,
-    desc = "現セッションを web版 nvim-server インスタンスへ転送",
+    desc = "現セッションを nvim-server へ: コピー転送（-s で symlink 露出=preview-only 用）",
+  })
+
+  -- 後方互換: :ToServerLink = :ToServer -s
+  vim.api.nvim_create_user_command("ToServerLink", function(o)
+    to_server_link(o.args)
+  end, {
+    nargs = "?",
+    desc = "= :ToServer -s（この端末 nvim を symlink 露出）",
   })
 end
 
