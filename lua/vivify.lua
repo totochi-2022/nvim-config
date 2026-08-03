@@ -95,4 +95,38 @@ function M.open()
     end, 700)
 end
 
+-- 手動リロード: md バッファ(buf)の内容を、リンク画像URLに cache-buster(?v=<時刻>)を付けて
+-- Vivify に push する。バッファ自体は汚さない。
+-- なぜ必要か: 外部で SVG/PNG を再生成しても preview に反映されない。Vivify は md 本体しか
+-- 監視せず、md がリンクする img は同一URLゆえブラウザがキャッシュを出すため。?v= で別URL化する。
+function M.reload(buf)
+    buf = buf or vim.api.nvim_get_current_buf()
+    local path = vim.api.nvim_buf_get_name(buf)
+    if path == '' then
+        vim.notify('名前付きバッファで実行してください', vim.log.levels.WARN)
+        return
+    end
+    local content = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), '\n')
+    local v = tostring(os.time())
+    -- 画像リンク ![](x.svg) 等の URL に ?v= を付け直す（既存の query/fragment は捨てる）。
+    content = content:gsub('%]%(([^)]+)%)', function(u)
+        local base = u:gsub('[?#].*$', '')
+        if base:match('%.svg$') or base:match('%.png$') or base:match('%.jpe?g$') or base:match('%.gif$') then
+            return '](' .. base .. '?v=' .. v .. ')'
+        end
+        return '](' .. u .. ')'
+    end)
+    local body = vim.fn.json_encode({ content = content })
+    local url = string.format('http://localhost:%d/viewer%s', PORT, (path:gsub(' ', '%%20')))
+    local job = vim.fn.jobstart(
+        { 'curl', '-s', '-m', '2', '-X', 'POST', '-H', 'Content-type: application/json',
+            '--data', '@-', url },
+        { detach = true }
+    )
+    if type(job) == 'number' and job > 0 then
+        vim.fn.chansend(job, body)
+        vim.fn.chanclose(job, 'stdin')
+    end
+end
+
 return M
