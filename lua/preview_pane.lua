@@ -104,14 +104,18 @@ end
 -- clipboard paste と同じ round-trip 型。g を nil にしてから rpcnotify し、web client
 -- が iframe(別オリジンの Vivify)から集めて SetVar するのを vim.wait で待つ。
 -- kind: "errors" | "svg"。戻り値は decode 済みテーブル（失敗/未接続時は nil）。
-local function pull(kind)
+local function roundtrip(rpc, arg)
   local c = chan()
   if not c then
     warn_no_web()
     return nil
   end
   vim.g.nvim_server_preview_data = nil
-  vim.rpcnotify(c, kind == "svg" and "preview_get_svg" or "preview_get_errors")
+  if arg ~= nil then
+    vim.rpcnotify(c, rpc, arg)
+  else
+    vim.rpcnotify(c, rpc)
+  end
   -- client は iframe を 1500ms で timeout する。こちらは 3s まで待つ。
   local remaining = 300
   while remaining > 0 and vim.g.nvim_server_preview_data == nil do
@@ -124,6 +128,16 @@ local function pull(kind)
   end
   local ok, decoded = pcall(vim.json.decode, raw)
   return ok and decoded or nil
+end
+
+-- kind: "errors" | "svg"。戻り値は decode 済みテーブル（失敗/未接続時は nil）。
+local function pull(kind)
+  return roundtrip(kind == "svg" and "preview_get_svg" or "preview_get_errors")
+end
+
+-- :PreviewEval — preview iframe(app の bridge)内で JS を eval して結果を返す。
+function M.eval(code)
+  return roundtrip("preview_eval", code)
 end
 
 -- :PreviewErrors — いま preview に出ている描画エラー(wavedrom/chart/kvlist)を表示。
@@ -180,6 +194,44 @@ vim.api.nvim_create_user_command("PreviewSvg", function()
   vim.bo.filetype = "xml"
   vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
 end, { desc = "preview(web)の描画済みSVGソースをバッファに出す" })
+
+-- :PreviewUrl <url> — 任意の URL を preview ペインに開く（web_open_url を投げるだけ）。
+-- 例: uvicorn 等の web app を preview に載せ、:PreviewErrors で app の JS エラーを pull。
+-- app 側に nvim_error_bridge.js（collect 応答）が仕込んであれば拾える。
+vim.api.nvim_create_user_command("PreviewUrl", function(o)
+  local c = chan()
+  if not c then
+    warn_no_web()
+    return
+  end
+  local url = vim.trim(o.args)
+  if url == "" then
+    vim.notify("URL を指定してください: :PreviewUrl <url>", vim.log.levels.WARN)
+    return
+  end
+  vim.rpcnotify(c, "web_open_url", url, "App")
+end, { nargs = 1, desc = "任意URLを preview ペインに開く（web app のエラー捕捉等）" })
+
+-- :PreviewEval <js> — preview iframe(app の bridge)内で JS を評価して結果を表示。
+-- 例: :PreviewEval window.location.href / :PreviewEval Object.keys(window).length
+-- app 側に nvim_error_bridge.js（kind:'eval' 応答）が要る。対話的デバッグ用。
+vim.api.nvim_create_user_command("PreviewEval", function(o)
+  local code = vim.trim(o.args)
+  if code == "" then
+    vim.notify("式を指定: :PreviewEval <js式>", vim.log.levels.WARN)
+    return
+  end
+  local r = M.eval(code)
+  if not r then
+    vim.notify("eval を取得できません（web 未接続 or timeout / bridge 未対応）", vim.log.levels.WARN)
+    return
+  end
+  if r.error and r.error ~= "" then
+    vim.notify("eval error: " .. tostring(r.error), vim.log.levels.ERROR, { title = "PreviewEval" })
+  else
+    vim.notify(tostring(r.result), vim.log.levels.INFO, { title = "PreviewEval: " .. code })
+  end
+end, { nargs = "+", desc = "preview(app)内で JS を eval して結果表示" })
 
 local follow_group = "PreviewPaneFollow"
 
