@@ -100,6 +100,87 @@ local function preview_buf(buf)
   end)
 end
 
+-- ── preview の pull（エラー / SVG を web の iframe から取得）─────────────────
+-- clipboard paste と同じ round-trip 型。g を nil にしてから rpcnotify し、web client
+-- が iframe(別オリジンの Vivify)から集めて SetVar するのを vim.wait で待つ。
+-- kind: "errors" | "svg"。戻り値は decode 済みテーブル（失敗/未接続時は nil）。
+local function pull(kind)
+  local c = chan()
+  if not c then
+    warn_no_web()
+    return nil
+  end
+  vim.g.nvim_server_preview_data = nil
+  vim.rpcnotify(c, kind == "svg" and "preview_get_svg" or "preview_get_errors")
+  -- client は iframe を 1500ms で timeout する。こちらは 3s まで待つ。
+  local remaining = 300
+  while remaining > 0 and vim.g.nvim_server_preview_data == nil do
+    vim.wait(10)
+    remaining = remaining - 1
+  end
+  local raw = vim.g.nvim_server_preview_data
+  if type(raw) ~= "string" or raw == "" then
+    return nil
+  end
+  local ok, decoded = pcall(vim.json.decode, raw)
+  return ok and decoded or nil
+end
+
+-- :PreviewErrors — いま preview に出ている描画エラー(wavedrom/chart/kvlist)を表示。
+function M.get_errors()
+  return pull("errors")
+end
+
+-- :PreviewSvg — いま preview に描画済みの SVG ソース(wavedrom/kvlist)を返す。
+-- chart は canvas なので含まれない。
+function M.get_svg()
+  return pull("svg")
+end
+
+vim.api.nvim_create_user_command("PreviewErrors", function()
+  local r = M.get_errors()
+  if not r then
+    vim.notify("preview からエラーを取得できません（web 未接続 or timeout）", vim.log.levels.WARN)
+    return
+  end
+  local errs = r.errors or {}
+  if #errs == 0 then
+    vim.notify("preview エラーなし" .. (r.error and (" (" .. r.error .. ")") or ""), vim.log.levels.INFO)
+    return
+  end
+  local lines = {}
+  for _, e in ipairs(errs) do
+    table.insert(lines, string.format("[%s #%s] %s", e.kind or "?", tostring(e.index), e.message or ""))
+  end
+  vim.notify(table.concat(lines, "\n"), vim.log.levels.ERROR, { title = "PreviewErrors" })
+end, { desc = "preview(web)の描画エラーを取得表示" })
+
+vim.api.nvim_create_user_command("PreviewSvg", function()
+  local r = M.get_svg()
+  if not r then
+    vim.notify("preview から SVG を取得できません（web 未接続 or timeout）", vim.log.levels.WARN)
+    return
+  end
+  local svgs = r.svgs or {}
+  if #svgs == 0 then
+    vim.notify("描画済み SVG なし" .. (r.error and (" (" .. r.error .. ")") or ""), vim.log.levels.INFO)
+    return
+  end
+  -- 新規スクラッチバッファに全 SVG を並べる（Claude が Read/検証しやすいように）。
+  local lines = {}
+  for _, s in ipairs(svgs) do
+    table.insert(lines, "<!-- svg #" .. tostring(s.index) .. " -->")
+    for _, l in ipairs(vim.split(s.svg or "", "\n", { plain = true })) do
+      table.insert(lines, l)
+    end
+    table.insert(lines, "")
+  end
+  vim.cmd("enew")
+  vim.bo.buftype = "nofile"
+  vim.bo.filetype = "xml"
+  vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+end, { desc = "preview(web)の描画済みSVGソースをバッファに出す" })
+
 local follow_group = "PreviewPaneFollow"
 
 -- 追従モードの ON/OFF（方式B）

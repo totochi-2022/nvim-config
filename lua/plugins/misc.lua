@@ -406,7 +406,11 @@ return {
         ft = { "markdown" },
         cmd = "Vivify",
         init = function()
-            vim.g.vivify_instant_refresh = 1  -- 編集に即追従
+            -- 打鍵ごとに sync(curl で全文POST + iframe が全図を再描画)すると WSL では
+            -- 毎キーの curl 起動が重く、連打時に POST が競合して最後の1回が取り残される
+            -- (=「反映されない」)。CursorHold(入力を止めて updatetime 後)にまとめて同期する
+            -- 方式にして負荷と競合を回避。Claude が socket 編集する時は明示 sync なので影響なし。
+            vim.g.vivify_instant_refresh = 0  -- 入力を止めてから同期(打鍵ごとにはしない)
             vim.g.vivify_auto_scroll = 1      -- カーソル位置にスクロール同期
         end,
     },
