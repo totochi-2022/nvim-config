@@ -198,6 +198,26 @@ end, { desc = "preview(web)の描画済みSVGソースをバッファに出す" 
 -- :PreviewUrl <url> — 任意の URL を preview ペインに開く（web_open_url を投げるだけ）。
 -- 例: uvicorn 等の web app を preview に載せ、:PreviewErrors で app の JS エラーを pull。
 -- app 側に nvim_error_bridge.js（collect 応答）が仕込んであれば拾える。
+--
+-- 引数は省略記法可（正規化はこの nvim 側で行う。server 側は生URLのまま）:
+--   :PreviewUrl 8010                → http://localhost:8010
+--   :PreviewUrl 8010/dashboard      → http://localhost:8010/dashboard
+--   :PreviewUrl :8010/auto          → http://localhost:8010/auto
+--   :PreviewUrl 192.168.2.234:8000  → http://192.168.2.234:8000
+--   :PreviewUrl example.com/x       → http://example.com/x （scheme 付きはそのまま）
+local function normalize_preview_url(url)
+  if url:match("^https?://") then
+    return url
+  end
+  if url:match("^:%d") then                       -- ":8010/..." → localhost
+    return "http://localhost" .. url
+  end
+  if url:match("^%d+$") or url:match("^%d+/") then -- "8010" / "8010/path" → localhost:port
+    return "http://localhost:" .. url
+  end
+  return "http://" .. url                          -- "host:port/..." 等 → scheme 補完
+end
+
 vim.api.nvim_create_user_command("PreviewUrl", function(o)
   local c = chan()
   if not c then
@@ -206,11 +226,22 @@ vim.api.nvim_create_user_command("PreviewUrl", function(o)
   end
   local url = vim.trim(o.args)
   if url == "" then
-    vim.notify("URL を指定してください: :PreviewUrl <url>", vim.log.levels.WARN)
+    vim.notify("URL を指定してください: :PreviewUrl <url|port[/path]>", vim.log.levels.WARN)
     return
   end
-  vim.rpcnotify(c, "web_open_url", url, "App")
-end, { nargs = 1, desc = "任意URLを preview ペインに開く（web app のエラー捕捉等）" })
+  vim.rpcnotify(c, "web_open_url", normalize_preview_url(url), "App")
+end, { nargs = 1, desc = "任意URL/ポート省略記法を preview ペインに開く（web app のエラー捕捉等）" })
+
+-- :PreviewReload — preview ペイン(iframe)だけをリロード（右ペインの F5）。
+-- 開発中に :PreviewUrl で開いた web app を再読込する。URL 打ち直し不要。
+vim.api.nvim_create_user_command("PreviewReload", function()
+  local c = chan()
+  if not c then
+    warn_no_web()
+    return
+  end
+  vim.rpcnotify(c, "web_preview_reload")
+end, { desc = "preview ペインをリロード（右ペインの F5）" })
 
 -- :PreviewEval <js> — preview iframe(app の bridge)内で JS を評価して結果を表示。
 -- 例: :PreviewEval window.location.href / :PreviewEval Object.keys(window).length
