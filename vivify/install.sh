@@ -21,6 +21,10 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="https://github.com/jannis-baum/Vivify"
 BIN_DIR="$HOME/.local/bin"
+# 描画スクリプト(glue)一式は別リポジトリ md-preview-kit に分離してある。
+# Vivify 本体(GPL-3.0)とパッチはこちらに残し、自作の core は混ぜない。
+KIT_DIR="$HOME/work/md-preview-kit"
+KIT_URL="https://github.com/totochi-2022/md-preview-kit"
 
 echo "[1/5] 依存確認"
 command -v node >/dev/null || { echo "!! node が無い。mise 等で導入してから再実行"; exit 1; }
@@ -47,9 +51,16 @@ rm -f build/static.zip build/linux/vivify-server
 make linux
 make install
 
-echo "[5/6] config 設置 (~/.config/vivify/config.json → 本ディレクトリ)"
+echo "[5/6] md-preview-kit 取得 & config 設置"
+# 描画スクリプトは md-preview-kit 側。無ければ clone する。
+if [ ! -d "$KIT_DIR/.git" ]; then
+    echo "  clone: $KIT_URL → $KIT_DIR"
+    git clone "$KIT_URL" "$KIT_DIR"
+else
+    echo "  md-preview-kit OK ($KIT_DIR)"
+fi
 mkdir -p "$HOME/.config/vivify"
-ln -sf "$HERE/config.json" "$HOME/.config/vivify/config.json"
+ln -sf "$KIT_DIR/adapters/vivify/config.json" "$HOME/.config/vivify/config.json"
 
 # ブラウザ起動(config.json の browserOptions=wslview)。
 # ★ Ubuntu 24.04 の apt 版 wslu(3.2.3) は systemd 版 WSL の binfmt を旧名 WSLInterop で

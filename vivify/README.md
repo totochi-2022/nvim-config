@@ -3,24 +3,23 @@
 md をレポート化する計画（グラフ/回路図/タイミング図）の閲覧側に Vivify を使う。
 本体 `viv`/`vivify-server` はリポ管理外（各マシンでビルド）なので、ここに**再現手順一式**を置く。
 
+## ★ 描画スクリプトは md-preview-kit に分離した
+`scripts/`(glue 一式)と `config.json`、`sample.md` は **`~/work/md-preview-kit`**
+（[totochi-2022/md-preview-kit](https://github.com/totochi-2022/md-preview-kit)）へ移した。
+VS Code 拡張から同じ `glue.js` を消費するため（コピーを持つと drift する）。
+
+ここに残すのは **Vivify 本体まわりだけ**。Vivify は GPL-3.0 なので、パッチを
+こちら側に置いたままにして、自作コードの core を混ぜないようにしてある。
+`install.sh` は md-preview-kit が無ければ clone し、config をそちらへ symlink する。
+
 ## ファイル
-- `install.sh` … 上流 clone → パッチ → SEA ビルド → `~/.local/bin` 導入 → config symlink
+- `install.sh` … 上流 clone → パッチ → SEA ビルド → `~/.local/bin` 導入 →
+  md-preview-kit 取得 → `~/.config/vivify/config.json` をそちらへ symlink
 - `vivify.patch` … 上流への2点パッチ:
   - `src/app.ts`: 起動時 `/health` プローブに 500ms タイムアウト(mirrored 対策)
   - `src/parser/highlight.ts`: 未知言語フェンスの class に元言語名を残す
     (`<pre class="language-wavedrom">` 等。glue が種別検出できるように)
-- `config.json` … Vivify 設定(browserOptions/timeout/scripts)。`~/.config/vivify/config.json` はこれへの symlink
-- `scripts/` … `config.json` の `scripts` で読み込む描画グルー一式:
-  - `wavedrom.min.js` + `wavedrom-skin-default.js`(vendored)
-  - `chart.umd.js`(vendored)
-  - `glue.js` … `pre.language-wavedrom`/`pre.language-chart` を WaveDrom/Chart で描画。
-    `MutationObserver` で ws 更新にも追従
-  - `ladder.glue.js` … `pre.language-kvlist`(KVニーモニック)をラダー図SVGに描画＋
-    ホバーで同一デバイスをクロスリファレンスハイライト。**生成物・git管理外**。
-    lazy の `totochi-2022/ladder_viewer` (plugins/misc.lua) の build フックが
-    `vivify-glue.sh` で生成する(`:Lazy update` / `:Lazy build ladder_viewer` で再生成＋
-    vivify-server kill、次の `,,V` で反映)。dev モードにつき `~/work/ladder_viewer` が
-    あればそれがソース、無いマシンでは GitHub から clone される
+    ※ VS Code の markdown-it は既定でこの class を吐くので、あちらではパッチ不要
 - `render/render_schemdraw.py` … Python スニペット→画像化。namespace に `out`(出力パス)を渡し、
   ソースが `out` に保存すれば何でも可。**出力拡張子で形式判定(svg/png/jpg)**。元ソースを埋込:
   SVG=`<metadata>` / PNG=tEXt チャンク / JPEG=COM コメント(draw.io 方式 round-trip)。
