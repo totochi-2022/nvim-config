@@ -71,6 +71,20 @@ state は**原本の座標系**で保存されるので解像度非依存。`MAX
 同じ注釈のまま何度でも別サイズに焼き直せる（720 → 1600 で確認済み）。
 元から `MAX_WIDTH` より小さい画像は拡大しない。
 
+### モザイク（自作マーカー）
+marker.js のマーカー型は18種あるがぼかし/モザイクは無いので、`MosaicMarker` を自作して
+`registerMarkerType` で登録している（上部バーの「▦ モザイク」→ 画像上をドラッグ）。粗さは3段階。
+
+仕組み: 読み込み時に**画像全体を一度だけ**モザイク化した data URL を canvas で作り
+（縮小 → `imageSmoothingEnabled=false` で拡大）、各マーカーはそれを**原本と同じ座標**に置いて
+矩形でクリップするだけ。`-left/-top` にずらすので、**動かしてもリサイズしても常に真下の領域が出る**
+（領域を切り出して貼る方式だと、動かしたとき古い場所の絵が付いてきてしまう）。
+state に載るのは矩形の座標だけなので `.ann.json` は膨らまず、解像度非依存のまま。
+
+**書き出しは自前の `Renderer` で行っている**。marker.js UI 内蔵のラスタライズは自作マーカー型を
+知らず、モザイクが焼かれないため（`renderOnSave=false` にして `editorsave` で
+`new markerjs3.Renderer()` + `registerMarkerType` + `rasterize(state)`）。
+
 ### 使い方
 - `,,e`(OpenDrawio) … ラスタ画像なら注釈エディタへ（svg は従来どおり studio/draw.io）
 - `:Annot [path]` … 引数省略でカーソル行の画像リンク
