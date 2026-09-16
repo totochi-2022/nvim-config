@@ -43,6 +43,9 @@ require('file_preview').setup()
 -- diagram.lua (図は figure studio(Python→SVG)で作成/編集: :Studio / ,,e で埋込SVGを studio 起動)
 require('diagram').setup()
 
+-- annotate.lua (画像に marker.js 3 で注釈: :Annot / ,,e でラスタ画像を注釈エディタへ)
+require('annotate').setup()
+
 -- preview_pane.lua (web preview の pull: :PreviewErrors/:PreviewSvg のコマンド登録)
 -- keymap からは lazy require されるが、コマンド登録のため startup でも読み込む。
 require('preview_pane')

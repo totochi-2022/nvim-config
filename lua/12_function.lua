@@ -739,6 +739,9 @@ function _G.OpenDrawio()
     -- schemdraw 等、埋込ソース付き SVG なら nvim 側エディタで再編集（draw.io.exe 不要）
     if require('diagram').try_edit_file(path) then return end
 
+    -- 埋込ソースの無いラスタ画像（スクショ等）は marker.js の注釈エディタへ
+    if require('annotate').try_edit_file(path, vim.api.nvim_get_current_buf()) then return end
+
     -- それ以外は draw.io.exe で開く（WSL → Windowsパス変換）
     if vim.fn.executable(DRAWIO_EXE) == 0 then
         vim.notify('draw.io.exeが見つかりません: ' .. DRAWIO_EXE, vim.log.levels.ERROR)

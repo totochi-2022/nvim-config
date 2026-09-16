@@ -33,6 +33,38 @@ md をレポート化する計画（グラフ/回路図/タイミング図）の
   (tmux send-keys は noice の cmdline ポップアップにキーを取りこぼすため不可)。
 - `sample.md` … 動作確認用デモ（`,,V` で開く）
 
+## annot/ — 画像に注釈を付ける（marker.js 3）
+
+スクショ等の**既にある画像**に矢印/枠/黒塗り/コールアウトを重ねる。figure studio が
+「Python ソース → 図」なのに対し、こちらは「画像 → 注釈」担当。依存は stdlib のみ（Streamlit 不要）。
+
+- `server.py` … 127.0.0.1:**31624** の小さな HTTP サーバ。`annotate.lua` が jobstart で起こす。
+  `/annot`(エディタ) `/img`(画像配信) `/state`(state 取得) `/save`(書き出し)。
+  画像を**同一オリジンで配信する**のが要点＝canvas が汚染されず `toDataURL` が通る。
+- `editor.html` … marker.js UI の `AnnotationEditor` を貼るだけのページ。`editorsave` を
+  `POST /save` に流す。合成は原寸で出す(`rendererSettings.naturalSize`)。
+- `vendor/` … `markerjs3.umd.js`(グローバル `markerjs3`) + `markerjs-ui.umd.js`(`markerjsUI`)。
+  **読み込み順が固定**(UI が markerjs3 のグローバルを参照)。
+  ライセンス: marker.js 3 は **linkware**(商用含め無料・編集中にロゴ表示を残す条件、`vendor/LICENSE.markerjs3.txt`)、
+  marker.js UI は MIT。
+
+### 保存モデル（原本非破壊・可逆）
+```
+assets/<ts>.png        原本。img-clip が置いたまま。**書き換えない**
+assets/<ts>.ann.json   marker.js の AnnotationState。注釈の正本(git で差分が読める)
+assets/<ts>.ann.png    合成結果。md はこれを参照する(生成物・持ち出し用)
+```
+保存すると `server.py` が2ファイルを書き、起動元 nvim の socket へ `--remote-expr` で
+`annotate.on_saved()` を叩く → md のリンクを `.ann.png` に差し替え + `vivify.reload()`
+（studio.py と同じ手口。バッファを書き換えるだけで `:w` はしない＝`,,p` と同じ流儀）。
+
+### 使い方
+- `,,e`(OpenDrawio) … ラスタ画像なら注釈エディタへ（svg は従来どおり studio/draw.io）
+- `:Annot [path]` … 引数省略でカーソル行の画像リンク
+- `.ann.png` に対して `,,e` すると**原本 + state に解決して再開**する。原本が消えている場合は
+  「焼き込み済みへの重ね描き」を避けて中断する。
+- nvim 側は `lua/annotate.lua`。
+
 ## 新マシンでの導入
 ```sh
 bash ~/.config/nvim/vivify/install.sh
