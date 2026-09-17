@@ -40,11 +40,62 @@
   Pillow 自体は figure studio 用に `install.sh` で導入済み＝実機には存在する
 - **優先度**: 低（現状でも実用上は十分マシになっている）
 
+## 図まわりの入口を整理する（検討メモ）
+
+### いま何が起きているか
+`,,e` の行き先が3つに分岐していて、役割分担が**設計ではなく経緯**で決まっている。
+
+| 操作 | 行き先 | プロセス |
+|---|---|---|
+| `:Studio [schemdraw\|rdkit\|matplotlib\|raw]` | Streamlit studio（新規作成のみ） | Streamlit + ttyd + tmux（7690 / 8501） |
+| `,,e`（埋込ソース付き svg/png/jpg） | `edit_source`＝分割バッファ | 0 |
+| `,,e`（ラスタ画像） | annot（preview ペイン） | stdlib サーバ1つ（31624） |
+| `,,e`（draw.io の svg） | `draw.io.exe` | Windows アプリ |
+
+元は `,,e` も studio を開いていたが、`295acc4`（軽量ソース編集 `:FigEdit` の追加）で
+「ちょっと直すのに Streamlit が立つのは重い」という理由で分岐した。筋を通した分割ではない。
+
+**欠けているもの**: `:Studio` は**常に新規作成**なので、既存の図を studio で開き直す入口が無い。
+だから全部軽い方へ流れ、分岐が恣意的に見える。
+
+### 整理の方針（案）
+役割を「図の種類」ではなく **編集の仕方** で分ける:
+
+> **`,,e` = ソースを手で直す** ／ **`:Studio` = 見ながら調整する**
+
+1. **`:Studio` を引数なしで実行したらカーソル行の対象を開く**（小）
+   - Python 図 → 既存の studio / ラスタ画像 → annot
+   - これだけで「入口が揃っていない」問題が消える
+2. **単一図ライブビューア**（中）
+   - 「その図だけを大きくライブ表示する」ペイン。描画は `glue.js` をそのまま読めば
+     **md preview と完全に同じ絵**になる（`pre.language-<kind>` の DOM を作って渡すだけ）
+   - **編集は nvim のままにする**のが要点。書き戻しもテキストエリアも不要になり、
+     「md と studio のどちらが正本か」問題が生じない。pyright 補完も md の diff も維持
+   - フェンス系は `vivify.vim` が `TextChanged,TextChangedI` で push しているので
+     **既に打鍵ごとにリアルタイム追従**している（`:w` すら不要）。Python 図だけ `:w`
+3. それで足りるなら **studio を退役**（Streamlit / ttyd / tmux とポート2つが消える）
+
+### 採らないと判断したもの
+- **フェンス（wavedrom/chart/kvlist）を studio に寄せる**: ソースが md 本文にあるから
+  grep も git diff も効く。SVG の `<metadata>` に入れると **diff が読めなくなる**
+- **annot を Streamlit で包む**: annot は既に全画面の workbench。iframe が1枚増えて
+  表示が小さくなり、プロセスも増えるだけ
+- **ビューア側で編集して書き戻す**: 貼り忘れ・二重編集で正本がずれる。編集を nvim に
+  残せばこの問題自体が発生しない
+
+### 付随: ドキュメントが実体とずれている
+`vivify/sample.md` の「3c. 回路図」が **`:DiagramRender` / `:DiagramEdit`** を説明しているが、
+**このコマンドは現在のコードに存在しない**（grep で sample.md にしかヒットしない）。
+今は `:Studio` と `:FigEdit` / `,,e`。sample.md を見て打っても無いので、まずここを直す。
+
 ## 今後のタスク
 - [ ] x/X のundo履歴統合の別解決策を調査
 - [ ] トグル機能の window-local オプション対応改善
 - [ ] 診断表示モードの改善
 - [ ] annot の縮小を Pillow 経由にする（上記セクション参照。stdlib 限定を崩すかの判断込み）
+- [ ] `vivify/sample.md` 3c の `:DiagramRender`/`:DiagramEdit` を現状（`:Studio`/`,,e`）に直す
+- [ ] `:Studio` を引数なしでカーソル行の既存図に対して使えるようにする
+- [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）を試作し、studio 退役を判断
 - [ ] LSPホバーの「No information available」メッセージ抑制
   - vim.lsp.handlers["textDocument/hover"]のオーバーライドを試したが動作せず
   - ハンドラー設定タイミングやLSP初期化順序の調査が必要
