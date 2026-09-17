@@ -7,6 +7,8 @@
 #   サーバの有無を調べ、error(接続拒否)なら自分が listen する設計なので、
 #   このプローブがハングすると server.listen に到達せず起動できない。
 #   → src/app.ts のプローブに 500ms タイムアウトを足す(app.ts.patch)。
+#   同じ patch で highlight.ts(未知言語フェンスの class 保持) と
+#   markdown.ts(KaTeX に mhchem を読ませて \ce{} を使えるようにする) も当てる。
 #
 # 何をするか:
 #   1. 上流 Vivify を ghq clone
@@ -35,7 +37,7 @@ VDIR="$(ghq list --full-path | grep -iE 'jannis-baum/Vivify$' | head -1)"
 cd "$VDIR"
 
 echo "[3/5] パッチ適用(冪等: 一旦戻してから当てる)"
-git checkout -- src/app.ts src/parser/highlight.ts 2>/dev/null || true
+git checkout -- src/app.ts src/parser/highlight.ts src/parser/markdown.ts 2>/dev/null || true
 git apply "$HERE/vivify.patch"
 
 echo "[4/5] ビルド & install (webpack+SEA で数分)"

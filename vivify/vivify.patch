@@ -63,3 +63,18 @@ index e0c7eca..6696e5a 100644
 -    return `<pre class="language-${lang}"><code>${content}</code></pre>`;
 +    return `<pre class="language-${displayLang}"><code>${content}</code></pre>`;
  }
+diff --git a/src/parser/markdown.ts b/src/parser/markdown.ts
+index cc52648..0fbc2d3 100644
+--- a/src/parser/markdown.ts
++++ b/src/parser/markdown.ts
+@@ -57,6 +57,10 @@ mdit.use(toc, config.tocOptions);
+ // MARK: untyped plugins done
+ 
+ import katex from 'katex';
++// mhchem: KaTeX に \ce{} / \pu{} を足す拡張（化学式・反応式）。
++// import するだけで katex にマクロが登録される。数式は**サーバ側**で描画されるので
++// config.json の scripts(クライアント側)では足せず、ここで読む必要がある。
++import 'katex/contrib/mhchem';
+ mdit.use(texMath, {
+     engine: katex,
+     delimiters: 'dollars',

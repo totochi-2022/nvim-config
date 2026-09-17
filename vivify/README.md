@@ -9,6 +9,10 @@ md をレポート化する計画（グラフ/回路図/タイミング図）の
   - `src/app.ts`: 起動時 `/health` プローブに 500ms タイムアウト(mirrored 対策)
   - `src/parser/highlight.ts`: 未知言語フェンスの class に元言語名を残す
     (`<pre class="language-wavedrom">` 等。glue が種別検出できるように)
+  - `src/parser/markdown.ts`: `import 'katex/contrib/mhchem'` を足して **`\ce{}` を有効化**
+    (化学式・反応式。`$\ce{H2SO4}$` → H₂SO₄、`$\ce{2H2 + O2 -> 2H2O}$` → 矢印付き反応式)。
+    数式は**サーバ側**で描画されるので `config.json` の `scripts`(クライアント側)では足せない。
+    構造式を図として描くほうは `:Studio rdkit`(SMILES→SVG) が別にある
 - `config.json` … Vivify 設定(browserOptions/timeout/scripts)。`~/.config/vivify/config.json` はこれへの symlink
 - `scripts/` … `config.json` の `scripts` で読み込む描画グルー一式:
   - `wavedrom.min.js` + `wavedrom-skin-default.js`(vendored)
