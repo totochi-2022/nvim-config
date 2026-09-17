@@ -126,15 +126,18 @@ digraph G {
 
 ---
 
-## 3c. 回路図（schemdraw / :DiagramRender）
+## 3c. 回路図（schemdraw）
 
-schemdraw は Python なのでブラウザでライブ描画できない。下のフェンス内にカーソルを置いて
-**`:DiagramRender`** すると、SVG 化して `![](assets/xxx.svg)` に置換される（元ソースは SVG の
-`<metadata>` に同伴）。後で `![]` 行で **`:DiagramEdit`** すればソースを復元して編集→`:w` で再生成。
-案A（`d` / `elm` はスコープ済）で書く:
+schemdraw は Python なのでブラウザでライブ描画できない。**作ってから貼る**方式になる:
 
+| キー | 動作 |
+|---|---|
+| `,,s` | Studio を単体で開いて試行錯誤 → **📋 SVGコピー** → `,,p` で貼る |
+| `,,m` | studio を立てず、テンプレから `assets/` に直接作って分割バッファで編集 |
+| `,,p` | クリップボードの Python を実行して貼る（先頭に **`import figkit`** が要る） |
+| `,,e` | 貼った図の上で押すと、埋込ソースを分割バッファに復元 → `:w` で再生成 |
 
-（このフェンスは `,,V` では素のコード表示。`:DiagramRender` 実行後に画像になる。）
+元ソースは SVG の `<metadata>` に同伴するので、何度でも編集を再開できる。
 ![](assets/schemdraw-1d0ad66d2a.svg)
 
 

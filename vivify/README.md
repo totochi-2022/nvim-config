@@ -12,7 +12,7 @@ md をレポート化する計画（グラフ/回路図/タイミング図）の
   - `src/parser/markdown.ts`: `import 'katex/contrib/mhchem'` を足して **`\ce{}` を有効化**
     (化学式・反応式。`$\ce{H2SO4}$` → H₂SO₄、`$\ce{2H2 + O2 -> 2H2O}$` → 矢印付き反応式)。
     数式は**サーバ側**で描画されるので `config.json` の `scripts`(クライアント側)では足せない。
-    構造式を図として描くほうは `:Studio rdkit`(SMILES→SVG) が別にある
+    構造式を図として描くほうは `:FigOpenStudio rdkit`(SMILES→SVG) が別にある
 - `config.json` … Vivify 設定(browserOptions/timeout/scripts)。`~/.config/vivify/config.json` はこれへの symlink
 - `scripts/` … `config.json` の `scripts` で読み込む描画グルー一式:
   - `wavedrom.min.js` + `wavedrom-skin-default.js`(vendored)
@@ -117,8 +117,8 @@ state に載るのは矩形の座標だけなので `.ann.json` は膨らまな�
 + `rasterize(state)`。
 
 ### 使い方
-- `,,e`(OpenDrawio) … ラスタ画像なら注釈エディタへ（svg は従来どおり studio/draw.io）
-- `:Annot [path]` … 引数省略でカーソル行の画像リンク
+- `,,e`(:FigEditAuto) … ラスタ画像なら注釈エディタへ（埋込ソース付きなら分割バッファ、draw.io なら draw.io.exe）
+- `:FigAnnotateImage` … 判定を飛ばして直接注釈エディタへ
 - `.ann.png` に対して `,,e` すると**原本 + state に解決して再開**する。原本が消えている場合は
   「焼き込み済みへの重ね描き」を避けて中断する。
 - nvim 側は `lua/annotate.lua`。
@@ -151,17 +151,27 @@ Vivify は起動時 `http.get(localhost:31622/health)` で既存サーバを調�
 - `lua/vivify.lua` … `,,V` デュアルモード（web=右ペイン / 端末=ブラウザタブ）
 - `lua/21_keymap.lua`（`,,V` → `require("vivify").open()`）、`lua/plugins/misc.lua`（vivify.vim spec: `ft=markdown`）
 - 追従(スクロール同期)は vivify.vim の autocmd が md 進入時に curl POST する仕組み。
+- `lua/figure.lua` … 図・画像の「作る/直す」入口。`Fig*` コマンド群と `,,p`/`,,e`/`,,s`/`,,m` の
+  振り分け。道具はすべて独立コマンドなので、判定が外れたら直接叩けば回避できる
+  (`:Fig<Tab>` で一覧)。実装は diagram.lua と annotate.lua にある。
 - `lua/diagram.lua` … 図は **figure studio(左=nvim/右=SVG)** で作成/編集。SVG 固定・ソース埋込で統一。
   補完のためソース部を Ace でなく本物の nvim(ttyd+tmux, pyright)にした。
-  - **`:Studio [schemdraw|matplotlib|raw] [svg|png]`**: 現 md/typst の `assets/` に `<ts>.fig.<fmt>` を
-    作りリンク挿入(既定 svg) → temp `.py` を作り studio を開く。左=nvim で編集 → **`:w`** で再生成
-    (BufWritePost)→ 右が更新。svg が図の主役、png は matplotlib 等の raster 向き。
-  - **`,,e`(OpenDrawio)**: `![](x.svg)` 上で `<metadata id="diagram-source">` があれば埋込ソースを復元して
-    studio で編集 → `:w` で上書き。draw.io SVG(`content="<mxfile>"`)→ draw.io.exe。
+  - **`,,s`(:FigOpenStudio)**: studio を**単体で**開く(対象ファイルなし・スクラッチ)。draw.io アプリと
+    同じ位置づけで、仕上げたらツールバーの **📋 SVGコピー → `,,p`** で md に入れる。
+    `assets/` には何も作られないのでボツにしてもゴミが残らない。
+  - **`,,m`(:FigNewFromTemplate [schemdraw|matplotlib|rdkit|raw] [svg|png])**: studio を立てず、
+    現 md/typst の `assets/` に `<ts>.fig.<fmt>` を作りリンク挿入 → 分割バッファで編集 →
+    **`:w`** で再生成。svg が図の主役、png は matplotlib 等の raster 向き。
+  - **`,,e`(:FigEditAuto)**: `![](x.svg)` 上で `<metadata id="diagram-source">` があれば埋込ソースを
+    分割バッファで復元 → `:w` で上書き。draw.io SVG(`content="<mxfile>"`)→ draw.io.exe。
   - 構成: ttyd(**7690**, tmux セッション `figstudio` で nvim 永続化) / Streamlit(**8501**) / Vivify(**31622**)。
     Streamlit がツールバー+2ペインを描画、左は ttyd iframe、右は Vivify iframe。tmux 永続化で
     ブラウザ/ttyd が落ちても編集状態は残る。同時に1図(固定ポート)。
-  - **`,,p`(SmartPaste)**: クリップボードの SVG/draw.io を保存＋`![]`挿入（外部からの貼付用）。
+  - **`,,p`(:FigPasteAuto)**: クリップボードを判定して `assets/` に保存＋リンク挿入。
+    Python スニペット(先頭に `import figkit` が要る)→実行して `.fig.svg` / SVG→出所で
+    `.fig.svg` か `.drawio.svg` / mxfile→`.drawio` / 画像→`.png`。
+    **入力がクリップボードだけ**なので、バッファに「描画済み/未描画」の中間状態ができない
+    (以前フェンスを対象にした `:DiagramRender` 方式が分かりにくくなって廃れた理由)。
 
 ## 経緯
 howm 日記: `2026-07-03-1657-chiikawa.md`（Vivify 導入・トラブル全記録）、

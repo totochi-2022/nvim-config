@@ -439,7 +439,7 @@ return {
     },
 
     -- howm的なmarkdownメモ管理（telescope駆動のZettelkasten）
-    -- 保管先は data/howm/ を流用。画像貼り付けはimg-clip/SmartPaste(sP)を使う
+    -- 保管先は data/howm/ を流用。画像貼り付けは img-clip / ,,p(:FigPasteAuto)を使う
     -- キーマップ（,, プレフィックス）は lua/21_keymap.lua で管理
     {
         -- 原作(renerocksai)はメンテ停滞 → コミュニティ後継 fork に差し替え（API互換）
@@ -459,7 +459,7 @@ return {
                 templates  = howm .. '/templates', -- テンプレート
                 extension  = ".md",
                 new_note_filename = "title",       -- タイトルをファイル名に
-                -- 画像貼り付けはimg-clip/SmartPaste(sP)に任せるためtelekasten側は使わない
+                -- 画像貼り付けは img-clip / ,,p(:FigPasteAuto)に任せるため telekasten 側は使わない
             })
         end,
     },

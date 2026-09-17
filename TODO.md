@@ -40,62 +40,60 @@
   Pillow 自体は figure studio 用に `install.sh` で導入済み＝実機には存在する
 - **優先度**: 低（現状でも実用上は十分マシになっている）
 
-## 図まわりの入口を整理する（検討メモ）
+## 図まわりの入口を整理した（2026-09-17 実施済み）
 
-### いま何が起きているか
-`,,e` の行き先が3つに分岐していて、役割分担が**設計ではなく経緯**で決まっている。
+役割を「図の種類」ではなく **編集の仕方** で分け、道具を全部独立コマンドにして、
+その上に自動判別を薄く乗せた。実体は `lua/figure.lua`。
 
-| 操作 | 行き先 | プロセス |
+| キー | コマンド | 動作 |
 |---|---|---|
-| `:Studio [schemdraw\|rdkit\|matplotlib\|raw]` | Streamlit studio（新規作成のみ） | Streamlit + ttyd + tmux（7690 / 8501） |
-| `,,e`（埋込ソース付き svg/png/jpg） | `edit_source`＝分割バッファ | 0 |
-| `,,e`（ラスタ画像） | annot（preview ペイン） | stdlib サーバ1つ（31624） |
-| `,,e`（draw.io の svg） | `draw.io.exe` | Windows アプリ |
+| `,,p` | `:FigPasteAuto` | クリップボードを判定して貼る |
+| `,,e` | `:FigEditAuto` | カーソル行を判定して直す |
+| `,,s` | `:FigOpenStudio` | Studio を**単体で**開く（作る→📋→`,,p`） |
+| `,,m` | `:FigNewFromTemplate` | テンプレから md に直接作る |
 
-元は `,,e` も studio を開いていたが、`295acc4`（軽量ソース編集 `:FigEdit` の追加）で
-「ちょっと直すのに Streamlit が立つのは重い」という理由で分岐した。筋を通した分割ではない。
+個別コマンド: `:FigRenderPython` / `:FigPasteSvg` / `:FigPasteDrawioXml` / `:FigPasteImage` /
+`:FigEditSource` / `:FigAnnotateImage` / `:FigOpenDrawioApp`（判定が外れたとき直接叩ける）
 
-**欠けているもの**: `:Studio` は**常に新規作成**なので、既存の図を studio で開き直す入口が無い。
-だから全部軽い方へ流れ、分岐が恣意的に見える。
+### 設計の要点（忘れると同じ道を通る）
+- **入力はクリップボードだけ**。以前「md のフェンスにカーソルを置いて `:DiagramRender`」という
+  方式があったが、バッファに「描画済み/未描画」の中間状態ができて分からなくなり廃止された。
+  クリップボード入力なら中間状態が無く、貼った時点で常に「ファイル+リンク」の1状態
+- **Studio は draw.io と同じ位置づけ**（単体で開く外部ツール、出力はクリップボード）。
+  `assets/` に何も書かないので**ボツにしてもゴミが残らない**
+- **Python の実行には `import figkit` が要る**。誤爆防止であってセキュリティではない
+  （ローカルで exec する以上、完全な防御は無理）。印はソースに残って SVG に埋め込まれるので、
+  studio から 📋 コピーして `,,p` しても通る
+- `render_schemdraw.py` 側は `sys.modules.setdefault("figkit", ...)` でスタブを登録。
+  ゲートは `,,p` にだけ置き、`,,e` → `:w` の再生成には要求しない（自分で開いたファイルなので）
 
-### 整理の方針（案）
-役割を「図の種類」ではなく **編集の仕方** で分ける:
+### 採らなかった案と理由
+- **フェンス(wavedrom/chart/kvlist)を studio に寄せる**: ソースが md 本文にあるから grep も
+  git diff も効く。SVG の `<metadata>` に入れると **diff が読めなくなる**
+- **annot を Streamlit で包む**: annot は既に全画面の workbench。iframe が増えて表示が小さくなるだけ
+- **ビューア側で編集して書き戻す**: 貼り忘れ・二重編集で正本がずれる。編集を nvim に残せば発生しない
+- **Python フェンスのリアルタイム描画**: md を開いただけで任意コードが走る。今は「自分で開いて
+  自分で `:w` したときだけ」実行されるので、その性質を壊さない
 
-> **`,,e` = ソースを手で直す** ／ **`:Studio` = 見ながら調整する**
-
-1. **`:Studio` を引数なしで実行したらカーソル行の対象を開く**（小）
-   - Python 図 → 既存の studio / ラスタ画像 → annot
-   - これだけで「入口が揃っていない」問題が消える
-2. **単一図ライブビューア**（中）
-   - 「その図だけを大きくライブ表示する」ペイン。描画は `glue.js` をそのまま読めば
-     **md preview と完全に同じ絵**になる（`pre.language-<kind>` の DOM を作って渡すだけ）
-   - **編集は nvim のままにする**のが要点。書き戻しもテキストエリアも不要になり、
-     「md と studio のどちらが正本か」問題が生じない。pyright 補完も md の diff も維持
-   - フェンス系は `vivify.vim` が `TextChanged,TextChangedI` で push しているので
-     **既に打鍵ごとにリアルタイム追従**している（`:w` すら不要）。Python 図だけ `:w`
-3. それで足りるなら **studio を退役**（Streamlit / ttyd / tmux とポート2つが消える）
-
-### 採らないと判断したもの
-- **フェンス（wavedrom/chart/kvlist）を studio に寄せる**: ソースが md 本文にあるから
-  grep も git diff も効く。SVG の `<metadata>` に入れると **diff が読めなくなる**
-- **annot を Streamlit で包む**: annot は既に全画面の workbench。iframe が1枚増えて
-  表示が小さくなり、プロセスも増えるだけ
-- **ビューア側で編集して書き戻す**: 貼り忘れ・二重編集で正本がずれる。編集を nvim に
-  残せばこの問題自体が発生しない
-
-### 付随: ドキュメントが実体とずれている
-`vivify/sample.md` の「3c. 回路図」が **`:DiagramRender` / `:DiagramEdit`** を説明しているが、
-**このコマンドは現在のコードに存在しない**（grep で sample.md にしかヒットしない）。
-今は `:Studio` と `:FigEdit` / `,,e`。sample.md を見て打っても無いので、まずここを直す。
+### 残り
+- Studio 自体は残した（「試行錯誤する場所」として使い心地が良いため）。
+  ただし機能的には `,,e` の分割バッファ + preview でほぼ代替できる。**SMILES 検索の置き場**だけが
+  studio 固有。将来 Streamlit を畳むならそこをどうするか
+- draw.io を web 版(embed モード)にして preview ペインに入れる案。`?embed=1&proto=json` +
+  postMessage、`format:'xmlsvg'` が今の `.drawio.svg` と同形式。書き戻しは annot と同じ仕組みが使える
+- **単一図ライブビューア**（その図だけ大きく表示）。フェンス系は `vivify.vim` が `TextChanged` で
+  push しているので**既に打鍵ごとにリアルタイム**。足りないのは「その図だけ大きく」だけ
 
 ## 今後のタスク
 - [ ] x/X のundo履歴統合の別解決策を調査
 - [ ] トグル機能の window-local オプション対応改善
 - [ ] 診断表示モードの改善
 - [ ] annot の縮小を Pillow 経由にする（上記セクション参照。stdlib 限定を崩すかの判断込み）
-- [ ] `vivify/sample.md` 3c の `:DiagramRender`/`:DiagramEdit` を現状（`:Studio`/`,,e`）に直す
-- [ ] `:Studio` を引数なしでカーソル行の既存図に対して使えるようにする
-- [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）を試作し、studio 退役を判断
+- [x] `vivify/sample.md` 3c を現状に合わせて書き直す
+- [x] 図まわりの入口整理（`Fig*` コマンド群 + `,,p`/`,,e`/`,,s`/`,,m`）
+- [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）
+- [ ] draw.io を web 版(embed モード)で preview ペインに埋め込む
+- [ ] SMILES 検索の置き場（Streamlit を畳むなら必要）
 - [ ] LSPホバーの「No information available」メッセージ抑制
   - vim.lsp.handlers["textDocument/hover"]のオーバーライドを試したが動作せず
   - ハンドラー設定タイミングやLSP初期化順序の調査が必要
