@@ -86,9 +86,17 @@ echo "[6/6] figure studio 依存"
 # ~/work/figkit.nvim か GitHub から取るが、pip/apt 側はここでまとめて入れる。
 # 図生成: schemdraw / matplotlib（Python→SVG）
 if command -v python3 >/dev/null; then
-    python3 -m pip install --quiet streamlit schemdraw matplotlib pillow rdkit \
-        && echo "  py: streamlit/schemdraw/matplotlib/pillow/rdkit OK" \
-        || echo "  △ py 失敗。手動: pip install streamlit schemdraw matplotlib pillow rdkit"
+    python3 -m pip install --quiet streamlit schemdraw matplotlib pillow rdkit graphviz \
+        && echo "  py: streamlit/schemdraw/matplotlib/pillow/rdkit/graphviz OK" \
+        || echo "  △ py 失敗。手動: pip install streamlit schemdraw matplotlib pillow rdkit graphviz"
+    # graphviz(py) は dot コマンドの薄いラッパーなので本体も要る
+    if command -v dot >/dev/null; then
+        echo "  dot OK"
+    elif sudo apt-get install -y graphviz >/dev/null 2>&1; then
+        echo "  dot 導入 OK"
+    else
+        echo "  △ dot 無し。手動: sudo apt install graphviz"
+    fi
     # SMILES 検索は PubChem PUG-REST(公式・キー不要)を urllib で直叩き=追加依存なし
 else
     echo "  △ python3 が無いので図依存スキップ（python 用意後に pip install）"
