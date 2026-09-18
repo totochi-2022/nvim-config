@@ -503,7 +503,7 @@ keymap('n', ',,k', '<cmd>Telekasten show_calendar<CR>',  { noremap = true, desc 
 -- desc がそのまま which-key の候補表示になる。
 keymap('n', ',,p', '<cmd>FigPasteAuto<CR>',    { noremap = true, desc = '図: 貼付(Python/SVG/draw.io/画像を自動判別)' })
 keymap('n', ',,e', '<cmd>FigEditAuto<CR>',     { noremap = true, desc = '図: 再編集(ソース/注釈/draw.ioを自動判別)' })
-keymap('n', ',,s', '<cmd>FigOpenStudio<CR>',   { noremap = true, desc = '図: Studio を開く(作る→📋→,,p)' })
+keymap('n', ',,s', '<cmd>FigOpenStudio<CR>',   { noremap = true, desc = '図: Studio(図の行ならその図 / 他はスクラッチ)' })
 keymap('n', ',,m', '<cmd>FigNewFromTemplate<CR>', { noremap = true, desc = '図: テンプレから md に直接作成' })
 -- come-from(<<<) 連想リンク（telekasten上でhowm風: ,,a=宿主へ飛ぶ / ,,A=宣言を挿入）
 keymap('n', ',,a', '<cmd>lua require("howm_link").follow(false)<CR>',  { noremap = true, desc = 'howm: come-from宿主へ飛ぶ' })

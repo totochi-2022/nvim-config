@@ -156,9 +156,12 @@ Vivify は起動時 `http.get(localhost:31622/health)` で既存サーバを調�
   (`:Fig<Tab>` で一覧)。実装は diagram.lua と annotate.lua にある。
 - `lua/diagram.lua` … 図は **figure studio(左=nvim/右=SVG)** で作成/編集。SVG 固定・ソース埋込で統一。
   補完のためソース部を Ace でなく本物の nvim(ttyd+tmux, pyright)にした。
-  - **`,,s`(:FigOpenStudio)**: studio を**単体で**開く(対象ファイルなし・スクラッチ)。draw.io アプリと
-    同じ位置づけで、仕上げたらツールバーの **📋 SVGコピー → `,,p`** で md に入れる。
-    `assets/` には何も作られないのでボツにしてもゴミが残らない。
+  - **`,,s`(:FigOpenStudio)**: studio を開く。**カーソル行に既存の `.fig.svg` があればその図**を
+    開き、studio 側の `:w` がその図を直接更新する(化学構造式は SMILES 検索が studio にしか
+    無いので、開き直せる入口が要る)。図の行でなければ**スクラッチ**で開き、仕上げたら
+    ツールバーの **📋 SVGコピー → `,,p`** で md に入れる(draw.io アプリと同じ流儀。
+    `assets/` に何も作られないのでボツにしてもゴミが残らない)。
+    図の行にいてもスクラッチが欲しいときは `:FigOpenStudio rdkit` のようにテンプレ名を付ける。
   - **`,,m`(:FigNewFromTemplate [schemdraw|matplotlib|rdkit|raw] [svg|png])**: studio を立てず、
     現 md/typst の `assets/` に `<ts>.fig.<fmt>` を作りリンク挿入 → 分割バッファで編集 →
     **`:w`** で再生成。svg が図の主役、png は matplotlib 等の raster 向き。

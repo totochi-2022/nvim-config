@@ -76,9 +76,9 @@
   自分で `:w` したときだけ」実行されるので、その性質を壊さない
 
 ### 残り
-- Studio 自体は残した（「試行錯誤する場所」として使い心地が良いため）。
-  ただし機能的には `,,e` の分割バッファ + preview でほぼ代替できる。**SMILES 検索の置き場**だけが
-  studio 固有。将来 Streamlit を畳むならそこをどうするか
+- Studio 自体は残した（「試行錯誤する場所」として使い心地が良いため）。`,,s` はカーソル行に
+  図があればその図を開く。**SMILES 検索の置き場**だけが studio 固有なので、将来 Streamlit を
+  畳むならそこをどうするか（化学構造式は studio でないと編集がしんどい、というのが実感）
 - draw.io を web 版(embed モード)にして preview ペインに入れる案。`?embed=1&proto=json` +
   postMessage、`format:'xmlsvg'` が今の `.drawio.svg` と同形式。書き戻しは annot と同じ仕組みが使える
 - **単一図ライブビューア**（その図だけ大きく表示）。フェンス系は `vivify.vim` が `TextChanged` で
@@ -93,7 +93,7 @@
 - [x] 図まわりの入口整理（`Fig*` コマンド群 + `,,p`/`,,e`/`,,s`/`,,m`）
 - [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）
 - [ ] draw.io を web 版(embed モード)で preview ペインに埋め込む
-- [ ] SMILES 検索の置き場（Streamlit を畳むなら必要）
+- [ ] SMILES 検索の置き場（Streamlit を畳むなら必要。畳まない判断もあり）
 - [ ] LSPホバーの「No information available」メッセージ抑制
   - vim.lsp.handlers["textDocument/hover"]のオーバーライドを試したが動作せず
   - ハンドラー設定タイミングやLSP初期化順序の調査が必要
