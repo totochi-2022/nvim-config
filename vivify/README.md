@@ -29,7 +29,15 @@ md をレポート化する計画（グラフ/回路図/タイミング図）の
   ソースが `out` に保存すれば何でも可。**出力拡張子で形式判定(svg/png/jpg)**。元ソースを埋込:
   SVG=`<metadata>` / PNG=tEXt チャンク / JPEG=COM コメント(draw.io 方式 round-trip)。
   `--extract <file>` で埋込ソースを取り出す(svg/png/jpg 共通・`,,e` の判別に使用)。png/jpg は Pillow 使用。
-- `render/studio.py` … Streamlit 製 figure studio。**左=vim(ttyd の nvim)/右=ライブSVG(白ボックス)**、
+- `render/studio.py` … Streamlit 製 figure studio。右下に **📋 SVGコピー** と
+  **📄 md に挿入 / md を更新** の2つのボタンがある（`:w` は従来どおり SVG を再生成する。
+  ボタンはそれを置き換えるものではない）。
+  📄 は studio 内の小サーバ(`/commit`, JUMP_PORT)が **md を開いている外側の nvim** へ
+  `--remote-expr` で `figure.studio_commit()` を叩く仕組み。SVG 本文は渡さず、
+  studio が書き終えたファイルの**パスだけ**渡して読み出しは nvim 側で行う
+  （長い SVG をコマンドラインに載せないため）。スクラッチなら `assets/` へ複製して
+  リンクを挿入し、既存図を開いていたなら target が既に md の図なので preview を更新するだけ。
+  そのため URL には `?host=<外側nvimのservername>&buf=<mdのバッファ>&scratch=` も渡している。**左=vim(ttyd の nvim)/右=ライブSVG(白ボックス)**、
   上部ツールバー(テンプレ挿入/📋SVGコピー)。`?svg=&py=&ttyd=&sock=` を受け取り、左に ttyd(nvim)を
   iframe で、右は `st.fragment(run_every="1s")` で SVG を読み直して表示(`:w` で更新・端末は再描画しない)。
   生成エラー時(=`<py>.err` が在る)は画像も📋コピーも出さずエラーだけ表示(古い画像を残さない)。
