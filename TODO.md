@@ -42,7 +42,7 @@
 ## 図まわりの入口を整理した（2026-09-17 実施済み）
 
 役割を「図の種類」ではなく **編集の仕方** で分け、道具を全部独立コマンドにして、
-その上に自動判別を薄く乗せた。実体は `lua/figure.lua`。
+その上に自動判別を薄く乗せた。**実体は figkit.nvim へ分離した**（下記）。
 
 | キー | コマンド | 動作 |
 |---|---|---|
@@ -83,6 +83,25 @@
 - **単一図ライブビューア**（その図だけ大きく表示）。フェンス系は `vivify.vim` が `TextChanged` で
   push しているので**既に打鍵ごとにリアルタイム**。足りないのは「その図だけ大きく」だけ
 
+## 図・画像ツールを figkit.nvim に分離した（2026-09-18 実施済み）
+
+`lua/figure.lua` + `diagram.lua` + `annotate.lua` + `vivify/{render,annot}/` を
+[totochi-2022/figkit.nvim](https://github.com/totochi-2022/figkit.nvim)（`~/work/figkit.nvim`）へ。
+このページの図まわりの記述（`,,p`/`,,e`/`,,s`/`,,m`・annot の縮小画質・設計メモ）は
+**そのプラグインの話**として読むこと。`lua/wslpath.lua` だけは nvim-config 側でも
+4箇所使っているので両方に置いてある。
+
+繋ぎは2つのフックだけ:
+- `on_change(buf)` … 図/注釈を書いたあと `require('vivify').reload(buf)`
+- `open_url(url, title)` … web=右プレビューペイン / 端末=`wslview`
+
+spec は `lua/plugins/misc.lua`（`dev = true` → `~/work/figkit.nvim`、無いマシンは GitHub から clone）。
+**古い annot サーバ(31624)が生きているとファイルが消えた旧パスを掴んだままになる**ので、
+分離直後は一度落とす（今回 404 を踏んだ）。
+
+自作部分のライセンスは未定。marker.js 3 は **linkware**（ロゴ表示を残す条件）なので、
+figkit 側 README に明記してある。
+
 ## 今後のタスク
 - [ ] x/X のundo履歴統合の別解決策を調査
 - [ ] トグル機能の window-local オプション対応改善
@@ -93,6 +112,8 @@
       ※ ただし **VS Code の KaTeX は mhchem を読まない**ので、配布先で崩れる。
         kit に入れるなら「Vivify 限定」と明記するか、入れない判断もある
 - [x] 図まわりの入口整理（`Fig*` コマンド群 + `,,p`/`,,e`/`,,s`/`,,m`）
+- [x] 図・画像ツールを figkit.nvim として独立させる
+- [ ] figkit.nvim 自作部分のライセンスを決める（`LICENSE` を置く）
 - [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）
 - [ ] draw.io を web 版(embed モード)で preview ペインに埋め込む
 - [ ] SMILES 検索の置き場（Streamlit を畳むなら必要。畳まない判断もあり）
