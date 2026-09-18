@@ -145,6 +145,10 @@ state に載るのは矩形の座標だけなので `.ann.json` は膨らまな�
 ### 使い方
 - `,,e`(:FigEditAuto) … ラスタ画像なら注釈エディタへ（埋込ソース付きなら分割バッファ、draw.io なら draw.io.exe）
 - `:FigAnnotateImage` … 判定を飛ばして直接注釈エディタへ
+- `:FigStopStudio` … Studio を止める。**既定は Streamlit だけ**で、これは
+  `studio.py` を書き換えたときの反映用（起動中の Streamlit は古いコードを持ったままで、
+  `M.studio` は「上がっていれば起動しない」ので落とさないと効かない）。ttyd と tmux は
+  残すので左の nvim の編集状態は失われない。`:FigStopStudio!` で ttyd/tmux も片付ける
 - `:FigClipInfo` … いま `,,p` が何をするかだけ表示（書き込まない）。
   「スクショを撮ったのに SVG が貼られる」＝**クリップボードが更新されていない**ことが多いので、
   その確認用。同じ内容を続けて貼ろうとしたときは `,,p` 自身も警告する
