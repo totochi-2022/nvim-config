@@ -502,10 +502,12 @@ return {
         opts = {
             -- 図/注釈を書き換えたら Vivify preview を cache-bust reload する
             on_change = function(buf) require('vivify').reload(buf) end,
-            -- web(nvim-server)なら右プレビューペイン / 端末 nvim ならブラウザタブ
-            open_url = function(url, title)
+            -- web(nvim-server)なら右プレビューペイン / 端末 nvim ならブラウザタブ。
+            -- ただし kind='tab' は**全幅が要る**という申告なので、web でもタブで開く
+            -- （Studio は左=nvim/右=SVG の2ペイン構成。右ペインに入れると潰れる）。
+            open_url = function(url, title, kind)
                 local ch = vim.g.nvim_server_channel
-                if type(ch) == 'number' and ch > 0 then
+                if kind ~= 'tab' and type(ch) == 'number' and ch > 0 then
                     vim.rpcnotify(ch, 'web_open_url', url, title)
                 else
                     vim.fn.jobstart({ 'wslview', url }, { detach = true })
