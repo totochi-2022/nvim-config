@@ -81,23 +81,48 @@ function M.close(defer)
   end
 end
 
+-- ペインを**別のもの**に差し替えたことを知らせる（shown_buf を無効化する）。
+--
+-- ペインは md プレビュー以外にも使われる（:PreviewUrl の web app、figkit の注釈
+-- エディタ等）。それを出しても shown_buf は md バッファのままなので、追従モードが
+-- 「既に出している」と判断して**md プレビューに戻らなくなる**。奪う側がこれを呼ぶ。
+function M.note_foreign()
+  shown_buf = nil
+end
+
 -- 指定バッファを標準ビューア(Vivify)でペインに出す。バッファ文脈で vivify.open()
 -- を呼ぶと web 接続中は右ペインへ web_open_url される（=追従）。
 -- （旧: markdown-preview を起動していたが、標準ビューア入替に伴い Vivify へ変更）
-local function preview_buf(buf)
+local function preview_buf(buf, force)
   if not (buf and vim.api.nvim_buf_is_valid(buf)) then
     return
   end
   if vim.bo[buf].filetype ~= "markdown" then
     return
   end
-  if buf == shown_buf then
+  if buf == shown_buf and not force then
     return -- 既に出している
   end
   shown_buf = buf
   vim.api.nvim_buf_call(buf, function()
     pcall(function() require("vivify").open() end)
   end)
+end
+
+-- 現バッファのプレビューをペインに出し直す（追従モードの手動トリガ）。
+-- 追従は BufEnter 契機なので、同じバッファに留まったまま——ペインを閉じた直後や
+-- 注釈エディタから戻りたいとき——は自分で発火させる必要がある。
+function M.refollow()
+  if not chan() then
+    return warn_no_web()
+  end
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.bo[buf].filetype ~= "markdown" then
+    vim.notify("md バッファで実行してください（現在: " .. (vim.bo[buf].filetype ~= "" and vim.bo[buf].filetype or "無名") .. "）",
+      vim.log.levels.WARN)
+    return
+  end
+  preview_buf(buf, true)
 end
 
 -- ── preview の pull（エラー / SVG を web の iframe から取得）─────────────────
@@ -229,6 +254,7 @@ vim.api.nvim_create_user_command("PreviewUrl", function(o)
     vim.notify("URL を指定してください: :PreviewUrl <url|port[/path]>", vim.log.levels.WARN)
     return
   end
+  M.note_foreign() -- md プレビュー以外を出すので追従の shown_buf を外す
   vim.rpcnotify(c, "web_open_url", normalize_preview_url(url), "App")
 end, { nargs = 1, desc = "任意URL/ポート省略記法を preview ペインに開く（web app のエラー捕捉等）" })
 
@@ -263,6 +289,10 @@ vim.api.nvim_create_user_command("PreviewEval", function(o)
     vim.notify(tostring(r.result), vim.log.levels.INFO, { title = "PreviewEval: " .. code })
   end
 end, { nargs = "+", desc = "preview(app)内で JS を eval して結果表示" })
+
+vim.api.nvim_create_user_command("PreviewRefollow", function()
+  M.refollow()
+end, { desc = "現バッファのプレビューをペインに出し直す（注釈エディタ等から戻る）" })
 
 local follow_group = "PreviewPaneFollow"
 

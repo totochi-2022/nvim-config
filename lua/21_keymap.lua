@@ -211,6 +211,9 @@ minor_mode.define_mode({
         { key = ']', action = '<cmd>lua require("preview_pane").resize(1, true)<CR>',  desc = 'プレビュー幅を広げる' },
         { key = '[', action = '<cmd>lua require("preview_pane").resize(-1, true)<CR>', desc = 'プレビュー幅を狭める' },
         { key = 'p', action = '<cmd>lua require("preview_pane").close(true)<CR>', desc = 'プレビューを閉じる' },
+        -- 注釈エディタ/web app にペインを奪われた後、md プレビューに戻す。
+        -- 追従は BufEnter 契機なので、同じバッファに留まったままだと自動では戻らない。
+        { key = 'P', action = '<cmd>lua require("preview_pane").refollow()<CR>', desc = 'プレビューを出し直す(md に戻す)' },
     },
     hooks = {
         -- submode を抜けた時、連打中に保留したプレビュー幅変更をまとめて reflow。

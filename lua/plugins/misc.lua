@@ -508,6 +508,10 @@ return {
             open_url = function(url, title, kind)
                 local ch = vim.g.nvim_server_channel
                 if kind ~= 'tab' and type(ch) == 'number' and ch > 0 then
+                    -- ペインを md プレビュー以外に差し替えるので、追従モードの
+                    -- 「既に出している」判定を外す（外さないと ss→P や
+                    --  バッファ再入場で md プレビューに戻らなくなる）
+                    pcall(function() require('preview_pane').note_foreign() end)
                     vim.rpcnotify(ch, 'web_open_url', url, title)
                 else
                     vim.fn.jobstart({ 'wslview', url }, { detach = true })
