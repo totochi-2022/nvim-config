@@ -497,7 +497,7 @@ return {
             "FigPasteAuto", "FigEditAuto", "FigOpenStudio", "FigStopStudio",
             "FigNewFromTemplate", "FigClipInfo", "FigRenderPython", "FigPasteSvg",
             "FigPasteDrawioXml", "FigPasteImage", "FigEditSource", "FigAnnotateImage",
-            "FigOpenDrawioApp",
+            "FigOpenDrawioApp", "FigHealth",
         },
         opts = {
             -- 図/注釈を書き換えたら Vivify preview を cache-bust reload する

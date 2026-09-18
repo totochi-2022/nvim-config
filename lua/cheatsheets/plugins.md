@@ -90,6 +90,7 @@
 | `,,p` / `,,e` | 図: 貼付(自動判別) / 再編集(自動判別) |
 | `,,s` / `,,m` | 図: Studio を開く / テンプレから作成 |
 | `:FigStopStudio` | 図: Studio を止める（`studio.py` 変更の反映用。`!` で全部） |
+| `:FigHealth` | 図: 依存チェック（python/streamlit/ttyd/ポート居残り等） |
 | `,,v` | プレビュー |
 
 ## Lazy / Mason / Treesitter（`<F8>` プレフィックス）
