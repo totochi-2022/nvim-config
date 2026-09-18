@@ -81,12 +81,24 @@ assets/<ts>.ann.png    合成結果。md はこれを参照する(生成物・�
 marker.js が自動で比率調整する（実測: 360→720 で `left 30→60` / `width 170→340`）。
 縮小は毎回**原本から**作るので、サイズを往復しても劣化しない。
 
-縮小の品質: `drawImage` 一発だと縮小率が大きいときに参照する元画素が足りず、モアレや
-線の太さのばらつきが出る（実測 2560→360 で、高品質リサンプラ(Pillow LANCZOS)との差が
-**8.65 対 6.21**。細い縦線が不揃いになるのが目で見て分かる）。そこで
-`createImageBitmap(..., {resizeQuality:'high'})` を使い、無い環境では半分ずつ詰める
-段階縮小にフォールバックする（両者は実測で同じ結果になった）。
-なお画像ライブラリ側で縮小すればもう一段良い（Pillow のリサンプラは同条件で差 1.6 前後）。
+縮小の品質: **サーバ(Pillow LANCZOS)で縮小する**。`/img?p=<原本>&w=<幅>` が縮小済み PNG を
+返し、`X-Resize: pillow` ヘッダで縮小できたことを伝える。Pillow が無ければ原寸＋
+`X-Resize: none` を返し、ページ側が `createImageBitmap(..., {resizeQuality:'high'})`
+→ 段階縮小 の順でフォールバックする（**サーバの stdlib のみという性質は維持**。
+Pillow は figure studio 用に install.sh で入るので実機には在る）。
+
+実測（2560→360、Pillow LANCZOS を基準にした RMS 差。小さいほど忠実）:
+
+| 方法 | 差 |
+|---|---|
+| `drawImage` 一発 | 8.65 |
+| `createImageBitmap` resizeQuality:'high' | 6.21 |
+| **サーバ(Pillow)** | **0.00** |
+
+`drawImage` 一発は縮小率が大きいと参照する元画素が足りず、細い縦線が不揃いになるのが
+目で見て分かる。3倍程度の縮小では差は小さく、**縮小率が大きいほど効く**。
+高さの丸めは JS 側(`Math.round`)と揃えてある（Python の `round()` は偶数丸めなので、
+Pillow の有無で 1px ずれてしまう）。
 
 次に開くときの作業サイズは `.ann.json` の `width` が覚えている（marker.js の `AnnotationState` が
 キャンバスの大きさを持つので、別途保存しなくてよい）。
