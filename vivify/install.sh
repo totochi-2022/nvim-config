@@ -82,6 +82,8 @@ else
 fi
 
 echo "[6/6] figure studio 依存"
+# figkit.nvim(https://github.com/totochi-2022/figkit.nvim) 用の依存。本体は lazy が
+# ~/work/figkit.nvim か GitHub から取るが、pip/apt 側はここでまとめて入れる。
 # 図生成: schemdraw / matplotlib（Python→SVG）
 if command -v python3 >/dev/null; then
     python3 -m pip install --quiet streamlit schemdraw matplotlib pillow rdkit \

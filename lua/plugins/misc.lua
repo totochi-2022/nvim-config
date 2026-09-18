@@ -485,6 +485,35 @@ return {
         },
     },
 
+    -- md の図・画像を「作る/直す」ツール群（旧 lua/figure.lua + diagram.lua + annotate.lua）。
+    -- Fig* コマンド群と ,,p / ,,e / ,,s / ,,m の振り分け。キーマップは 21_keymap.lua で管理。
+    -- dev = true: ~/work/figkit.nvim があればそれを直接使用（11_plugin.lua の dev.fallback
+    -- により、無いマシンでは GitHub から clone される）。
+    {
+        "totochi-2022/figkit.nvim",
+        dev = true,
+        dependencies = { "HakonHarnes/img-clip.nvim" },
+        cmd = {
+            "FigPasteAuto", "FigEditAuto", "FigOpenStudio", "FigStopStudio",
+            "FigNewFromTemplate", "FigClipInfo", "FigRenderPython", "FigPasteSvg",
+            "FigPasteDrawioXml", "FigPasteImage", "FigEditSource", "FigAnnotateImage",
+            "FigOpenDrawioApp",
+        },
+        opts = {
+            -- 図/注釈を書き換えたら Vivify preview を cache-bust reload する
+            on_change = function(buf) require('vivify').reload(buf) end,
+            -- web(nvim-server)なら右プレビューペイン / 端末 nvim ならブラウザタブ
+            open_url = function(url, title)
+                local ch = vim.g.nvim_server_channel
+                if type(ch) == 'number' and ch > 0 then
+                    vim.rpcnotify(ch, 'web_open_url', url, title)
+                else
+                    vim.fn.jobstart({ 'wslview', url }, { detach = true })
+                end
+            end,
+        },
+    },
+
     -- 構文ファイル
     { "khaveesh/vim-fish-syntax", ft = "fish" },
 

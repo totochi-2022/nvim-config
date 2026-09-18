@@ -12,6 +12,19 @@ VS Code 拡張から同じ `glue.js` を消費するため（コピーを持つ�
 こちら側に置いたままにして、自作コードの core を混ぜないようにしてある。
 `install.sh` は md-preview-kit が無ければ clone し、config をそちらへ symlink する。
 
+## ★ 図・画像ツールは figkit.nvim に独立させた
+`render/`(Python→SVG) と `annot/`(marker.js 注釈)、nvim 側の `figure.lua` /
+`diagram.lua` / `annotate.lua` は **`~/work/figkit.nvim`**
+（[totochi-2022/figkit.nvim](https://github.com/totochi-2022/figkit.nvim)）へ移した。
+Vivify に依存しない道具なのに設定リポに同居していたため。
+
+figkit 側の詳細（保存モデル・作業サイズ=出力サイズ・モザイク・`,,p`/`,,e`/`,,s`/`,,m`）は
+あちらの README にある。**preview の再読込だけ**は figkit の `on_change` フックから
+`require('vivify').reload(buf)` を呼んで繋いでいる（spec は `lua/plugins/misc.lua`）。
+
+`install.sh` の「figure studio 依存」(streamlit/schemdraw/matplotlib/pillow/rdkit, ttyd, tmux)は
+figkit 用だが、実機のセットアップを1本にしたいのでここに残してある。
+
 ## ファイル
 - `install.sh` … 上流 clone → パッチ → SEA ビルド → `~/.local/bin` 導入 →
   md-preview-kit 取得 → `~/.config/vivify/config.json` をそちらへ symlink
@@ -26,135 +39,6 @@ VS Code 拡張から同じ `glue.js` を消費するため（コピーを持つ�
     **Vivify 限定の機能**である点に注意（VS Code の KaTeX は mhchem を読み込まないので、
     `\ce{}` を使った md は配布先で崩れる）。構造式を図として描くほうは
     `:FigOpenStudio rdkit`(SMILES→SVG) が別にある
-- `render/render_schemdraw.py` … Python スニペット→画像化。namespace に `out`(出力パス)を渡し、
-  ソースが `out` に保存すれば何でも可。**出力拡張子で形式判定(svg/png/jpg)**。元ソースを埋込:
-  SVG=`<metadata>` / PNG=tEXt チャンク / JPEG=COM コメント(draw.io 方式 round-trip)。
-  `--extract <file>` で埋込ソースを取り出す(svg/png/jpg 共通・`,,e` の判別に使用)。png/jpg は Pillow 使用。
-- `render/studio.py` … Streamlit 製 figure studio。右下に **📋 SVGコピー** と
-  **📄 md に挿入 / md を更新** の2つのボタンがある（`:w` は従来どおり SVG を再生成する。
-  ボタンはそれを置き換えるものではない）。
-  📄 は studio 内の小サーバ(`/commit`, JUMP_PORT)が **md を開いている外側の nvim** へ
-  `--remote-expr` で `figure.studio_commit()` を叩く仕組み。SVG 本文は渡さず、
-  studio が書き終えたファイルの**パスだけ**渡して読み出しは nvim 側で行う
-  （長い SVG をコマンドラインに載せないため）。スクラッチなら `assets/` へ複製して
-  リンクを挿入し、既存図を開いていたなら target が既に md の図なので preview を更新するだけ。
-  そのため URL には `?host=<外側nvimのservername>&buf=<mdのバッファ>&scratch=` も渡している。**左=vim(ttyd の nvim)/右=ライブSVG(白ボックス)**、
-  上部ツールバー(テンプレ挿入/📋SVGコピー)。`?svg=&py=&ttyd=&sock=` を受け取り、左に ttyd(nvim)を
-  iframe で、右は `st.fragment(run_every="1s")` で SVG を読み直して表示(`:w` で更新・端末は再描画しない)。
-  生成エラー時(=`<py>.err` が在る)は画像も📋コピーも出さずエラーだけ表示(古い画像を残さない)。
-  テンプレ挿入は `?py=` を書き換え **nvim RPC(`--remote-expr 'execute("edit! | write")'`)** でリロード
-  (tmux send-keys は noice の cmdline ポップアップにキーを取りこぼすため不可)。
-
-## annot/ — 画像に注釈を付ける（marker.js 3）
-
-スクショ等の**既にある画像**に矢印/枠/黒塗り/コールアウトを重ねる。figure studio が
-「Python ソース → 図」なのに対し、こちらは「画像 → 注釈」担当。依存は stdlib のみ（Streamlit 不要）。
-
-- `server.py` … 127.0.0.1:**31624** の小さな HTTP サーバ。`annotate.lua` が jobstart で起こす。
-  `/annot`(エディタ) `/img`(画像配信) `/state`(state 取得) `/save`(書き出し)。
-  画像を**同一オリジンで配信する**のが要点＝canvas が汚染されず `toDataURL` が通る。
-- `editor.html` … marker.js UI の `AnnotationEditor` を貼るページ。見出しは figure studio と
-  同じ見た目の言語（左のグラデーション帯 + グラデーション文字 + モノスペースの副題）に
-  揃えてある。studio は縦 2rem の見出しだが、こちらは編集領域を優先して1行に収めている。`editorsave` を
-  `POST /save` に流す。合成は原寸で出す(`rendererSettings.naturalSize`)。
-- `vendor/` … `markerjs3.umd.js`(グローバル `markerjs3`) + `markerjs-ui.umd.js`(`markerjsUI`)。
-  **読み込み順が固定**(UI が markerjs3 のグローバルを参照)。
-  ライセンス: marker.js 3 は **linkware**(商用含め無料・編集中にロゴ表示を残す条件、`vendor/LICENSE.markerjs3.txt`)、
-  marker.js UI は MIT。
-
-### 保存モデル（原本非破壊・可逆）
-```
-assets/<ts>.png        原本。img-clip が置いたまま。**書き換えない**
-assets/<ts>.ann.json   marker.js の AnnotationState。注釈の正本(git で差分が読める)
-assets/<ts>.ann.png    合成結果。md はこれを参照する(生成物・持ち出し用)
-```
-保存すると `server.py` が2ファイルを書き、起動元 nvim の socket へ `--remote-expr` で
-`annotate.on_saved()` を叩く → md のリンクを `.ann.png` に差し替え + `vivify.reload()`
-（studio.py と同じ手口。バッファを書き換えるだけで `:w` はしない＝`,,p` と同じ流儀）。
-
-### 作業サイズ = 出力サイズ（常に 1:1 で描く）
-右下パネルの「作業サイズ」がそのまま保存される大きさ。数値を打つほか、**画像の右下に出る
-つまみをドラッグ**しても変えられる（縦横比は固定・原本より大きくはしない）。ドラッグ中は
-破線の予告枠と寸法だけを動かし、**作り直し(mount)は離したときに一度だけ**走らせる。
-画像が編集領域からはみ出しているとつまみが画面外に行って掴めないので、見えている範囲の
-右下に寄せ、サイズパネルと重なるときは左へ逃がす。**その大きさの画像に直接注釈を描く**ので、
-編集画面がそのまま仕上がりになる（位置も文字の大きさも見たまま）。ズームは純粋な虫眼鏡で、
-画像も注釈も同じ比率で拡大されるから何も歪まない。
-
-パネルの「表示 NN%」は編集画面の拡大率。全部が同じ比率で拡大される以上、位置や相対サイズの
-判断は狂わないが、**いま実寸を見ているのかどうか**だけは分からない（自動ズームで縮んでいるとき、
-実寸では読めない文字を読めると誤判断しがち）。marker.js 側に倍率表示がないのでここに出している。
-100% に戻すのは右下の ⊡。
-（かつてあった「仕上がり」ボタン＝実際に焼いた PNG のプレビューは、1:1 で描くようになって
-画面と同じものになったので撤去した。）
-
-サイズを変えると**エディタごと作り直す**（`targetImage` の差し替えだけでは効かない）。
-**描いた注釈は失われない**——state の座標系(`state.width`)と対象画像の大きさが違うとき
-marker.js が自動で比率調整する（実測: 360→720 で `left 30→60` / `width 170→340`）。
-縮小は毎回**原本から**作るので、サイズを往復しても劣化しない。
-
-縮小の品質: **サーバ(Pillow LANCZOS)で縮小する**。`/img?p=<原本>&w=<幅>` が縮小済み PNG を
-返し、`X-Resize: pillow` ヘッダで縮小できたことを伝える。Pillow が無ければ原寸＋
-`X-Resize: none` を返し、ページ側が `createImageBitmap(..., {resizeQuality:'high'})`
-→ 段階縮小 の順でフォールバックする（**サーバの stdlib のみという性質は維持**。
-Pillow は figure studio 用に install.sh で入るので実機には在る）。
-
-実測（2560→360、Pillow LANCZOS を基準にした RMS 差。小さいほど忠実）:
-
-| 方法 | 差 |
-|---|---|
-| `drawImage` 一発 | 8.65 |
-| `createImageBitmap` resizeQuality:'high' | 6.21 |
-| **サーバ(Pillow)** | **0.00** |
-
-`drawImage` 一発は縮小率が大きいと参照する元画素が足りず、細い縦線が不揃いになるのが
-目で見て分かる。3倍程度の縮小では差は小さく、**縮小率が大きいほど効く**。
-高さの丸めは JS 側(`Math.round`)と揃えてある（Python の `round()` は偶数丸めなので、
-Pillow の有無で 1px ずれてしまう）。
-
-次に開くときの作業サイズは `.ann.json` の `width` が覚えている（marker.js の `AnnotationState` が
-キャンバスの大きさを持つので、別途保存しなくてよい）。
-
-**この形に至るまでの経緯**（同じ轍を踏まないように）: 当初は原寸の画像に描いて書き出し時だけ
-縮めていた。すると注釈まで一緒に縮んで読めなくなるので state 側で補正 → 編集画面と出力が食い違う →
-縮小表示のまま作業すると字が打ちにくく、位置も仕上がりの大きさも分からない、と問題が連鎖した。
-**出力と同じ大きさで描く**のが結局いちばん単純で、補正コードも全部要らなくなった。
-
-各ビューアは `img` に `max-width:100%` を掛けるので、カラム幅（Vivify 900px = `static/style.css`、
-GitHub 約890px、VSCode はペイン幅）より大きく出しても表示は変わらない。表示まで小さくしたいなら
-カラム幅より小さい作業サイズにすること。md に `{width=..}` や `<img>` を書く方法は採らない
-（`{width=..}` は Vivify 専用で GitHub/VSCode ではゴミ文字として本文に出る。`<img>` は3つとも効くが、
-`vivify.reload()` のキャッシュバスター・`,,e` のパス抽出・リンク差し替えが全て `](..)` 前提なので壊れる）。
-
-### モザイク（自作マーカー）
-marker.js のマーカー型は18種あるがぼかし/モザイクは無いので、`MosaicMarker` を自作して
-`registerMarkerType` で登録している（上部バーの「▦ モザイク」→ 画像上をドラッグ）。粗さは3段階。
-
-仕組み: **作業サイズの画像全体を一度だけ**モザイク化した data URL を canvas で作り
-（縮小 → `imageSmoothingEnabled=false` で拡大）、各マーカーはそれを**元画像と同じ座標**に置いて
-矩形でクリップするだけ。`-left/-top` にずらすので、**動かしてもリサイズしても常に真下の領域が出る**
-（領域を切り出して貼る方式だと、動かしたとき古い場所の絵が付いてきてしまう）。
-state に載るのは矩形の座標だけなので `.ann.json` は膨らまない。
-作業サイズを変えるとモザイク画像も作り直す（`mount()` の中）。
-
-**書き出しは自前の `Renderer` で行っている**。marker.js UI 内蔵のラスタライズは自作マーカー型を
-知らず、**画面では潰れているのに保存した PNG は素通し**になるため（静かに漏れる事故）。
-`renderOnSave=false` にして `editorsave` で `new markerjs3.Renderer()` + `registerMarkerType`
-+ `rasterize(state)`。
-
-### 使い方
-- `,,e`(:FigEditAuto) … ラスタ画像なら注釈エディタへ（埋込ソース付きなら分割バッファ、draw.io なら draw.io.exe）
-- `:FigAnnotateImage` … 判定を飛ばして直接注釈エディタへ
-- `:FigStopStudio` … Studio を止める。**既定は Streamlit だけ**で、これは
-  `studio.py` を書き換えたときの反映用（起動中の Streamlit は古いコードを持ったままで、
-  `M.studio` は「上がっていれば起動しない」ので落とさないと効かない）。ttyd と tmux は
-  残すので左の nvim の編集状態は失われない。`:FigStopStudio!` で ttyd/tmux も片付ける
-- `:FigClipInfo` … いま `,,p` が何をするかだけ表示（書き込まない）。
-  「スクショを撮ったのに SVG が貼られる」＝**クリップボードが更新されていない**ことが多いので、
-  その確認用。同じ内容を続けて貼ろうとしたときは `,,p` 自身も警告する
-- `.ann.png` に対して `,,e` すると**原本 + state に解決して再開**する。原本が消えている場合は
-  「焼き込み済みへの重ね描き」を避けて中断する。
-- nvim 側は `lua/annotate.lua`。
 
 ## 新マシンでの導入
 ```sh
@@ -184,30 +68,9 @@ Vivify は起動時 `http.get(localhost:31622/health)` で既存サーバを調�
 - `lua/vivify.lua` … `,,V` デュアルモード（web=右ペイン / 端末=ブラウザタブ）
 - `lua/21_keymap.lua`（`,,V` → `require("vivify").open()`）、`lua/plugins/misc.lua`（vivify.vim spec: `ft=markdown`）
 - 追従(スクロール同期)は vivify.vim の autocmd が md 進入時に curl POST する仕組み。
-- `lua/figure.lua` … 図・画像の「作る/直す」入口。`Fig*` コマンド群と `,,p`/`,,e`/`,,s`/`,,m` の
-  振り分け。道具はすべて独立コマンドなので、判定が外れたら直接叩けば回避できる
-  (`:Fig<Tab>` で一覧)。実装は diagram.lua と annotate.lua にある。
-- `lua/diagram.lua` … 図は **figure studio(左=nvim/右=SVG)** で作成/編集。SVG 固定・ソース埋込で統一。
-  補完のためソース部を Ace でなく本物の nvim(ttyd+tmux, pyright)にした。
-  - **`,,s`(:FigOpenStudio)**: studio を開く。**カーソル行に既存の `.fig.svg` があればその図**を
-    開き、studio 側の `:w` がその図を直接更新する(化学構造式は SMILES 検索が studio にしか
-    無いので、開き直せる入口が要る)。図の行でなければ**スクラッチ**で開き、仕上げたら
-    ツールバーの **📋 SVGコピー → `,,p`** で md に入れる(draw.io アプリと同じ流儀。
-    `assets/` に何も作られないのでボツにしてもゴミが残らない)。
-    図の行にいてもスクラッチが欲しいときは `:FigOpenStudio rdkit` のようにテンプレ名を付ける。
-  - **`,,m`(:FigNewFromTemplate [schemdraw|matplotlib|rdkit|raw] [svg|png])**: studio を立てず、
-    現 md/typst の `assets/` に `<ts>.fig.<fmt>` を作りリンク挿入 → 分割バッファで編集 →
-    **`:w`** で再生成。svg が図の主役、png は matplotlib 等の raster 向き。
-  - **`,,e`(:FigEditAuto)**: `![](x.svg)` 上で `<metadata id="diagram-source">` があれば埋込ソースを
-    分割バッファで復元 → `:w` で上書き。draw.io SVG(`content="<mxfile>"`)→ draw.io.exe。
-  - 構成: ttyd(**7690**, tmux セッション `figstudio` で nvim 永続化) / Streamlit(**8501**) / Vivify(**31622**)。
-    Streamlit がツールバー+2ペインを描画、左は ttyd iframe、右は Vivify iframe。tmux 永続化で
-    ブラウザ/ttyd が落ちても編集状態は残る。同時に1図(固定ポート)。
-  - **`,,p`(:FigPasteAuto)**: クリップボードを判定して `assets/` に保存＋リンク挿入。
-    Python スニペット(先頭に `import figkit` が要る)→実行して `.fig.svg` / SVG→出所で
-    `.fig.svg` か `.drawio.svg` / mxfile→`.drawio` / 画像→`.png`。
-    **入力がクリップボードだけ**なので、バッファに「描画済み/未描画」の中間状態ができない
-    (以前フェンスを対象にした `:DiagramRender` 方式が分かりにくくなって廃れた理由)。
+- 図・画像の `Fig*` コマンド群（`,,p`/`,,e`/`,,s`/`,,m`）は **figkit.nvim** へ移動。
+  `lua/plugins/misc.lua` の spec で `on_change`(=`vivify.reload`)と
+  `open_url`(=web なら右ペイン / 端末ならブラウザタブ)を注入している。
 
 ## 経緯
 howm 日記: `2026-07-03-1657-chiikawa.md`（Vivify 導入・トラブル全記録）、

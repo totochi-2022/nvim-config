@@ -40,9 +40,6 @@ require('claude_status').setup()
 -- file_preview.lua (自作プレビューア呼び出し: :Preview / svg・csv・stl・dxf)
 require('file_preview').setup()
 
--- figure.lua (md の図・画像を「作る/直す」入口。Fig* コマンド群と ,,p / ,,e / ,,s / ,,m の
--- 振り分け。実装は diagram.lua(Python→SVG) と annotate.lua(marker.js 注釈)に置く)
-require('figure').setup()
 
 -- preview_pane.lua (web preview の pull: :PreviewErrors/:PreviewSvg のコマンド登録)
 -- keymap からは lazy require されるが、コマンド登録のため startup でも読み込む。
