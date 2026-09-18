@@ -88,7 +88,10 @@
 - [ ] トグル機能の window-local オプション対応改善
 - [ ] 診断表示モードの改善
 - [x] annot の縮小を Pillow 経由にする（stdlib 限定は維持したまま）
-- [x] `vivify/sample.md` 3c を現状に合わせて書き直す
+- [ ] mhchem(`\ce{}`) のデモを md-preview-kit の sample.md 側へ移す
+      （`vivify/sample.md` は kit へ分離済み。退避: 下記セクション参照）
+      ※ ただし **VS Code の KaTeX は mhchem を読まない**ので、配布先で崩れる。
+        kit に入れるなら「Vivify 限定」と明記するか、入れない判断もある
 - [x] 図まわりの入口整理（`Fig*` コマンド群 + `,,p`/`,,e`/`,,s`/`,,m`）
 - [ ] 単一図ライブビューア（`glue.js` 再利用・編集は nvim のまま）
 - [ ] draw.io を web 版(embed モード)で preview ペインに埋め込む
