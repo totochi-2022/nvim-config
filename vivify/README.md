@@ -45,7 +45,9 @@ md をレポート化する計画（グラフ/回路図/タイミング図）の
 - `server.py` … 127.0.0.1:**31624** の小さな HTTP サーバ。`annotate.lua` が jobstart で起こす。
   `/annot`(エディタ) `/img`(画像配信) `/state`(state 取得) `/save`(書き出し)。
   画像を**同一オリジンで配信する**のが要点＝canvas が汚染されず `toDataURL` が通る。
-- `editor.html` … marker.js UI の `AnnotationEditor` を貼るだけのページ。`editorsave` を
+- `editor.html` … marker.js UI の `AnnotationEditor` を貼るページ。見出しは figure studio と
+  同じ見た目の言語（左のグラデーション帯 + グラデーション文字 + モノスペースの副題）に
+  揃えてある。studio は縦 2rem の見出しだが、こちらは編集領域を優先して1行に収めている。`editorsave` を
   `POST /save` に流す。合成は原寸で出す(`rendererSettings.naturalSize`)。
 - `vendor/` … `markerjs3.umd.js`(グローバル `markerjs3`) + `markerjs-ui.umd.js`(`markerjsUI`)。
   **読み込み順が固定**(UI が markerjs3 のグローバルを参照)。
