@@ -129,4 +129,65 @@ function M.reload(buf)
     end
 end
 
+-- :MdPdf — いま開いている md を「プレビューで見えているまま」PDF にする。
+--
+-- 実体は md-preview-kit の tools/md2pdf.mjs（headless Chrome の printToPDF）。
+-- ブラウザの印刷ダイアログを使わないのは、ヘッダ(日付・URL)とフッタが既定で付き、
+-- 余白も選べないため。図(wavedrom/chart/kvlist/mermaid)は**クライアント側 JS**が
+-- 描くので、プレビューと同じ Chrome で撮るのが唯一「見たまま」になる方法。
+--
+--   :MdPdf                     → <同名>.pdf（A4・余白15mm・ページ番号なし）
+--   :MdPdf --page-numbers      → ページ番号を入れる
+--   :MdPdf -o ~/out.pdf --paper Letter --landscape --margin 20mm
+local MD2PDF = vim.fn.expand('~/work/md-preview-kit/tools/md2pdf.mjs')
+
+function M.to_pdf(args)
+    local path = vim.fn.expand('%:p')
+    if path == '' then
+        vim.notify('ファイルが保存されていません', vim.log.levels.WARN)
+        return
+    end
+    if vim.bo.modified then
+        -- 撮るのはディスク上のファイルなので、未保存だと古い内容が PDF になる
+        vim.notify('未保存の変更があります。:w してから実行してください', vim.log.levels.WARN)
+        return
+    end
+    if vim.fn.filereadable(MD2PDF) ~= 1 then
+        vim.notify('md2pdf が見つかりません: ' .. MD2PDF
+            .. '（md-preview-kit 未取得?）', vim.log.levels.ERROR)
+        return
+    end
+
+    local cmd = { 'node', MD2PDF, path }
+    vim.list_extend(cmd, args or {})
+    vim.notify('PDF を生成中…（図の描画を待つので数秒かかります）', vim.log.levels.INFO)
+
+    local lines = {}
+    local function collect(_, data)
+        for _, l in ipairs(data or {}) do
+            if l ~= '' then table.insert(lines, l) end
+        end
+    end
+    vim.fn.jobstart(cmd, {
+        stdout_buffered = true,
+        stderr_buffered = true,
+        on_stdout = collect,
+        on_stderr = collect,
+        on_exit = function(_, code)
+            local msg = table.concat(lines, '\n')
+            if code == 0 then
+                vim.notify('PDF: ' .. msg, vim.log.levels.INFO)
+            else
+                vim.notify('PDF 生成に失敗しました\n' .. msg, vim.log.levels.ERROR)
+            end
+        end,
+    })
+end
+
+vim.api.nvim_create_user_command('MdPdf', function(o) M.to_pdf(o.fargs) end, {
+    nargs = '*',
+    complete = function() return { '--page-numbers', '--landscape', '--paper', '--margin', '-o' } end,
+    desc = 'md を配布用 PDF にする（プレビューと同じ描画・ヘッダ/フッタなし）',
+})
+
 return M

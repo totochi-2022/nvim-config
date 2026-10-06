@@ -92,6 +92,7 @@
 | `:FigStopStudio` | 図: Studio を止める（`studio.py` 変更の反映用。`!` で全部） |
 | `:FigHealth` | 図: 依存チェック（python/streamlit/ttyd/ポート居残り等） |
 | `,,v` | プレビュー |
+| `:MdPdf` | md を配布用 PDF に（`--page-numbers` / `--paper` / `--landscape`） |
 
 ## Lazy / Mason / Treesitter（`<F8>` プレフィックス）
 

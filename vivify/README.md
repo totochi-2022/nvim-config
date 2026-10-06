@@ -64,6 +64,17 @@ Vivify は起動時 `http.get(localhost:31622/health)` で既存サーバを調�
 設計のため、このプローブが固まると起動できない。パッチで 500ms タイムアウト→自前 listen にフォールバック。
 （NAT モード/通常 Linux では stock の release でも動くが、パッチ版は両対応。）
 
+## md → PDF（配布用）
+`:MdPdf` … いま開いている md を**プレビューで見えているまま** PDF にする。
+実体は md-preview-kit の `tools/md2pdf.mjs`（headless Chrome の `Page.printToPDF`）。
+
+- ブラウザの印刷ダイアログは**ヘッダ(日付・URL)とフッタが既定で付く**ので使わない
+- 図(wavedrom/chart/kvlist/mermaid)は client-side JS が描くので、**同じ Chrome で
+  撮る**のが唯一「見たまま」になる方法（wkhtmltopdf の Qt WebKit では図が落ちる）
+- 図・表・コードは**ページをまたがせない**。見出しの通し番号は振らない
+- `:MdPdf --page-numbers` でフッタにページ番号。`--paper` / `--margin` / `--landscape` / `-o`
+- 紙面スタイルは kit の `scripts/print.css`、待ち判定は `MdPreviewKit.pending()`
+
 ## nvim 側
 - `lua/vivify.lua` … `,,V` デュアルモード（web=右ペイン / 端末=ブラウザタブ）
 - `lua/21_keymap.lua`（`,,V` → `require("vivify").open()`）、`lua/plugins/misc.lua`（vivify.vim spec: `ft=markdown`）

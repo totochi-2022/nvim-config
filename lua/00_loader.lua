@@ -41,6 +41,10 @@ require('claude_status').setup()
 require('file_preview').setup()
 
 
+-- vivify.lua (:MdPdf のコマンド登録。プレビュー本体は ,,v / mp から lazy require
+-- されるが、コマンドは最初から打てる必要があるのでここでも読み込む)
+require('vivify')
+
 -- preview_pane.lua (web preview の pull: :PreviewErrors/:PreviewSvg のコマンド登録)
 -- keymap からは lazy require されるが、コマンド登録のため startup でも読み込む。
 require('preview_pane')
