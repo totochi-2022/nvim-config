@@ -270,7 +270,7 @@ keymap('x', ';', ':', { noremap = true, desc = '選択範囲に対するコマ�
 
 --- <Leader>
 keymap('', '<Leader>b', ':Telescope buffers<CR>', { noremap = true, desc = 'バッファ一覧' })
-keymap('', '<F3>', ':Telescope command_palette<CR>', { noremap = true, desc = 'コマンドパレット' })
+keymap('', '<F3>', ':Telescope commands<CR>', { noremap = true, desc = 'コマンドパレット' })
 keymap('', '<Leader>h', ':Telescope frecency<CR>', { noremap = true, desc = '最近使用したファイル（頻度順）' })
 keymap('', '<Leader>H', ':Telescope oldfiles<CR>', { noremap = true, desc = '最近使用したファイル（時間順）' })
 keymap('', '<Leader>R', ':Telescope registers<CR>', { noremap = true, desc = 'レジスタ一覧' })

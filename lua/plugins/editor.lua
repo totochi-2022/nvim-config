@@ -9,7 +9,6 @@ return {
             'nvim-telescope/telescope-ghq.nvim',
             'nvim-telescope/telescope-frecency.nvim',
             'nvim-telescope/telescope-file-browser.nvim',
-            'LinArcX/telescope-command-palette.nvim',
             'debugloop/telescope-undo.nvim',
             'fdschmidt93/telescope-egrepify.nvim',
         },
@@ -72,9 +71,6 @@ return {
                             },
                         },
                     },
-                    command_palette = {
-                        -- 元の長いコマンドパレット設定をそのまま保持
-                    },
                     undo = {
                         use_delta = true,
                         use_custom_command = nil,
@@ -119,7 +115,6 @@ return {
             require('telescope').load_extension('ghq')
             require('telescope').load_extension('frecency')
             require('telescope').load_extension('file_browser')
-            require('telescope').load_extension('command_palette')
             require('telescope').load_extension('undo')
             require('telescope').load_extension('egrepify')
             require('telescope').load_extension('yank_history')
