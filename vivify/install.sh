@@ -68,8 +68,12 @@ ln -sf "$KIT_DIR/adapters/vivify/config.json" "$HOME/.config/vivify/config.json"
 # ★ Ubuntu 24.04 の apt 版 wslu(3.2.3) は systemd 版 WSL の binfmt を旧名 WSLInterop で
 #   しか探さず WSLInterop-late を認識できないため「interop disabled」でブラウザを開けない。
 #   → PPA の wslu 4.x(WSLInterop-late 対応)を使う。4 未満なら PPA から更新。
+# ★ Ubuntu 26.04 は apt/PPA とも wslu が無い。claude-plugin-system/scripts/wslview（互換 shim）が
+#   ~/.local/bin にあればそれで足りるので PPA は触らない。
 wsluver=$(dpkg-query -W -f='${Version}' wslu 2>/dev/null || echo 0)
-if ! command -v wslview >/dev/null 2>&1 || dpkg --compare-versions "$wsluver" lt 4; then
+if wslview --version 2>/dev/null | grep -q 'shim'; then
+    echo "  wslview OK (shim: $(command -v wslview))"
+elif ! command -v wslview >/dev/null 2>&1 || dpkg --compare-versions "$wsluver" lt 4; then
     echo "  wslu 4.x を PPA から導入(現: ${wsluver})"
     command -v add-apt-repository >/dev/null || sudo apt-get install -y software-properties-common
     sudo add-apt-repository -y ppa:wslutilities/wslu \
