@@ -73,6 +73,64 @@ for _, pfx in ipairs({ '<F13>', '<S-F1>' }) do
     keymap({ 'n', 'i', 't' }, pfx .. 'k', '<Cmd>wincmd k<CR>', { noremap = true, desc = '上のウィンドウへ (無変換+k)' })
     keymap({ 'n', 'i', 't' }, pfx .. 'l', '<Cmd>wincmd l<CR>', { noremap = true, desc = '右のウィンドウへ (無変換+l)' })
 end
+-- 今のバッファを Vivify(ブラウザのプレビュー)で開く。mdpreview が出し先を自動判定する
+-- （nvim の中なので vivify.open_path 経由＝web なら右ペイン / 端末なら新規タブ）。
+local function open_in_vivify()
+    local f = vim.fn.expand('%:p')
+    if f == '' then
+        vim.notify('保存されていないバッファです', vim.log.levels.WARN)
+        return
+    end
+    vim.fn.jobstart({ 'mdpreview', f }, { detach = true })
+end
+
+-- Ctrl+Click: クリックした行からファイルパスを拾って Vivify で開く。
+-- ターミナル側の Ctrl+Click は「URL を OS のブラウザで開く」固定で割当を変えられないが、
+-- nvim の中なら <C-LeftMouse> を奪える。Claude がパスだけ出しても開けるようにする用途。
+--
+-- ★v:mouse_lnum 等は getchar() 経由でしか埋まらない（キーマップ内では 0）。
+--   先に <LeftMouse> を流してカーソルを動かし、カーソル行を見る。
+local function path_in_line(line, col)
+    if not line or line == '' then return nil end
+    -- URL の行には手を出さない（ターミナル側の Ctrl+Click がブラウザで開くのが正しい。
+    -- 横取りすると "//localhost:31622/..." のような断片を拾ってしまう）
+    if line:match('%a+://') then return nil end
+    local best, init = nil, 1
+    while true do
+        local s1, e1, cand = line:find('([~%./][%w%p]*)', init)
+        if not s1 then break end
+        init = e1 + 1
+        cand = cand:gsub('[%.,:;%)%]"\']+$', '')          -- 行末の句読点を落とす
+        if cand:match('^[~/%.]') and cand:match('%.%w+$') then
+            if col >= s1 and col <= e1 then return cand end  -- クリック位置にあるものが最優先
+            best = best or cand
+        end
+    end
+    return best
+end
+
+_G.__vivify_click = function()
+    local p = path_in_line(vim.api.nvim_get_current_line(), vim.fn.col('.'))
+    if not p then
+        vim.notify('この行にファイルパスが見つかりません', vim.log.levels.WARN)
+        return
+    end
+    local full = vim.fn.fnamemodify(vim.fn.expand(p), ':p')
+    if vim.fn.filereadable(full) == 0 then
+        vim.notify('見つかりません: ' .. p, vim.log.levels.WARN)
+        return
+    end
+    vim.fn.jobstart({ 'mdpreview', full }, { detach = true })
+    vim.notify('Vivify: ' .. vim.fn.fnamemodify(full, ':t'))
+end
+
+-- <LeftMouse> でカーソルをクリック位置へ移してから拾う。
+-- terminal は一度ノーマルモードへ抜ける（抜けないとカーソルが動かない）。
+keymap('n', '<C-LeftMouse>', '<LeftMouse><Cmd>lua __vivify_click()<CR>',
+    { noremap = true, desc = 'クリック位置のファイルを Vivify で開く' })
+keymap('t', '<C-LeftMouse>', [[<C-\><C-n><LeftMouse><Cmd>lua __vivify_click()<CR>]],
+    { noremap = true, desc = 'クリック位置のファイルを Vivify で開く' })
+
 -- Claude系/explorer/端末Esc: kanata が 変換/無変換+<key> を「F13〜F15 の3打」で送る。
 -- 全キーがファンクションキー＝IME もブラウザも絶対に奪わない → 日本語入力中・全モード・WT/ttyd で確実。
 -- 体系: F13(leader) → F14=Claude群/F15=ツール群 → 選択。WT=<F13..>/ttyd=<S-F1..> の両表記を割当。
@@ -85,6 +143,7 @@ local henkan_seq = {
     { '<F13><F14><F14>',  '<S-F1><S-F2><S-F2>', '<Cmd>ClaudeAttnFocus<CR>',  'Claude待ちペインへフォーカス (変換/無変換+n)' },
     { '<F13><F14><S-F3>', '<S-F1><S-F2><S-F3>', '<Cmd>ClaudeAttnSwitch<CR>', 'Claude待ちを現窓に (変換/無変換+m ※N代替)' },
     { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
+    { '<F13><S-F3><S-F3>', '<S-F1><S-F3><S-F3>', open_in_vivify,             '今のファイルを Vivify で開く (変換/無変換+v)' },
 }
 for _, s in ipairs(henkan_seq) do
     for _, lhs in ipairs({ s[1], s[2] }) do
