@@ -84,52 +84,157 @@ local function open_in_vivify()
     vim.fn.jobstart({ 'mdpreview', f }, { detach = true })
 end
 
--- Ctrl+Click: クリックした行からファイルパスを拾って Vivify で開く。
+-- Ctrl+Click: クリックした行からファイル/フォルダのパスを拾って Vivify で開く（URL はブラウザ）。
 -- ターミナル側の Ctrl+Click は「URL を OS のブラウザで開く」固定で割当を変えられないが、
 -- nvim の中なら <C-LeftMouse> を奪える。Claude がパスだけ出しても開けるようにする用途。
+-- 相対パスも開く: 起点は ターミナルならそのジョブの cwd(/proc/<pid>/cwd)、
+-- 普通のバッファならそのファイルのフォルダ、最後に :pwd。
+-- （nvim の外の WT 直は kanata 変換+g → clipopen。そちらは起点が分からないので相対パス非対応）
 --
 -- ★v:mouse_lnum 等は getchar() 経由でしか埋まらない（キーマップ内では 0）。
 --   先に <LeftMouse> を流してカーソルを動かし、カーソル行を見る。
-local function path_in_line(line, col)
-    if not line or line == '' then return nil end
-    -- URL の行には手を出さない（ターミナル側の Ctrl+Click がブラウザで開くのが正しい。
-    -- 横取りすると "//localhost:31622/..." のような断片を拾ってしまう）
-    if line:match('%a+://') then return nil end
-    local best, init = nil, 1
-    while true do
-        local s1, e1, cand = line:find('([~%./][%w%p]*)', init)
-        if not s1 then break end
-        init = e1 + 1
-        cand = cand:gsub('[%.,:;%)%]"\']+$', '')          -- 行末の句読点を落とす
-        if cand:match('^[~/%.]') and cand:match('%.%w+$') then
-            if col >= s1 and col <= e1 then return cand end  -- クリック位置にあるものが最優先
-            best = best or cand
+
+-- 相対パスの起点の候補（上から順に試す）
+local function path_bases()
+    local bases = {}
+    local pid = vim.b.terminal_job_pid
+    if pid and pid > 0 then
+        local cwd = vim.uv.fs_readlink('/proc/' .. pid .. '/cwd')
+        if cwd and cwd ~= '' then bases[#bases + 1] = cwd end
+    end
+    if vim.bo.buftype == '' and vim.fn.expand('%') ~= '' then
+        bases[#bases + 1] = vim.fn.expand('%:p:h')
+    end
+    bases[#bases + 1] = vim.fn.getcwd()
+    return bases
+end
+
+-- 候補文字列 → 実在する絶対パス（無ければ nil）
+-- 「…」で途中を省略したパス（Claude が表でよく書く: `…/parts`, `/home/…/README.md`）を、
+-- 起点フォルダの下から探して実在パスに戻す。「…」の前=先頭一致、後=末尾一致。浅い順に探して最初の 1 件。
+-- 同名が複数あると外れることがある（作業フォルダの下を優先して緩和）。
+-- 重いフォルダ(.git / node_modules 等)は潜らない。深さ 6 まで。
+local ELLIPSIS = '…'
+local SKIP_DIRS = { ['.git'] = true, node_modules = true, ['.venv'] = true, __pycache__ = true, target = true }
+local function resolve_ellipsis(cand)
+    local i = cand:find(ELLIPSIS, 1, true)
+    local head, tail = cand:sub(1, i - 1), cand:sub(i + #ELLIPSIS)
+    if tail == '' then return nil end
+    head = vim.fn.expand(head)
+    local roots = {}
+    if head:match('^/') then
+        -- 先に「その下にある作業フォルダ」から探す（/home/…/README.md なら今のプロジェクトの README を優先）
+        local h = head:gsub('/$', '')
+        for _, b in ipairs(path_bases()) do
+            if vim.startswith(b .. '/', h .. '/') then roots[#roots + 1] = b end
+        end
+        roots[#roots + 1] = h
+    else
+        for _, b in ipairs(path_bases()) do roots[#roots + 1] = b .. (head ~= '' and '/' .. head or '') end
+    end
+    for _, root in ipairs(roots) do
+        if vim.fn.isdirectory(root) == 1 then
+            for depth = 1, 6 do
+                for name in vim.fs.dir(root, {
+                    depth = depth,
+                    skip = function(dir) return not SKIP_DIRS[vim.fs.basename(dir)] end,
+                }) do
+                    local full = root .. '/' .. name
+                    if select(2, name:gsub('/', '')) == depth - 1 and ('/' .. name):sub(-#tail) == tail then
+                        return full
+                    end
+                end
+            end
         end
     end
-    return best
+    return nil
+end
+
+local function resolve_path(cand)
+    if cand:find(ELLIPSIS, 1, true) then return resolve_ellipsis(cand) end
+    local tries = {}
+    if cand:match('^/') then
+        tries = { cand }
+    elseif cand:match('^~') then
+        tries = { vim.fn.expand(cand) }
+    else
+        for _, b in ipairs(path_bases()) do tries[#tries + 1] = b .. '/' .. cand end
+    end
+    for _, t in ipairs(tries) do
+        if vim.uv.fs_stat(t) then return vim.fn.fnamemodify(t, ':p'):gsub('/$', '') end
+    end
+    return nil
+end
+
+-- 戻り値: 種類('path'|'url'|'missing'), 値。クリック位置のものが最優先、無ければ行の最初のパス → 最初の URL。
+local function path_in_line(line, col)
+    if not line or line == '' then return nil end
+    -- 全角の括弧・句読点・コロンは区切り扱い（「md：/home/...」等）。
+    -- 同じバイト数の空白に置き換えて、クリック位置(col=バイト位置)をずらさない。
+    -- ※ Lua の [...] はバイト単位なので全角文字を並べると他の日本語まで壊す → 1 文字ずつ置換する
+    for _, c in ipairs({ '（', '）', '「', '」', '、', '。', '：' }) do
+        line = line:gsub(vim.pesc(c), string.rep(' ', #c))
+    end
+    local best_path, best_url, init = nil, nil, 1
+    while true do
+        local s1, e1, tok = line:find('([^%s`"\'<>|%(%)%[%]{}]+)', init)
+        if not s1 then break end
+        init = e1 + 1
+        local here = col >= s1 and col <= e1
+        local url = tok:match('https?://.+')
+        if url then
+            url = url:gsub('[%.,;:]+$', '')
+            if here then return 'url', url end
+            best_url = best_url or url
+        else
+            tok = tok:gsub('[%.,;:]+$', ''):gsub(':%d+:%d+$', ''):gsub(':%d+$', '')
+            -- / を含むか、拡張子付きか、~ 始まりのものだけ（ただの単語は試さない）
+            if tok:find('/', 1, true) or tok:match('%.%w+$') or tok:match('^~') then
+                local full = resolve_path(tok)
+                if full then
+                    if here then return 'path', full end
+                    best_path = best_path or full
+                elseif here then
+                    -- パスっぽい所をクリックしたのに見つからない時は、行の別の物を開かずに知らせる
+                    return 'missing', tok
+                end
+            end
+        end
+    end
+    if best_path then return 'path', best_path end
+    if best_url then return 'url', best_url end
+    return nil
 end
 
 _G.__vivify_click = function()
-    local p = path_in_line(vim.api.nvim_get_current_line(), vim.fn.col('.'))
-    if not p then
-        vim.notify('この行にファイルパスが見つかりません', vim.log.levels.WARN)
+    local kind, v = path_in_line(vim.api.nvim_get_current_line(), vim.fn.col('.'))
+    if not kind then
+        vim.notify('この行に開けるパス/URL が見つかりません', vim.log.levels.WARN)
         return
     end
-    local full = vim.fn.fnamemodify(vim.fn.expand(p), ':p')
-    if vim.fn.filereadable(full) == 0 then
-        vim.notify('見つかりません: ' .. p, vim.log.levels.WARN)
+    if kind == 'missing' then
+        vim.notify('見つかりません: ' .. v, vim.log.levels.WARN)
         return
     end
-    vim.fn.jobstart({ 'mdpreview', full }, { detach = true })
-    vim.notify('Vivify: ' .. vim.fn.fnamemodify(full, ':t'))
+    if kind == 'url' then
+        vim.fn.jobstart({ 'wslview', v }, { detach = true })   -- Windows の既定ブラウザ
+        vim.notify('ブラウザ: ' .. v)
+        return
+    end
+    vim.fn.jobstart({ 'mdpreview', v }, { detach = true })
+    vim.notify('Vivify: ' .. vim.fn.fnamemodify(v, ':~'))
 end
 
 -- <LeftMouse> でカーソルをクリック位置へ移してから拾う。
 -- terminal は一度ノーマルモードへ抜ける（抜けないとカーソルが動かない）。
 keymap('n', '<C-LeftMouse>', '<LeftMouse><Cmd>lua __vivify_click()<CR>',
-    { noremap = true, desc = 'クリック位置のファイルを Vivify で開く' })
+    { noremap = true, desc = 'クリック位置のファイル/フォルダを Vivify で開く' })
 keymap('t', '<C-LeftMouse>', [[<C-\><C-n><LeftMouse><Cmd>lua __vivify_click()<CR>]],
-    { noremap = true, desc = 'クリック位置のファイルを Vivify で開く' })
+    { noremap = true, desc = 'クリック位置のファイル/フォルダを Vivify で開く' })
+-- Ctrl+Click 本来の「タグジャンプ」は Ctrl+右クリックへ移す（<C-]>。LSP があれば定義へ）。
+-- 既定の <C-RightMouse>(タグスタックを戻る)は潰れるが、戻るのは <C-t> / <C-o> で足りる。
+keymap('n', '<C-RightMouse>', '<LeftMouse><C-]>',
+    { noremap = true, desc = 'クリック位置の単語へタグジャンプ（Ctrl+クリックの代わり）' })
 
 -- Claude系/explorer/端末Esc: kanata が 変換/無変換+<key> を「F13〜F15 の3打」で送る。
 -- 全キーがファンクションキー＝IME もブラウザも絶対に奪わない → 日本語入力中・全モード・WT/ttyd で確実。
