@@ -136,22 +136,32 @@ keymap('t', '<C-LeftMouse>', [[<C-\><C-n><LeftMouse><Cmd>lua __vivify_click()<CR
 -- 体系: F13(leader) → F14=Claude群/F15=ツール群 → 選択。WT=<F13..>/ttyd=<S-F1..> の両表記を割当。
 local henkan_seq = {
     -- { WTシーケンス, ttydシーケンス, rhs, desc }
-    -- 注: kanata の S-f3 は端末で <F15> でなく <S-F3> として届く(Shift+F1/F2 は F13/F14 に
-    -- 化けるのに F3 は化けない=不揃い)。なので S-f3 の位置は <S-F3> を割当てる。
-    -- S-f1→<F13>/<S-F1>, S-f2→<F14>/<S-F2>, S-f3→<S-F3>(WT/ttyd 共通)。
+    -- 注: kanata の S-f3 は端末によって <S-F3> でも <F15> でも届く(以前は <S-F3> だったが、
+    -- 2026-10-23 に WT で <F15> として届いて 変換+e/v/m/Esc が効かなくなっていた)。
+    -- なので S-f3 の位置は下のループで <S-F3> と <F15> の両方を割当てる。
+    -- S-f1→<F13>/<S-F1>, S-f2→<F14>/<S-F2>, S-f3→<S-F3> or <F15>。
     { '<F13><F14><F13>',  '<S-F1><S-F2><S-F1>', '<Cmd>ClaudePick<CR>',       'Claudeタスク一覧 (変換/無変換+c)' },
     { '<F13><F14><F14>',  '<S-F1><S-F2><S-F2>', '<Cmd>ClaudeAttnFocus<CR>',  'Claude待ちペインへフォーカス (変換/無変換+n)' },
     { '<F13><F14><S-F3>', '<S-F1><S-F2><S-F3>', '<Cmd>ClaudeAttnSwitch<CR>', 'Claude待ちを現窓に (変換/無変換+m ※N代替)' },
     { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
     { '<F13><S-F3><S-F3>', '<S-F1><S-F3><S-F3>', open_in_vivify,             '今のファイルを Vivify で開く (変換/無変換+v)' },
 }
+-- <S-F3> を含む lhs は <F15> 版も返す(上の注)
+local function with_f15(lhss)
+    local out = {}
+    for _, lhs in ipairs(lhss) do
+        out[#out + 1] = lhs
+        if lhs:find('<S-F3>', 1, true) then out[#out + 1] = (lhs:gsub('<S%-F3>', '<F15>')) end
+    end
+    return out
+end
 for _, s in ipairs(henkan_seq) do
-    for _, lhs in ipairs({ s[1], s[2] }) do
+    for _, lhs in ipairs(with_f15({ s[1], s[2] })) do
         keymap({ 'n', 'i', 't' }, lhs, s[3], { noremap = true, desc = s[4] })
     end
 end
 -- 端末Esc は terminal モードのみ（ジョブへ literal Esc を送る）[F13 <S-F3> F14]
-for _, lhs in ipairs({ '<F13><S-F3><F14>', '<S-F1><S-F3><S-F2>' }) do
+for _, lhs in ipairs(with_f15({ '<F13><S-F3><F14>', '<S-F1><S-F3><S-F2>' })) do
     keymap('t', lhs, '<Esc>', { noremap = true, desc = '端末へ Esc を送る (変換/無変換+Esc)' })
 end
 
