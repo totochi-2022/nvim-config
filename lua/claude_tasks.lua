@@ -139,6 +139,13 @@ local function setup_term_buf(buf, dir, id)
     buffer = buf,
     desc = "ノーマルモードへ",
   })
+  -- <C-z> は握りつぶす。dtach 下ではどこにも job control が無く、
+  -- dtach クライアントが受けても(既定の suspend キー) claude が受けても(自前 suspend)
+  -- 「止まったつもり」のまま fg 待ちで固まり操作不能になるため。
+  vim.keymap.set("t", "<C-z>", "<Nop>", {
+    buffer = buf,
+    desc = "サスペンド無効(dtach下で固まるため)",
+  })
   -- <Esc><Esc> は claude へ ESC を送る（応答中断）。中断は Stop フックが飛ばず
   -- 「考え中(⏳)」が最大120秒残る問題があるが、この二連打は "中断確定" の信号なので、
   -- ここで attention を即クリアして ⏳ を即座に落とす（nvimターミナル限定の確実な経路）。
