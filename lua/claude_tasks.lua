@@ -221,6 +221,12 @@ local function open_toggleterm(dir)
   vim.cmd("startinsert")
 end
 
+-- 開いた端末に入る。vim.g.claude_board_auto が ON なら俯瞰ボードも(フォーカスは奪わず)出す。
+local function enter_term()
+  pcall(function() require("claude_board").auto() end)
+  vim.cmd("startinsert")
+end
+
 -- その dir の attach ペインが既にあればフォーカスを移す(claude_attention から使う)。
 -- 表示中のウィンドウが無ければ false(呼び側で open にフォールバック)。
 function M.focus(dir)
@@ -252,12 +258,12 @@ function M.open(dir, opts)
     vim.cmd("topleft vsplit")
     vim.api.nvim_win_set_buf(0, existing)
     pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
-    vim.cmd("startinsert")
+    enter_term()
     return
   end
 
   if mode ~= "left" and focus_existing(dir, id) then
-    vim.cmd("startinsert")
+    enter_term()
     return
   end
 
@@ -271,7 +277,7 @@ function M.open(dir, opts)
   end
   vim.fn.jobstart(build_cmd(dir, id), { term = true, cwd = dir })
   setup_term_buf(vim.api.nvim_get_current_buf(), dir, id)
-  vim.cmd("startinsert")
+  enter_term()
 end
 
 -- 会話モード(fork): 同フォルダに fork セッションを新規起動(現会話を引き継いで独立)。
@@ -298,7 +304,7 @@ function M.open_fork(dir, opts)
   local cmd = { "dtach", "-A", sock_for(dir, slot), claude_cmd, "--continue", "--fork-session" }
   vim.fn.jobstart(cmd, { term = true, cwd = dir })
   setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
-  vim.cmd("startinsert")
+  enter_term()
 end
 
 -- 指定セッション(id)へジャンプする(:ClaudeSessions / ピッカーの C-s)。行き先は 3 通り:
@@ -322,13 +328,13 @@ function M.open_session(dir, sid, opts)
   if vim.uv.fs_stat(vim.fn.expand("~/.claude/jobs/" .. short .. "/state.json")) then
     local tid = "job:" .. short
     if opts.mode ~= "left" and focus_existing(dir, tid) then
-      vim.cmd("startinsert")
+      enter_term()
       return
     end
     new_win()
     vim.fn.jobstart(with_banner(dir, sid, { "attach", short }), { term = true, cwd = dir })
     setup_term_buf(vim.api.nvim_get_current_buf(), dir, tid)
-    vim.cmd("startinsert")
+    enter_term()
     return
   end
 
@@ -352,7 +358,7 @@ function M.open_session(dir, sid, opts)
   local cmd = vim.list_extend({ "dtach", "-A", sock_for(dir, slot) }, with_banner(dir, sid, { "--resume", sid }))
   vim.fn.jobstart(cmd, { term = true, cwd = dir })
   setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
-  vim.cmd("startinsert")
+  enter_term()
 end
 
 -- Telescope: dir のセッションを id 単位で一覧(新しい順)して選ぶ。

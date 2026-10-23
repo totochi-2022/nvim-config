@@ -31,6 +31,10 @@ require '21_keymap'
 -- claude_tasks.lua (dtach ベースの Claude Code タスク管理: :ClaudeOpen/:ClaudePick/:ClaudeKill)
 require('claude_tasks').setup()
 
+-- claude_board.lua (複数プロジェクトの Claude を俯瞰する右ペイン: :ClaudeBoard / :ClaudeBoardAuto)
+-- vim.g.claude_board_auto = true で、セッションを開く時にボードも出す
+require('claude_board').setup()
+
 -- claude_attention.lua (複数セッションの応答待ちを下バーに可視化+待ちペインへジャンプ)
 require('claude_attention').setup()
 
