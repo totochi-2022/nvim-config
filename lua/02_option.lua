@@ -235,8 +235,10 @@ vim.opt.diffopt:append('vertical')
 vim.opt.updatetime = 500 -- CursorHoldイベントのタイミング（0.5秒）。Vivifyプレビューの追従(instant_refresh=0のCursorHold同期)がこの間隔
 vim.g.incsearch_use_migemo = 0
 vim.g.toggle_auto_hover = 0
-vim.g.claude_board_auto = true -- Claude セッションを開く時に俯瞰ボード(:ClaudeBoard)も出す。:ClaudeBoardAuto で切替
-vim.g.claude_board_side = "left" -- 右側はファイルの変更確認(プレビュー)に使うので、ボードは左に出す
+-- 俯瞰ボードは Claude Code 側の mod(/board、session-board@motoki-mods)に移したので、
+-- Vim 側(:ClaudeBoard)の自動表示は切ってある。手で出すなら :ClaudeBoardAuto on か :ClaudeBoard
+vim.g.claude_board_auto = false -- Claude セッションを開く時に俯瞰ボード(:ClaudeBoard)も出すか
+vim.g.claude_board_side = "left" -- 出す場合の位置(右はファイルの変更確認に使うので左)
 
 if vim.g.GuiLoaded then
     -- Neovim-Qt固有の設定
