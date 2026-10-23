@@ -116,12 +116,25 @@ end
 -- dtach -A: 生存なら attach、無ければ cwd=dir で作成して attach。
 -- 新規作成時、過去ログがあれば --continue で前回会話を引き継ぐ
 -- (生存時は dtach がコマンド引数を無視するので付けても無害)。
+-- 再開時は claude の前に `claude-tasks resume-banner` で「何を再開するか」
+-- (セッション名・ジョブの待ち理由/返事の候補/結論・同フォルダで止まっている他ジョブ)を
+-- 端末に出してから exec する。claude は画面をクリアしないので上に残る。
+-- sid = 再開するセッション id(--continue なら nil = dir の最新)。
+local function with_banner(dir, sid, args)
+  local cmd = {
+    "sh", "-c", [["$0" resume-banner "$1" "$2"; shift 2; exec "$@"]],
+    ct_cmd, dir, sid or "", claude_cmd,
+  }
+  return vim.list_extend(cmd, args)
+end
+
 local function build_cmd(dir, id)
-  local cmd = { "dtach", "-A", sock_for(dir, id), claude_cmd }
+  local cmd = { "dtach", "-A", sock_for(dir, id) }
   -- --continue は主セッションの新規起動時のみ(fork は fork 起動側で --continue --fork-session 済)
   if (id or "") == "" and has_history(dir) then
-    table.insert(cmd, "--continue")
+    return vim.list_extend(cmd, with_banner(dir, nil, { "--continue" }))
   end
+  table.insert(cmd, claude_cmd)
   return cmd
 end
 
@@ -288,6 +301,115 @@ function M.open_fork(dir, opts)
   vim.cmd("startinsert")
 end
 
+-- 指定セッション(id)へジャンプする(:ClaudeSessions / ピッカーの C-s)。行き先は 3 通り:
+--   * バックグラウンドジョブ(~/.claude/jobs/<短縮id> がある) → `claude attach <短縮id>`
+--     (daemon が抱えているので --resume で別に起こすと二重になる。← で agent view、
+--      端末を閉じてもジョブは動き続ける)
+--   * dtach のどれかの slot で稼働中 → その slot に attach
+--   * 停止中 → 主 slot が空いていれば主、埋まっていれば空き fork slot で --resume <id>
+function M.open_session(dir, sid, opts)
+  opts = opts or {}
+  dir = norm(dir)
+  local function new_win()
+    if opts.mode == "left" then
+      vim.cmd("topleft vnew")
+    else
+      vim.cmd("enew")
+    end
+  end
+
+  local short = sid:sub(1, 8)
+  if vim.uv.fs_stat(vim.fn.expand("~/.claude/jobs/" .. short .. "/state.json")) then
+    local tid = "job:" .. short
+    if opts.mode ~= "left" and focus_existing(dir, tid) then
+      vim.cmd("startinsert")
+      return
+    end
+    new_win()
+    vim.fn.jobstart(with_banner(dir, sid, { "attach", short }), { term = true, cwd = dir })
+    setup_term_buf(vim.api.nvim_get_current_buf(), dir, tid)
+    vim.cmd("startinsert")
+    return
+  end
+
+  local slot = vim.fn.systemlist({ ct_cmd, "session-slot", dir, sid })[1]
+  if vim.v.shell_error == 0 then
+    M.open(dir, { mode = opts.mode, id = slot or "" })
+    return
+  end
+
+  slot = ""
+  if is_live(dir, "") then
+    slot = ct1({ "next-fork-slot", dir })
+    if slot == "" then
+      vim.notify("空き slot がありません(同時数上限)", vim.log.levels.WARN)
+      return
+    end
+  end
+  add_history(dir)
+  clean_stale_sock(dir, slot)
+  new_win()
+  local cmd = vim.list_extend({ "dtach", "-A", sock_for(dir, slot) }, with_banner(dir, sid, { "--resume", sid }))
+  vim.fn.jobstart(cmd, { term = true, cwd = dir })
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
+  vim.cmd("startinsert")
+end
+
+-- Telescope: dir のセッションを id 単位で一覧(新しい順)して選ぶ。
+-- 行 = ●稼働/○停止 + ジョブ状態(⌨入力待ち 💤待機 ⏳作業中 ✔完了) + 時刻 + 短縮id + タイトル。
+-- preview は待ち理由/返事の候補/結論 → 会話。
+function M.pick_sessions(dir)
+  local ok, pickers = pcall(require, "telescope.pickers")
+  if not ok then
+    vim.notify("telescope が利用できません", vim.log.levels.WARN)
+    return
+  end
+  local finders = require("telescope.finders")
+  local conf = require("telescope.config").values
+  local actions = require("telescope.actions")
+  local action_state = require("telescope.actions.state")
+  local previewers = require("telescope.previewers")
+
+  dir = norm(dir and dir ~= "" and dir or default_dir())
+  local finder = finders.new_oneshot_job({ ct_cmd, "session-list", dir }, {
+    entry_maker = function(line)
+      local sid, t, mark, title = line:match("^([^\t]+)\t([^\t]*)\t([^\t]*)\t?(.*)$")
+      if not sid then return nil end
+      local disp = ("%-3s %s  %s  %s"):format(mark, t, sid:sub(1, 8), title)
+      return { value = { sid = sid }, display = disp, ordinal = sid .. " " .. title }
+    end,
+  })
+
+  local previewer = previewers.new_buffer_previewer({
+    title = "セッション",
+    define_preview = function(self, entry)
+      local lines = vim.fn.systemlist({ ct_cmd, "session-preview", dir, entry.value.sid })
+      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+    end,
+  })
+
+  pickers.new({}, {
+    prompt_title = ("Claude セッション  %s  (Enter: 開く / C-v: split)"):format(vim.fn.fnamemodify(dir, ":~")),
+    finder = finder,
+    sorter = conf.generic_sorter({}),
+    previewer = previewer,
+    attach_mappings = function(bufnr, _map)
+      local function go(mode)
+        return function()
+          local sel = action_state.get_selected_entry()
+          actions.close(bufnr)
+          if sel then
+            M.open_session(dir, sel.value.sid, { mode = mode })
+          end
+        end
+      end
+      actions.select_default:replace(go(nil))
+      _map({ "i", "n" }, "<C-v>", go("left"))
+      return true
+    end,
+  }):find()
+end
+
 -- タスクを正常終了(resume 可能)。claude に /exit を送って状態を保存させてから
 -- 抜けさせる（claude-tasks exit に委譲）。ESC→/exit→保存待ちを内部で行い ~1.4s かかるため
 -- jobstart で非同期に実行して nvim をブロックしない。
@@ -429,7 +551,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
@@ -513,6 +635,16 @@ function M.pick()
           M.open_new()
         end)
       end)
+      -- C-s: 選択フォルダのセッションを id 単位で選ぶ(過去会話の --resume / ジョブへ attach)
+      _map({ "i", "n" }, "<C-s>", function()
+        local sel = action_state.get_selected_entry()
+        if sel then
+          actions.close(bufnr)
+          vim.schedule(function()
+            M.pick_sessions(sel.value.dir)
+          end)
+        end
+      end)
       _map({ "i", "n" }, "<C-x>", kill_action)
       _map({ "i", "n" }, "<C-d>", force_kill_action)
       _map({ "i", "n" }, "<C-a>", kill_all_live_action)
@@ -540,6 +672,14 @@ function M.setup()
     nargs = "?",
     complete = "dir",
     desc = "Claude を新規フォルダで立ち上げる(無ければ確認して作る)",
+  })
+
+  vim.api.nvim_create_user_command("ClaudeSessions", function(o)
+    M.pick_sessions(o.args ~= "" and o.args or nil)
+  end, {
+    nargs = "?",
+    complete = "dir",
+    desc = "Claude セッションを id 一覧から選んで開く(既定: 現プロジェクトのルート)",
   })
 
   vim.api.nvim_create_user_command("ClaudeKill", function(o)
