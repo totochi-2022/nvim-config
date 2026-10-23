@@ -27,10 +27,10 @@ bracketed paste で囲み、改行を「送信」と誤認させずに貼り付�
 | `mx`（v） | 選択を Claude へ送信 | `:ClaudeCodeSend` |
 | `<Leader>c` | Claude タスク一覧 | `:ClaudePick`（dtach 永続セッション）／`変換+c` |
 | `<Leader>C` | 現プロジェクトで起動 | `:ClaudeOpen` |
-| — | 俯瞰ボード（右ペイン）開閉 | `:ClaudeBoard`（状態・⌨入力待ち/💤待機の件数・ひとこと。5 秒ごと更新） |
-| — | 開く時にボードも出すか | `:ClaudeBoardAuto [on\|off]`（`vim.g.claude_board_auto`。幅 `claude_board_width`、`claude_board_side="left"` で左） |
 
-ボード（`:ClaudeBoard`）の中のキー: `Enter` 開く / `s` id 一覧 / `x` ジョブを片付け（`claude rm`、作業中は対象外）/ `a` 停止中も表示 / `r` 更新 / `q` 閉じる
+俯瞰ボードは Claude Code 側の mod に移した（`/board` で開閉、`/board auto on|off` で起動時に開くかを決める。
+実体は `~/.claude_plugin/mods/session-board`）。
+
 
 タスク一覧（`:ClaudePick`）の中のキー:
 

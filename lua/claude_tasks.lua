@@ -221,9 +221,8 @@ local function open_toggleterm(dir)
   vim.cmd("startinsert")
 end
 
--- 開いた端末に入る。vim.g.claude_board_auto が ON なら俯瞰ボードも(フォーカスは奪わず)出す。
+-- 開いた端末に入る。
 local function enter_term()
-  pcall(function() require("claude_board").auto() end)
   vim.cmd("startinsert")
 end
 
