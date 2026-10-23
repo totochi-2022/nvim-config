@@ -308,6 +308,80 @@ function M.force_kill(dir, id)
   vim.fn.system({ ct_cmd, "kill", dir, id or "" })
 end
 
+-- Yes/No の確認を Telescope で出す。vim.fn.confirm は noice 環境で操作しづらいため、
+-- 2 行のピッカーで代用する（C-a の一括終了と C-n の mkdir 確認で共用）。
+local function confirm_via_telescope(prompt, yes_label, on_yes, on_cancel)
+  local pickers = require("telescope.pickers")
+  local finders = require("telescope.finders")
+  local conf = require("telescope.config").values
+  local actions = require("telescope.actions")
+  local action_state = require("telescope.actions.state")
+  pickers.new({}, {
+    prompt_title = prompt,
+    finder = finders.new_table({
+      results = {
+        { label = "No   やめる", yes = false },
+        { label = yes_label,     yes = true },
+      },
+      entry_maker = function(e)
+        return { value = e, display = e.label, ordinal = e.label }
+      end,
+    }),
+    sorter = conf.generic_sorter({}),
+    attach_mappings = function(cbuf)
+      actions.select_default:replace(function()
+        local sel = action_state.get_selected_entry()
+        actions.close(cbuf)
+        if sel and sel.value.yes then
+          on_yes()
+        elseif on_cancel then
+          on_cancel()
+        end
+      end)
+      return true
+    end,
+  }):find()
+end
+
+-- 一覧に無いフォルダで新規に立ち上げる（:ClaudeNew / ピッカーの C-n）。
+-- パスを手で入力する。既定は nvim の cwd（末尾 / 付き）で、<Tab> がディレクトリ補完。
+--   * 既にあるフォルダ → そのまま起動。過去ログがあれば build_cmd が --continue を付けるので
+--                        前回会話を引き継いで(resume して)始まる
+--   * まだ無いフォルダ → 確認してから mkdir -p して起動
+function M.open_new(opts)
+  opts = opts or {}
+  local default = opts.default or (vim.fn.getcwd() .. "/")
+  vim.ui.input({
+    prompt = "新規 Claude のフォルダ: ",
+    default = default,
+    completion = "dir",
+  }, function(input)
+    if not input or vim.trim(input) == "" then
+      return
+    end
+    local dir = norm(vim.fn.expand(vim.trim(input)))
+    local st = vim.uv.fs_stat(dir)
+    if st and st.type ~= "directory" then
+      vim.notify("フォルダではありません: " .. dir, vim.log.levels.WARN)
+      return
+    end
+    if st then
+      M.open(dir, { mode = opts.mode })
+      return
+    end
+    confirm_via_telescope(
+      ("フォルダがありません: %s"):format(vim.fn.fnamemodify(dir, ":~")),
+      "Yes  作って開く",
+      function()
+        if vim.fn.mkdir(dir, "p") == 0 then
+          vim.notify("フォルダを作れません: " .. dir, vim.log.levels.ERROR)
+          return
+        end
+        M.open(dir, { mode = opts.mode })
+      end)
+  end)
+end
+
 -- Telescope: claude-tasks list（稼働状態付き・最終利用順）から選んで開く。
 -- preview に最新会話ログ、C-x で正常終了 / C-d で強制kill。
 function M.pick()
@@ -355,7 +429,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
@@ -405,29 +479,6 @@ function M.pick()
       end
       -- C-a: 起動中(●=live)の Claude を一括で exit&save。
       -- 確認は vim.fn.confirm だと noice 環境で操作しづらいので Telescope の Yes/No ピッカーで行う。
-      local function confirm_via_telescope(prompt, on_yes)
-        pickers.new({}, {
-          prompt_title = prompt,
-          finder = finders.new_table({
-            results = {
-              { label = "No   やめる",      yes = false },
-              { label = "Yes  一括終了する", yes = true },
-            },
-            entry_maker = function(e)
-              return { value = e, display = e.label, ordinal = e.label }
-            end,
-          }),
-          sorter = conf.generic_sorter({}),
-          attach_mappings = function(cbuf)
-            actions.select_default:replace(function()
-              local sel = action_state.get_selected_entry()
-              actions.close(cbuf)
-              if sel and sel.value.yes then on_yes() else vim.schedule(M.pick) end
-            end)
-            return true
-          end,
-        }):find()
-      end
       local function kill_all_live_action()
         -- 各行(= 主/fork の1セッション)を (dir,id) で拾う。fork も slot ごとに個別 exit。
         local live = {}
@@ -442,14 +493,26 @@ function M.pick()
         vim.schedule(function()
           confirm_via_telescope(
             ("起動中 %d 個(fork 含む)を exit&save で終了しますか?"):format(#live),
+            "Yes  一括終了する",
             function()
               for _, s in ipairs(live) do
                 M.kill(s.dir, s.id) -- slot ごとに /exit 送信→保存→終了(非同期)
               end
               vim.defer_fn(M.pick, 1800) -- 全部抜けるのを待って再表示
+            end,
+            function()
+              vim.schedule(M.pick) -- No: 一覧に戻す(入れ子版の挙動を維持)
             end)
         end)
       end
+      -- C-n: 一覧に無いフォルダで新規に立ち上げる（パスを手入力。Telescope 既定の
+      -- <C-n>=次の候補 はこのピッカー内でのみ潰れる。移動は <C-j>/<Down> が残る）
+      _map({ "i", "n" }, "<C-n>", function()
+        actions.close(bufnr)
+        vim.schedule(function()
+          M.open_new()
+        end)
+      end)
       _map({ "i", "n" }, "<C-x>", kill_action)
       _map({ "i", "n" }, "<C-d>", force_kill_action)
       _map({ "i", "n" }, "<C-a>", kill_all_live_action)
@@ -470,6 +533,14 @@ function M.setup()
   vim.api.nvim_create_user_command("ClaudePick", function()
     M.pick()
   end, { desc = "Claude タスクを Telescope で選ぶ" })
+
+  vim.api.nvim_create_user_command("ClaudeNew", function(o)
+    M.open_new({ default = o.args ~= "" and o.args or nil })
+  end, {
+    nargs = "?",
+    complete = "dir",
+    desc = "Claude を新規フォルダで立ち上げる(無ければ確認して作る)",
+  })
 
   vim.api.nvim_create_user_command("ClaudeKill", function(o)
     M.kill(o.args ~= "" and o.args or default_dir())

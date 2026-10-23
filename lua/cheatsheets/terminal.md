@@ -25,8 +25,19 @@ bracketed paste で囲み、改行を「送信」と誤認させずに貼り付�
 |------|------|------|
 | `mz` | Claude トグル | `:ClaudeCode`（パネル表示/非表示） |
 | `mx`（v） | 選択を Claude へ送信 | `:ClaudeCodeSend` |
-| `<Leader>c` | Claude タスク一覧 | `:ClaudePick`（dtach 永続セッション） |
+| `<Leader>c` | Claude タスク一覧 | `:ClaudePick`（dtach 永続セッション）／`変換+c` |
 | `<Leader>C` | 現プロジェクトで起動 | `:ClaudeOpen` |
+
+タスク一覧（`:ClaudePick`）の中のキー:
+
+| キー | 動作 |
+|------|------|
+| `Enter` | 開く（稼働中→attach / 停止中→起動。過去ログがあれば `--continue`） |
+| `C-n` | **一覧に無いフォルダで新規**（パス入力・既定=cwd・`<Tab>` 補完。無ければ確認して mkdir） |
+| `C-f` | 会話モード(fork)を同フォルダに新規起動 |
+| `C-v` | 左の縦分割で開く |
+| `C-x` / `C-d` | exit&save / 強制 kill |
+| `C-a` | 起動中を一括 exit&save |
 
 ## web版 nvim-server 連携
 
