@@ -235,6 +235,7 @@ vim.opt.diffopt:append('vertical')
 vim.opt.updatetime = 500 -- CursorHoldイベントのタイミング（0.5秒）。Vivifyプレビューの追従(instant_refresh=0のCursorHold同期)がこの間隔
 vim.g.incsearch_use_migemo = 0
 vim.g.toggle_auto_hover = 0
+vim.g.claude_board_auto = true -- Claude セッションを開く時に俯瞰ボード(:ClaudeBoard)も出す。:ClaudeBoardAuto で切替
 
 if vim.g.GuiLoaded then
     -- Neovim-Qt固有の設定
