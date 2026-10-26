@@ -84,6 +84,30 @@ local function open_in_vivify()
     vim.fn.jobstart({ 'mdpreview', f }, { detach = true })
 end
 
+-- Claude Code の右 dock を「差分パネル ⇔ Board」で切り替える。
+-- 本体にタブを1発で切り替える Global な action が無いので、/board(開閉トグル。
+-- 閉じると差分パネルに戻る)を Claude の端末へ打ち込む。今の窓が Claude 端末でなければ、
+-- 同じタブで見えている Claude 端末に送る。入力欄に打ちかけの文字があると後ろに付くので注意。
+local function claude_board_toggle()
+    local function chan_of(buf)
+        if vim.bo[buf].buftype == 'terminal' and vim.b[buf].claude_task then
+            return vim.b[buf].terminal_job_id
+        end
+    end
+    local chan = chan_of(vim.api.nvim_get_current_buf())
+    if not chan then
+        for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            chan = chan_of(vim.api.nvim_win_get_buf(w))
+            if chan then break end
+        end
+    end
+    if not chan then
+        vim.notify('Claude の端末が見当たりません', vim.log.levels.WARN)
+        return
+    end
+    vim.fn.chansend(chan, '/board\r')
+end
+
 -- Ctrl+Click: クリックした行からファイル/フォルダのパスを拾って Vivify で開く（URL はブラウザ）。
 -- ターミナル側の Ctrl+Click は「URL を OS のブラウザで開く」固定で割当を変えられないが、
 -- nvim の中なら <C-LeftMouse> を奪える。Claude がパスだけ出しても開けるようにする用途。
@@ -250,6 +274,7 @@ local henkan_seq = {
     { '<F13><F14><S-F3>', '<S-F1><S-F2><S-F3>', '<Cmd>ClaudeAttnSwitch<CR>', 'Claude待ちを現窓に (変換/無変換+m ※N代替)' },
     { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
     { '<F13><S-F3><S-F3>', '<S-F1><S-F3><S-F3>', open_in_vivify,             '今のファイルを Vivify で開く (変換/無変換+v)' },
+    { '<F13><F13><F13>',  '<S-F1><S-F1><S-F1>', claude_board_toggle,        'Claude の右 dock: 差分⇔Board 切替 (変換/無変換+b)' },
 }
 -- <S-F3> を含む lhs は <F15> 版も返す(上の注)
 local function with_f15(lhss)

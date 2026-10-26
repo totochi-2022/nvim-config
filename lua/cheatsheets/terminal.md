@@ -26,6 +26,7 @@ bracketed paste で囲み、改行を「送信」と誤認させずに貼り付�
 | `mz` | Claude トグル | `:ClaudeCode`（パネル表示/非表示） |
 | `mx`（v） | 選択を Claude へ送信 | `:ClaudeCodeSend` |
 | `<Leader>c` | Claude タスク一覧 | `:ClaudePick`（dtach 永続セッション）／`変換+c` |
+| `変換+b` | Claude の右 dock を 差分⇔Board 切替 | Claude 端末へ `/board` を送る（入力欄が空の時に使う） |
 | `<Leader>C` | 現プロジェクトで起動 | `:ClaudeOpen` |
 
 俯瞰ボードは Claude Code 側の mod に移した（`/board` で開閉、`/board auto on|off` で起動時に開くかを決める。
