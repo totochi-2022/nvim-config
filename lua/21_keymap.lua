@@ -85,27 +85,48 @@ local function open_in_vivify()
 end
 
 -- Claude Code の右 dock を「差分パネル ⇔ Board」で切り替える。
--- 本体にタブを1発で切り替える Global な action が無いので、/board(開閉トグル。
--- 閉じると差分パネルに戻る)を Claude の端末へ打ち込む。今の窓が Claude 端末でなければ、
--- 同じタブで見えている Claude 端末に送る。入力欄に打ちかけの文字があると後ろに付くので注意。
+-- 本体にタブを1発で切り替える Global な action が無く、/board を打ち込む方式は
+-- Claude の作業中だと「次の発言」として溜まってしまう。そこで入力欄を通さず、
+-- 合図ファイル ~/.cache/claude-board/toggle に "<sessionId>\t<dir>" を書く。
+-- session-board mod(~/.claude_plugin/mods/session-board)が更新時刻を見張っていて、自分宛てなら開閉する。
+-- 今の窓が Claude 端末でなければ、同じタブで見えている Claude 端末を対象にする。
+local board_signal = vim.fn.expand('~/.cache/claude-board/toggle')
 local function claude_board_toggle()
-    local function chan_of(buf)
+    local function task_of(buf)
         if vim.bo[buf].buftype == 'terminal' and vim.b[buf].claude_task then
-            return vim.b[buf].terminal_job_id
+            return { dir = vim.b[buf].claude_task, id = vim.b[buf].claude_task_id or '' }
         end
     end
-    local chan = chan_of(vim.api.nvim_get_current_buf())
-    if not chan then
+    local t = task_of(vim.api.nvim_get_current_buf())
+    if not t then
         for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-            chan = chan_of(vim.api.nvim_win_get_buf(w))
-            if chan then break end
+            t = task_of(vim.api.nvim_win_get_buf(w))
+            if t then break end
         end
     end
-    if not chan then
+    if not t then
         vim.notify('Claude の端末が見当たりません', vim.log.levels.WARN)
         return
     end
-    vim.fn.chansend(chan, '/board\r')
+    local function signal(sid)
+        vim.fn.mkdir(vim.fn.fnamemodify(board_signal, ':h'), 'p')
+        vim.fn.writefile({ sid .. '\t' .. t.dir }, board_signal)
+    end
+    -- ジョブへの attach 端末(id = "job:<短縮id>")は短縮 id をそのまま使う(mod 側は前方一致)
+    local job = t.id:match('^job:(.+)$')
+    if job then
+        signal(job)
+        return
+    end
+    -- dtach の端末は、その slot で動いているセッション id を claude-tasks に聞く(非同期)。
+    -- 取れなければ id 空 = フォルダで判定させる
+    local ct = vim.fn.exepath('claude-tasks')
+    if ct == '' then ct = vim.fn.expand('~/.claude_plugin/scripts/claude-tasks') end
+    vim.system({ ct, 'sid', t.dir, t.id }, { text = true }, function(r)
+        vim.schedule(function()
+            signal(vim.trim(r.stdout or ''))
+        end)
+    end)
 end
 
 -- Ctrl+Click: クリックした行からファイル/フォルダのパスを拾って Vivify で開く（URL はブラウザ）。
