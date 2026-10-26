@@ -2,14 +2,17 @@
 --
 -- 検索・索引・退避は claude-plugin-system の `ccsearch`(~/.claude_plugin/scripts)が持ち、
 -- ここは打った語を渡して結果を並べるだけ。
---   入力: スペース=AND / a|b=OR / @d 日記 @c 会話 @p 自分の発言
+--   入力: スペース=AND / a|b=OR / @d 日記 @c 会話 @p 自分の発言 @w Web(claude.ai)
 --   Enter: 読み取り専用で開く(既定。Claude は起動しない)
 --          会話 → 全文を開き、ヒットした発言へ飛ぶ / 日記 → その見出しの行へ
 --          今の窓が端末なら新しいタブで開く
 --   C-t  : 新しいタブで読み取り専用で開く
---   C-o  : すぐ始める(会話 → Claude のセッションとして開く / 日記 → 編集できる状態で開く)
+--   C-o  : すぐ始める(会話 → Claude のセッションとして開く / Web → ブラウザ / 日記 → 編集できる状態で開く)
 --   読み取り専用で開いたあと E で始める(会話 → Claude で開く / 日記 → 編集できるようにする)
--- 変換/無変換+; (kanata が [F13 F13 F14] を送る)で開く。21_keymap.lua の henkan_seq。
+-- :CCSearch web [--full]  Web(claude.ai)の会話を今すぐ取り込む(裏で実行、終わったら通知)
+-- 変換/無変換+; / s → すぐ Telescope([F13 F13 F14])。
+-- 変換/無変換+/ → `:CCSearch ` を出して Enter 前で止める(語を打つ / web と打つ)([F13 F13 F15])。
+-- どちらも 21_keymap.lua の henkan_seq。
 local M = {}
 
 -- nvim-server(systemd user service)経由だと PATH に ~/.local/bin が無いことがあるので絶対パスも見る
@@ -35,8 +38,13 @@ local function show_buf(buf, tab)
   end
 end
 
--- 会話を Claude のセッションとして開く(ログが消えていれば退避から戻してから)
+-- 会話を Claude のセッションとして開く(ログが消えていれば退避から戻してから)。
+-- Web(claude.ai)の会話は Claude Code では開けないので、ブラウザでその会話を開く
 local function start_convo(d)
+  if d.source == "web" then
+    vim.ui.open(d.url)
+    return
+  end
   if not d.alive then
     local msg = vim.fn.system({ cs_cmd, "restore", d.session })
     if vim.v.shell_error ~= 0 then
@@ -178,7 +186,7 @@ function M.pick(query)
   end
 
   pickers.new({}, {
-    prompt_title = "過去の会話・日記  (空白=AND  a|b=OR  @d 日記 @c 会話 @p 発言 / Enter: 読む  C-t: タブで  C-o: すぐ始める / 開いた後 E で始める)",
+    prompt_title = "過去の会話・日記  (空白=AND  a|b=OR  @d 日記 @c 会話 @p 発言 @w Web / Enter: 読む  C-t: タブで  C-o: すぐ始める / 開いた後 E で始める)",
     default_text = query or "",
     finder = finder,
     sorter = sorters.highlighter_only({}),
@@ -192,10 +200,45 @@ function M.pick(query)
   }):find()
 end
 
+-- Web の会話を今すぐ取り込む(裏で実行。終わったら結果を通知)
+function M.web(full)
+  vim.notify("ccsearch: Web の会話を取り込み中…")
+  vim.system({ cs_cmd, "web", full and "--full" or nil }, { text = true }, function(res)
+    vim.schedule(function()
+      local msg = vim.trim(res.stderr or "")
+      vim.notify("ccsearch: " .. (msg ~= "" and msg or "完了"),
+        res.code == 0 and vim.log.levels.INFO or vim.log.levels.WARN)
+    end)
+  end)
+end
+
+-- コマンドラインに `:CCSearch ` を出して Enter 前で止める(どのモードからでも)。
+-- ; と : を入れ替えた設定でも効くよう、割り当てを通さず(n)本物の : を送る。
+-- i: 直後に打たれて溜まっているキーより前に差し込む(後ろに足すと語が先に処理される)
+function M.prompt()
+  local mode = vim.fn.mode()
+  local lead = mode == "t" and "<C-\\><C-n>" or (mode:match("^[iR]") and "<Esc>" or "")
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(lead .. ":CCSearch ", true, false, true), "ni", false)
+end
+
 function M.setup()
   vim.api.nvim_create_user_command("CCSearch", function(o)
-    M.pick(o.args)
-  end, { nargs = "*", desc = "過去の Claude 会話・日記を検索 (ccsearch)" })
+    local a = vim.trim(o.args)
+    if a == "web" or a == "web --full" then
+      M.web(a == "web --full")
+    else
+      M.pick(a)
+    end
+  end, {
+    nargs = "*",
+    desc = "過去の Claude 会話・日記を検索 (ccsearch) / web で Web の会話を取り込む",
+    complete = function(lead, line)
+      if line:match("^%s*CCSearch%s+%S*$") then
+        return vim.tbl_filter(function(w) return w:find(lead, 1, true) == 1 end, { "web", "@d", "@c", "@p", "@w" })
+      end
+      return {}
+    end,
+  })
 end
 
 return M

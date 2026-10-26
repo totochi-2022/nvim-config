@@ -298,7 +298,9 @@ local henkan_seq = {
     { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
     { '<F13><S-F3><S-F3>', '<S-F1><S-F3><S-F3>', open_in_vivify,             '今のファイルを Vivify で開く (変換/無変換+v)' },
     { '<F13><F13><F13>',  '<S-F1><S-F1><S-F1>', claude_board_toggle,        'Claude の右 dock: 差分⇔Board 切替 (変換/無変換+b)' },
-    { '<F13><F13><F14>',  '<S-F1><S-F1><S-F2>', '<Cmd>CCSearch<CR>',        '過去の会話・日記を検索 (変換/無変換+;)' },
+    { '<F13><F13><F14>',  '<S-F1><S-F1><S-F2>', '<Cmd>CCSearch<CR>',        '過去の会話・日記を検索 (変換/無変換+; s)' },
+    { '<F13><F13><S-F3>', '<S-F1><S-F1><S-F3>', function() require('ccsearch').prompt() end,
+                                                                             ':CCSearch を入力待ちで出す(語 / web) (変換/無変換+/)' },
 }
 -- <S-F3> を含む lhs は <F15> 版も返す(上の注)
 local function with_f15(lhss)
