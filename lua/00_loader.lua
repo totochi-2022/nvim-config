@@ -31,6 +31,9 @@ require '21_keymap'
 -- claude_tasks.lua (dtach ベースの Claude Code タスク管理: :ClaudeOpen/:ClaudePick/:ClaudeKill)
 require('claude_tasks').setup()
 
+-- ccsearch.lua (過去の Claude 会話・日記を検索: :CCSearch。変換/無変換+;)
+require('ccsearch').setup()
+
 -- claude_attention.lua (複数セッションの応答待ちを下バーに可視化+待ちペインへジャンプ)
 require('claude_attention').setup()
 

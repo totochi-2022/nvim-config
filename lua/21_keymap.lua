@@ -298,6 +298,7 @@ local henkan_seq = {
     { '<F13><S-F3><F13>', '<S-F1><S-F3><S-F1>', open_cwd_in_explorer,        '作業ディレクトリをexplorerで開く (変換/無変換+e)' },
     { '<F13><S-F3><S-F3>', '<S-F1><S-F3><S-F3>', open_in_vivify,             '今のファイルを Vivify で開く (変換/無変換+v)' },
     { '<F13><F13><F13>',  '<S-F1><S-F1><S-F1>', claude_board_toggle,        'Claude の右 dock: 差分⇔Board 切替 (変換/無変換+b)' },
+    { '<F13><F13><F14>',  '<S-F1><S-F1><S-F2>', '<Cmd>CCSearch<CR>',        '過去の会話・日記を検索 (変換/無変換+;)' },
 }
 -- <S-F3> を含む lhs は <F15> 版も返す(上の注)
 local function with_f15(lhss)
@@ -354,7 +355,8 @@ local function ime_refresh()
 end
 local function ime_marker(keys, fn)
     for _, k in ipairs(keys) do
-        keymap({ 'n', 'i', 't' }, k, function() fn(); ime_refresh() end,
+        -- c も飲む: 割り当てが無いとコマンドラインに "<F21>" 等の文字列として入ってしまう
+        keymap({ 'n', 'i', 't', 'c' }, k, function() fn(); ime_refresh() end,
             { noremap = true, desc = 'IME状態マーカー(表示更新)' })
     end
 end
