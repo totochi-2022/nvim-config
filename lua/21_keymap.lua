@@ -87,8 +87,10 @@ end
 -- Claude Code の右 dock を「差分パネル ⇔ Board」で切り替える。
 -- 本体にタブを1発で切り替える Global な action が無く、/board を打ち込む方式は
 -- Claude の作業中だと「次の発言」として溜まってしまう。そこで入力欄を通さず、
--- 合図ファイル ~/.cache/claude-board/toggle に "<sessionId>\t<dir>" を書く。
+-- 合図ファイル ~/.cache/claude-board/toggle に "<宛先>\t<dir>" を書く。
 -- session-board mod(~/.claude_plugin/mods/session-board)が更新時刻を見張っていて、自分宛てなら開閉する。
+-- 宛先は dtach ソケット("sock:<path>")。1 つの端末に Claude のプロセスが複数(前面 + バックグラウンド)
+-- 居てセッション id が 1 つに決まらないので、mod 側も自分の祖先の dtach ソケットで照合する。
 -- 今の窓が Claude 端末でなければ、同じタブで見えている Claude 端末を対象にする。
 local board_signal = vim.fn.expand('~/.cache/claude-board/toggle')
 local function claude_board_toggle()
@@ -108,23 +110,23 @@ local function claude_board_toggle()
         vim.notify('Claude の端末が見当たりません', vim.log.levels.WARN)
         return
     end
-    local function signal(sid)
+    local function signal(key)
         vim.fn.mkdir(vim.fn.fnamemodify(board_signal, ':h'), 'p')
-        vim.fn.writefile({ sid .. '\t' .. t.dir }, board_signal)
+        vim.fn.writefile({ key .. '\t' .. t.dir }, board_signal)
     end
-    -- ジョブへの attach 端末(id = "job:<短縮id>")は短縮 id をそのまま使う(mod 側は前方一致)
+    -- ジョブへの attach 端末(id = "job:<短縮id>")は dtach が無いので短縮 id(mod 側は前方一致)
     local job = t.id:match('^job:(.+)$')
     if job then
         signal(job)
         return
     end
-    -- dtach の端末は、その slot で動いているセッション id を claude-tasks に聞く(非同期)。
-    -- 取れなければ id 空 = フォルダで判定させる
+    -- dtach の端末はそのソケットを宛先にする。取れなければ空 = フォルダで判定させる
     local ct = vim.fn.exepath('claude-tasks')
     if ct == '' then ct = vim.fn.expand('~/.claude_plugin/scripts/claude-tasks') end
-    vim.system({ ct, 'sid', t.dir, t.id }, { text = true }, function(r)
+    vim.system({ ct, 'sock', t.dir, t.id }, { text = true }, function(r)
         vim.schedule(function()
-            signal(vim.trim(r.stdout or ''))
+            local sock = vim.trim(r.stdout or '')
+            signal(sock ~= '' and ('sock:' .. sock) or '')
         end)
     end)
 end
