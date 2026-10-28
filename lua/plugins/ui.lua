@@ -52,6 +52,8 @@ return {
         priority = 1000, -- 最高優先度
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         config = function()
+            -- d: 1 日の振り返り(lua/diary_gap.lua)。サマリーを見るだけ。日記にする時はそこで c → Claude
+            local gap = require('diary_gap')
             require('dashboard').setup({
                 theme = 'hyper',
                 config = {
@@ -64,6 +66,10 @@ return {
                         { desc = '󰈞 Recent files', group = 'DiagnosticHint', action = 'Telescope oldfiles', key = 'r' },
                         { desc = ' Git files', group = 'Number', action = 'Telescope git_files', key = 'g' },
                         { desc = ' New file', group = 'DiagnosticWarn', action = 'ene | startinsert', key = 'n' },
+                        {
+                            desc = gap.label(), group = 'DiagnosticOk', key = 'd',
+                            action = gap.open,
+                        },
                         { desc = ' Quit', group = 'DiagnosticError', action = 'qa', key = 'q' },
                     },
                     project = {

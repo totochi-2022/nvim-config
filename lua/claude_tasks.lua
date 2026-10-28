@@ -318,6 +318,24 @@ function M.open_fork(dir, opts)
   enter_term()
 end
 
+-- 最初の依頼(prompt)を渡して、dir で新しい会話の Claude を起動する(過去の会話は再開しない)。
+-- 主 slot が空いていれば主、埋まっていれば空き fork slot。例: 起動画面の d = 日記フォルダで /diary-gap
+function M.open_prompt(dir, prompt, opts)
+  opts = opts or {}
+  dir = norm(dir)
+  local slot = is_live(dir, "") and ct1({ "next-fork-slot", dir }) or ""
+  if slot == "" and is_live(dir, "") then
+    vim.notify("空き slot がありません(同時数上限)", vim.log.levels.WARN)
+    return
+  end
+  add_history(dir)
+  clean_stale_sock(dir, slot)
+  vim.cmd(opts.mode == "left" and "topleft vnew" or "enew")
+  vim.fn.jobstart({ "dtach", "-A", sock_for(dir, slot), claude_cmd, prompt }, { term = true, cwd = dir })
+  setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
+  enter_term()
+end
+
 -- 指定セッション(id)へジャンプする(:ClaudeSessions / ピッカーの C-s)。行き先は 3 通り:
 --   * バックグラウンドジョブ(~/.claude/jobs/<短縮id> がある) → `claude attach <短縮id>`
 --     (daemon が抱えているので --resume で別に起こすと二重になる。← で agent view、
@@ -700,6 +718,14 @@ function M.pick()
 end
 
 function M.setup()
+  -- 最後に操作された時刻。同じ Claude 端末を複数の nvim(WT のタブ等)が表示している時、
+  -- Board(session-board)はこれが一番新しい nvim に「開いて」を送る(見ていない nvim に送らない)
+  vim.g.claude_last_active = os.time()
+  vim.api.nvim_create_autocmd({ "FocusGained", "WinEnter", "BufEnter", "ModeChanged" }, {
+    group = vim.api.nvim_create_augroup("claude_last_active", { clear = true }),
+    callback = function() vim.g.claude_last_active = os.time() end,
+  })
+
   vim.api.nvim_create_user_command("ClaudeOpen", function(o)
     M.open(o.args)
   end, {
