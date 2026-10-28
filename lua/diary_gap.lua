@@ -90,8 +90,26 @@ end
 
 -- 表示用の行に組み直す: タイトル → サマリー(プロジェクトごとに見出し＋本文) → 日記にした方がいい項目のチェックリスト
 -- (✅ 日記済み = [x]、⏭ 見送り = 打ち消し線、未処理 = [ ]) → 食い違いの件数 → キーの説明
+-- 動いたまま(止めていない)のセッション: claude-tasks list のうち停止中(off)以外。
+-- 列: mark / 表示名 / dir / id / 状態 / 最終利用(epoch)。最後に会話した時刻の古い順(開きっぱなしが上)
+local ct = vim.fn.exepath("claude-tasks")
+if ct == "" then ct = vim.fn.expand("~/.claude_plugin/scripts/claude-tasks") end
+
+local function live_sessions()
+  local rows = {}
+  for _, line in ipairs(vim.fn.systemlist({ ct, "list" })) do
+    local f = vim.split(line, "\t", { plain = true })
+    if f[5] and f[5] ~= "off" and f[5] ~= "" then
+      rows[#rows + 1] = { mark = f[1], disp = f[2], dir = f[3], id = f[4] or "", at = tonumber(f[6] or "") or 0 }
+    end
+  end
+  table.sort(rows, function(a, b) return a.at < b.at end)
+  return rows
+end
+
+-- 返り値: 表示する行, 動いたままのセッションの {行番号 = セッション}(x で止める対象)
 local function view_lines(g)
-  local out, sec = {}, ""
+  local out, sec, live_at = {}, "", {}
   for _, l in ipairs(g.lines) do
     if l:match("^# ") then
       out[#out + 1] = l
@@ -123,10 +141,18 @@ local function view_lines(g)
       end
     end
   end
+  local live = live_sessions()
+  if #live > 0 then
+    vim.list_extend(out, { "", ("## 動いたままのセッション（%d）"):format(#live), "" })
+    for _, r in ipairs(live) do
+      out[#out + 1] = ("- %s %s　最後の会話 %s"):format(r.mark, r.disp, r.at > 0 and os.date("%m/%d %H:%M", r.at) or "?")
+      live_at[#out] = r
+    end
+  end
   if g.conflicts > 0 then
     vim.list_extend(out, { "", ("> 日記と食い違っているもの: %d 件（c で Claude に聞く）"):format(g.conflicts) })
   end
-  return out
+  return out, live_at
 end
 
 -- サマリーを浮動ウィンドウで見る(Claude は起こさない)。c で Claude、q / Esc で閉じる
@@ -142,10 +168,17 @@ function M.open()
   -- 見た印。次の収集で、見ていないサマリーだけを今回分と合わせてまとめ直すのに使う
   pcall(function() io.open(g.path .. ".seen", "w"):close() end)
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, view_lines(g))
+  local live_at = {}
+  local function render()
+    local lines
+    lines, live_at = view_lines(g)
+    vim.bo[buf].modifiable = true
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.bo[buf].modifiable = false
+  end
+  render()
   vim.bo[buf].filetype = "markdown"
   vim.bo[buf].bufhidden = "wipe"
-  vim.bo[buf].modifiable = false
   local cols, rows = vim.o.columns, vim.o.lines
   local width = math.min(100, cols - 6)
   local height = math.min(rows - 6, 40)
@@ -154,7 +187,7 @@ function M.open()
     width = width, height = height,
     row = math.floor((rows - height) / 2) - 1, col = math.floor((cols - width) / 2),
     title = (" 振り返り %s "):format(g.day), title_pos = "center",
-    footer = " c: Claude で日記にする   q: 閉じる ", footer_pos = "center",
+    footer = " c: Claude で日記にする   x: カーソル行のセッションを止める   q: 閉じる ", footer_pos = "center",
   })
   -- 長い 1 行を窓の幅で折り返し、2 行目以降も字下げをそろえる
   vim.wo[win].wrap, vim.wo[win].linebreak, vim.wo[win].breakindent = true, true, true
@@ -165,6 +198,24 @@ function M.open()
   vim.keymap.set("n", "q", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "c", function() close(); M.claude() end, { buffer = buf, desc = "振り返り: Claude で日記にする" })
+  -- x: 「動いたままのセッション」の行のセッションを止める(claude-tasks exit = SIGTERM。止めた後に取り込みも)。
+  -- 止まったら一覧を描き直す
+  vim.keymap.set("n", "x", function()
+    local r = live_at[vim.api.nvim_win_get_cursor(win)[1]]
+    if not r then
+      vim.notify("「動いたままのセッション」の行で x を押すと止めます", vim.log.levels.INFO)
+      return
+    end
+    vim.notify(("止めています: %s"):format(r.disp))
+    vim.fn.jobstart({ ct, "exit", r.dir, r.id }, {
+      on_exit = function()
+        vim.schedule(function()
+          vim.notify(("止めました: %s"):format(r.disp))
+          if vim.api.nvim_buf_is_valid(buf) then render() end
+        end)
+      end,
+    })
+  end, { buffer = buf, desc = "振り返り: カーソル行のセッションを止める" })
 end
 
 vim.api.nvim_create_user_command("DiaryGap", M.open, { desc = "1 日の振り返り(サマリー)を見る" })
