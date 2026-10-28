@@ -93,7 +93,12 @@ end
 -- 居てセッション id が 1 つに決まらないので、mod 側も自分の祖先の dtach ソケットで照合する。
 -- 今の窓が Claude 端末でなければ、同じタブで見えている Claude 端末を対象にする。
 local board_signal = vim.fn.expand('~/.cache/claude-board/toggle')
+local ime_refresh -- 下の IME 状態表示で定義(前方宣言)
 local function claude_board_toggle()
+    -- kanata の 変換+b は先に IME OFF(無変換)を送る。marker(S-f8)は送らない(端末モードを抜けるため)ので、
+    -- 表示(カーソル色)だけここで OFF に合わせる
+    vim.g.ime_on = false
+    if ime_refresh then ime_refresh() end
     local function task_of(buf)
         if vim.bo[buf].buftype == 'terminal' and vim.b[buf].claude_task then
             return { dir = vim.b[buf].claude_task, id = vim.b[buf].claude_task_id or '' }
@@ -338,7 +343,7 @@ local GC_BLINK = (function()
     for seg in GC_STEADY:gmatch('[^,]+') do segs[#segs + 1] = seg .. '-blinkon400-blinkoff400' end
     return table.concat(segs, ',')
 end)()
-local function ime_refresh()
+function ime_refresh()
     local on = vim.g.ime_on
     local color = on and IME_CURSOR.on or IME_CURSOR.off
     -- ★端末のカーソル色は OSC 12 を送って変える(colorscheme が起動時にやってるのと同じ手段を動的に)。

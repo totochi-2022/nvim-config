@@ -128,10 +128,20 @@ local function with_banner(dir, sid, args)
   return vim.list_extend(cmd, args)
 end
 
+-- 主 slot で再開する会話 = 裏セッション以外で最新(claude-tasks resume-id)。無ければ ""。
+-- --continue だとフォルダ最新の会話＝裏セッション(ctrl+b・/fork 等)の会話も拾い、本体が裏の会話を続けてしまう
+local function resume_id(dir)
+  return ct1({ "resume-id", dir }) or ""
+end
+
 local function build_cmd(dir, id)
   local cmd = { "dtach", "-A", sock_for(dir, id) }
-  -- --continue は主セッションの新規起動時のみ(fork は fork 起動側で --continue --fork-session 済)
+  -- 過去の会話の再開は主セッションの新規起動時のみ(fork は fork 起動側で --fork-session 済)
   if (id or "") == "" and has_history(dir) then
+    local sid = resume_id(dir)
+    if sid ~= "" then
+      return vim.list_extend(cmd, with_banner(dir, sid, { "--resume", sid }))
+    end
     return vim.list_extend(cmd, with_banner(dir, nil, { "--continue" }))
   end
   table.insert(cmd, claude_cmd)
@@ -299,8 +309,10 @@ function M.open_fork(dir, opts)
   else
     vim.cmd("enew")
   end
-  -- dtach -A (fork socket) claude --continue --fork-session
-  local cmd = { "dtach", "-A", sock_for(dir, slot), claude_cmd, "--continue", "--fork-session" }
+  -- dtach -A (fork socket) claude --resume <主の会話> --fork-session(裏セッションの会話を避ける)
+  local sid = resume_id(dir)
+  local cmd = { "dtach", "-A", sock_for(dir, slot), claude_cmd }
+  vim.list_extend(cmd, sid ~= "" and { "--resume", sid, "--fork-session" } or { "--continue", "--fork-session" })
   vim.fn.jobstart(cmd, { term = true, cwd = dir })
   setup_term_buf(vim.api.nvim_get_current_buf(), dir, slot)
   enter_term()
@@ -509,6 +521,23 @@ function M.open_new(opts)
   end)
 end
 
+-- 行の状態(list の 5 列目)→ ハイライト。claude-tasks の STATE_ANSI・Board と同じ割り当て:
+-- 返事待ち(❓⌨🔒)=黄 / 終わったばかりで未読(🔔)=緑 / 考え中(⏳)=青 / 裏で稼働(🌙)=紫 / 停止中(○)=薄
+local STATE_HL = {
+  reply = "ClaudeTaskReply", done = "ClaudeTaskDone", working = "ClaudeTaskWorking",
+  bg = "ClaudeTaskBg", off = "ClaudeTaskOff",
+}
+local function set_hl()
+  vim.api.nvim_set_hl(0, "ClaudeTaskReply", { link = "DiagnosticWarn", default = true })
+  vim.api.nvim_set_hl(0, "ClaudeTaskDone", { link = "DiagnosticOk", default = true })
+  vim.api.nvim_set_hl(0, "ClaudeTaskWorking", { link = "DiagnosticInfo", default = true })
+  vim.api.nvim_set_hl(0, "ClaudeTaskBg", { link = "Statement", default = true })
+  vim.api.nvim_set_hl(0, "ClaudeTaskOff", { link = "Comment", default = true })
+  vim.api.nvim_set_hl(0, "ClaudeTaskWhen", { link = "Comment", default = true })
+end
+set_hl()
+vim.api.nvim_create_autocmd("ColorScheme", { callback = set_hl })
+
 -- Telescope: claude-tasks list（稼働状態付き・最終利用順）から選んで開く。
 -- preview に最新会話ログ、C-x で正常終了 / C-d で強制kill。
 function M.pick()
@@ -532,16 +561,28 @@ function M.pick()
   local seen = {}
   local finder = finders.new_oneshot_job({ ct_cmd, "list" }, {
     entry_maker = function(line)
-      local mark, disp, full, id = line:match("^(%S+)\t(.-)\t([^\t]+)\t?(.*)$")
-      if not full then return nil end
-      local it = { dir = full, id = id or "", mark = mark, disp = disp, live = (mark == "●") }
+      -- 列: mark / 表示名 / dir / id / 状態 / 最終利用(epoch 秒)
+      local f = vim.split(line, "\t", { plain = true })
+      local mark, disp, full, id, state, at = f[1], f[2], f[3], f[4] or "", f[5] or "", tonumber(f[6] or "")
+      if not full or full == "" then return nil end
+      local it = { dir = full, id = id, mark = mark, disp = disp, live = mark:find("●", 1, true) ~= nil }
       local key = it.dir .. "\t" .. it.id
       if not seen[key] then
         seen[key] = true
         items[#items + 1] = it
       end
       -- 並びは list の順を維持。ordinal はパスのみ(フィルタ用)
-      return { value = it, display = it.mark .. " " .. it.disp, ordinal = it.disp }
+      local head = it.mark .. " " .. it.disp
+      local when = at and at > 0 and os.date("%m/%d %H:%M", at) or ""
+      local text = when ~= "" and (head .. "  " .. when) or head
+      local hl = {}
+      if STATE_HL[state] then hl[#hl + 1] = { { 0, #head }, STATE_HL[state] } end
+      if when ~= "" then hl[#hl + 1] = { { #head + 2, #text }, "ClaudeTaskWhen" } end
+      return {
+        value = it,
+        display = function() return text, hl end,
+        ordinal = it.disp,
+      }
     end,
   })
 
