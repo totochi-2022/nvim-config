@@ -445,8 +445,8 @@ function M.pick_sessions(dir)
   }):find()
 end
 
--- タスクを正常終了(resume 可能)。claude に /exit を送って状態を保存させてから
--- 抜けさせる（claude-tasks exit に委譲）。ESC→/exit→保存待ちを内部で行い ~1.4s かかるため
+-- タスクを正常終了(resume 可能)。claude-tasks exit に委譲(claude に SIGTERM。/exit は会話が裏ジョブに
+-- 回ることがあるので送らない)。終わるのを待つので
 -- jobstart で非同期に実行して nvim をブロックしない。
 function M.kill(dir, id)
   if not dir or dir == "" then
@@ -649,7 +649,7 @@ function M.pick()
       local function kill_action()
         local sel = action_state.get_selected_entry()
         if sel then
-          M.kill(sel.value.dir, sel.value.id) -- claude に /exit を送って状態保存させてから終了(非同期)
+          M.kill(sel.value.dir, sel.value.id) -- claude-tasks exit(SIGTERM)で終了(非同期)
           actions.close(bufnr)
           -- claude が保存して抜けるまで少し待ってから一覧を更新（稼働状態が反映される）
           vim.defer_fn(M.pick, 1600)
@@ -682,7 +682,7 @@ function M.pick()
             "Yes  一括終了する",
             function()
               for _, s in ipairs(live) do
-                M.kill(s.dir, s.id) -- slot ごとに /exit 送信→保存→終了(非同期)
+                M.kill(s.dir, s.id) -- slot ごとに claude-tasks exit(SIGTERM)で終了(非同期)
               end
               vim.defer_fn(M.pick, 1800) -- 全部抜けるのを待って再表示
             end,
