@@ -10,6 +10,8 @@
 --   C-o  : すぐ始める(会話 → Claude のセッションとして開く / Web → ブラウザ / 日記 → 編集できる状態で開く)
 --   読み取り専用で開いたあと E で始める(会話 → Claude で開く / 日記 → 編集できるようにする)
 -- :CCSearch web [--full]  Web(claude.ai)の会話を今すぐ取り込む(裏で実行、終わったら通知)
+-- :CCSearch ask <うろ覚えの文>  あいまい検索(ccsearch ask。haiku が検索語を作って広めに引き、関係の深い順に
+--   選んだ結果を同じ画面で開く。20〜60 秒。打つたびの検索ではなく、終わってから一覧を開く)
 -- 変換/無変換+; / s → すぐ Telescope([F13 F13 F14])。
 -- 変換/無変換+/ → `:CCSearch ` を出して Enter 前で止める(語を打つ / web と打つ)([F13 F13 F15])。
 -- どちらも 21_keymap.lua の henkan_seq。
@@ -129,7 +131,19 @@ local function read_convo(id, tab)
   end
 end
 
-function M.pick(query)
+-- 行: "<id>\t<日時>\t<印>\t<場所>\t<id/ファイル名>\t<抜粋>"(ccsearch q / ask 共通)
+local function entry_of(line)
+  local id, ts, mark, where, _, snippet = line:match("^(%d+)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
+  if not id then return nil end
+  return {
+    value = tonumber(id),
+    display = ("%s %s  %s │ %s"):format(mark, ts:sub(6), where, snippet),
+    ordinal = line,
+  }
+end
+
+-- lines を渡すと、その結果を並べるだけ(ask の結果)。渡さなければ打つたびに ccsearch q
+function M.pick(query, lines)
   local ok, pickers = pcall(require, "telescope.pickers")
   if not ok then
     vim.notify("telescope が利用できません", vim.log.levels.WARN)
@@ -142,19 +156,11 @@ function M.pick(query)
   local previewers = require("telescope.previewers")
 
   -- 打つたびに ccsearch q を走らせ直す(live_grep と同じ仕組み)。並びは ccsearch の新しい順のまま
-  -- 行: "<id>\t<日時>\t<印>\t<場所>\t<id/ファイル名>\t<抜粋>"
-  local finder = finders.new_job(function(prompt)
-    if not prompt or vim.trim(prompt):len() < 2 then return nil end
-    return vim.list_extend({ cs_cmd, "q" }, vim.split(vim.trim(prompt), "%s+"))
-  end, function(line)
-    local id, ts, mark, where, _, snippet = line:match("^(%d+)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-    if not id then return nil end
-    return {
-      value = tonumber(id),
-      display = ("%s %s  %s │ %s"):format(mark, ts:sub(6), where, snippet),
-      ordinal = line,
-    }
-  end)
+  local finder = lines and finders.new_table({ results = lines, entry_maker = entry_of })
+    or finders.new_job(function(prompt)
+      if not prompt or vim.trim(prompt):len() < 2 then return nil end
+      return vim.list_extend({ cs_cmd, "q" }, vim.split(vim.trim(prompt), "%s+"))
+    end, entry_of)
 
   local previewer = previewers.new_buffer_previewer({
     title = "前後の会話 / 日記",
@@ -186,8 +192,9 @@ function M.pick(query)
   end
 
   pickers.new({}, {
-    prompt_title = "過去の会話・日記  (空白=AND  a|b=OR  @d 日記 @c 会話 @p 発言 @w Web / Enter: 読む  C-t: タブで  C-o: すぐ始める / 開いた後 E で始める)",
-    default_text = query or "",
+    prompt_title = lines and ("あいまい検索: %s  (関係の深い順 / Enter: 読む  C-t: タブで  C-o: すぐ始める)"):format(query)
+      or "過去の会話・日記  (空白=AND  a|b=OR  @d 日記 @c 会話 @p 発言 @w Web / Enter: 読む  C-t: タブで  C-o: すぐ始める / 開いた後 E で始める)",
+    default_text = lines and "" or (query or ""),
     finder = finder,
     sorter = sorters.highlighter_only({}),
     previewer = previewer,
@@ -198,6 +205,25 @@ function M.pick(query)
       return true
     end,
   }):find()
+end
+
+-- あいまい検索(ccsearch ask)。裏で走らせ、終わったら結果を Telescope で開く
+function M.ask(text)
+  if text == "" then
+    vim.notify("ccsearch ask: うろ覚えの文を書いてください(:CCSearch ask 先週の炉の電力の話)", vim.log.levels.WARN)
+    return
+  end
+  vim.notify("ccsearch: あいまい検索中…(20〜60 秒)")
+  vim.system({ cs_cmd, "ask", text }, { text = true }, function(res)
+    vim.schedule(function()
+      local lines = vim.tbl_filter(function(l) return l ~= "" end, vim.split(res.stdout or "", "\n"))
+      if #lines == 0 then
+        vim.notify("ccsearch ask: 見つかりませんでした " .. vim.trim(res.stderr or ""), vim.log.levels.WARN)
+        return
+      end
+      M.pick(text, lines)
+    end)
+  end)
 end
 
 -- Web の会話を今すぐ取り込む(裏で実行。終わったら結果を通知)
@@ -226,15 +252,17 @@ function M.setup()
     local a = vim.trim(o.args)
     if a == "web" or a == "web --full" then
       M.web(a == "web --full")
+    elseif a == "ask" or a:match("^ask%s") then
+      M.ask(vim.trim(a:sub(4)))
     else
       M.pick(a)
     end
   end, {
     nargs = "*",
-    desc = "過去の Claude 会話・日記を検索 (ccsearch) / web で Web の会話を取り込む",
+    desc = "過去の Claude 会話・日記を検索 (ccsearch) / ask であいまい検索 / web で Web の会話を取り込む",
     complete = function(lead, line)
       if line:match("^%s*CCSearch%s+%S*$") then
-        return vim.tbl_filter(function(w) return w:find(lead, 1, true) == 1 end, { "web", "@d", "@c", "@p", "@w" })
+        return vim.tbl_filter(function(w) return w:find(lead, 1, true) == 1 end, { "ask", "web", "@d", "@c", "@p", "@w" })
       end
       return {}
     end,
