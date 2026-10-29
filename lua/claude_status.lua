@@ -45,7 +45,15 @@ function M.text()
     local dir = vim.b.claude_task
     if not dir or dir == "" then return "" end
     local key = norm(dir):gsub("/", "%%") -- "/" → "%" (sed 's|/|%|g' と一致)
-    local ok, lines = pcall(vim.fn.readfile, STATUS_DIR .. "/" .. key)
+    -- セッションごとのファイルを優先(同じフォルダに複数立てると cwd キーのファイルは最後に書いた方になる)
+    local sid = vim.b.claude_sid
+    local ok, lines = false, nil
+    if sid and sid ~= "" then
+        ok, lines = pcall(vim.fn.readfile, STATUS_DIR .. "/sid-" .. sid)
+    end
+    if not ok or not lines or not lines[1] then
+        ok, lines = pcall(vim.fn.readfile, STATUS_DIR .. "/" .. key)
+    end
     if not ok or not lines or not lines[1] then return "" end
     return lines[1]
 end
@@ -83,29 +91,51 @@ function M.winbar()
         lead = "%#lualine_a_terminal# ✳ Claude "
     end
 
+    -- どのプロジェクトか: フォルダ名を目立つ帯で、親のパスは薄く
+    local proj = vim.fn.fnamemodify(dir, ":t")
+    local parent = vim.fn.fnamemodify(dir, ":h")
+    if proj == "" or parent == "." then proj, parent = dir, "" end
     local segs = {
         lead,
-        "%#lualine_b_normal#  " .. esc(dir) .. " ",
+        "%#ClaudeWinbarProj#  " .. esc(proj) .. " ",
     }
-    -- path の後に session id(短縮)。同フォルダ複数(fork)でどのセッションか分かる。
+    if parent ~= "" then
+        segs[#segs + 1] = "%#lualine_c_normal# " .. esc(parent) .. "/ "
+    end
+    -- session id(短縮)。同フォルダ複数(fork)でどのセッションか、Board の行と突き合わせられるよう目立つ色で。
     -- 解決前は slot(claude_task_id)で代用(fork なら "chat"/"2" 等、主は空)。
     local sid = vim.b.claude_sid
     if not sid or sid == "" then sid = vim.b.claude_task_id or "" end
     if sid ~= "" then
-        segs[#segs + 1] = "%#lualine_c_normal# " .. esc(sid:sub(1, 8)) .. " "
+        segs[#segs + 1] = "%#ClaudeWinbarId# id:" .. esc(sid:sub(1, 8)) .. " "
     end
     if branch ~= "" then
         segs[#segs + 1] = "%#lualine_c_normal#  " .. esc(branch) .. " "
     end
     if ctx ~= "" then
-        segs[#segs + 1] = "%#lualine_c_normal# ctx:" .. esc(ctx) .. " "
+        -- 残りが 15% を切ったら背景を変える(もうすぐ自動コンパクション)
+        local low = (tonumber(ctx:match("^(%d+)")) or 100) < 15
+        segs[#segs + 1] = (low and "%#ClaudeWinbarCtxLow#" or "%#lualine_c_normal#") .. " ctx:" .. esc(ctx) .. " "
     end
     segs[#segs + 1] = "%#Normal#"
     return table.concat(segs)
 end
 
+-- プロジェクト名の帯と id の色。テーマの色から作る(カラースキームを替えたら作り直す)
+local function set_hl()
+    local function hl(name) return vim.api.nvim_get_hl(0, { name = name, link = false }) end
+    vim.api.nvim_set_hl(0, "ClaudeWinbarProj",
+        { fg = hl("Normal").bg or 0x000000, bg = hl("Function").fg or hl("Title").fg, bold = true })
+    vim.api.nvim_set_hl(0, "ClaudeWinbarCtxLow",
+        { fg = hl("Normal").bg or 0x000000, bg = hl("DiagnosticError").fg, bold = true })
+    vim.api.nvim_set_hl(0, "ClaudeWinbarId",
+        { fg = hl("DiagnosticWarn").fg, bg = hl("lualine_c_normal").bg, bold = true })
+end
+
 function M.setup()
     local grp = vim.api.nvim_create_augroup("ClaudeStatusWinbar", { clear = true })
+    set_hl()
+    vim.api.nvim_create_autocmd("ColorScheme", { group = grp, callback = set_hl })
     -- TermEnter が肝: claude_tasks は 窓表示→jobstart→b.claude_task設定→startinsert の順なので、
     -- BufWinEnter/TermOpen 時点では b.claude_task が未設定。startinsert で入る TermEnter なら設定済み。
     vim.api.nvim_create_autocmd({ "TermEnter", "TermOpen", "BufWinEnter", "WinEnter", "BufEnter" }, {
