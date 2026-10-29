@@ -177,6 +177,8 @@ local function view_lines(g)
         vim.list_extend(out, { "", "## サマリー" })
       elseif sec == "## 日記にした方がいい項目" then
         vim.list_extend(out, { "", ("## 日記にした方がいい項目（未処理 %d 件）"):format(g.n), "" })
+      elseif sec:match("^## Claude Code の更新") then
+        vim.list_extend(out, { "", sec, "" })
       elseif sec == CONFLICTS then
         vim.list_extend(out, { "", ("## 日記に付けた ⚠（戻す待ち %d 件。印が無ければそのまま）"):format(g.conflicts), "" })
       end
@@ -194,6 +196,8 @@ local function view_lines(g)
         out[#out + 1] = check_line(text, l)
         item_at[#out] = i
       end
+    elseif sec:match("^## Claude Code の更新") and l:match("%S") then
+      out[#out + 1] = l  -- 毎朝の claude update の分(★ = 使っている機能に関係する)
     elseif sec == CONFLICTS and l:match("^%- ") then
       out[#out + 1] = conflict_line(l:sub(3), l)
       item_at[#out] = i
