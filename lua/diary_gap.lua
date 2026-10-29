@@ -39,24 +39,29 @@ function M.label()
 end
 
 -- 収集(diary-gap)をこの場で始める。毎朝 6 時のタイマーが動かなかった時の保険(d / :DiaryGap で今日の分が無い時)。
--- 数分かかるので裏で走らせ、始めた時と終わった時に知らせる。二重に走っても diary-gap 側のロックで 1 つだけ動く
-local running = false
-function M.collect()
+-- 数分かかるので裏で走らせ、始めた時と終わった時に知らせる。on_done は終わった時に呼ぶ(開いている画面の切り替え)。
+-- --wait: 起動直後などでタイマーの収集がすでに走っていたら、それが終わるのを待つ(二重には作らず、早すぎる「できました」も出さない)
+local running, waiting = false, {}
+function M.collect(on_done)
+  if on_done then waiting[#waiting + 1] = on_done end
   if running then
     vim.notify("振り返りを収集中です(終わったら知らせます)", vim.log.levels.INFO)
     return
   end
   running = true
-  vim.notify("振り返りの収集を始めました(数分かかります。終わったら知らせます)", vim.log.levels.INFO)
-  vim.fn.jobstart({ "diary-gap" }, {
+  vim.notify("振り返りの収集を始めました(数分かかります。終わったら画面を切り替えます)", vim.log.levels.INFO)
+  vim.fn.jobstart({ "diary-gap", "--wait" }, {
     on_exit = function(_, code)
       running = false
       vim.schedule(function()
         if code == 0 then
-          vim.notify("振り返りができました(起動画面の d か :DiaryGap で見る)", vim.log.levels.INFO)
+          vim.notify("振り返りができました", vim.log.levels.INFO)
         else
           vim.notify(("振り返りの収集に失敗しました(終了コード %d)"):format(code), vim.log.levels.WARN)
         end
+        local cbs = waiting
+        waiting = {}
+        for _, cb in ipairs(cbs) do pcall(cb, code == 0) end
       end)
     end,
   })
@@ -110,7 +115,10 @@ end
 -- 返り値: 表示する行, 動いたままのセッションの {行番号 = セッション}(x で止める対象)
 local function view_lines(g)
   local out, sec, live_at = {}, "", {}
-  for _, l in ipairs(g.lines) do
+  if not g then  -- レポートがまだ 1 本も無い(収集中)
+    out = { "# 振り返り（収集中…）", "", "できたらこの画面に出します（数分）。" }
+  end
+  for _, l in ipairs(g and g.lines or {}) do
     if l:match("^# ") then
       out[#out + 1] = l
     elseif l:match("^## ") then
@@ -149,7 +157,7 @@ local function view_lines(g)
       live_at[#out] = r
     end
   end
-  if g.conflicts > 0 then
+  if g and g.conflicts > 0 then
     vim.list_extend(out, { "", ("> 日記と食い違っているもの: %d 件（c で Claude に聞く）"):format(g.conflicts) })
   end
   return out, live_at
@@ -158,15 +166,15 @@ end
 -- サマリーを浮動ウィンドウで見る(Claude は起こさない)。c で Claude、q / Esc で閉じる
 function M.open()
   local g = M.state()
-  -- 今日 6 時以降のレポートがまだ無ければ収集を始める(前のレポートがあればそれは表示する)
-  if M.due(g) then
-    M.collect()
+  -- 今日 6 時以降のレポートがまだ無ければ収集を始める。画面は前のレポート(無ければ「収集中…」)で開き、
+  -- 収集が終わったら今日のレポートに切り替える
+  local collecting = M.due(g)
+  local function mark_seen()
+    -- 見た印。次の収集で、見ていないサマリーだけを今回分と合わせてまとめ直すのに使う。
+    -- 収集中に前のレポートを出しているだけの時は付けない(ちゃんと見たとは限らない)
+    if g and not collecting then pcall(function() io.open(g.path .. ".seen", "w"):close() end) end
   end
-  if not g then
-    return
-  end
-  -- 見た印。次の収集で、見ていないサマリーだけを今回分と合わせてまとめ直すのに使う
-  pcall(function() io.open(g.path .. ".seen", "w"):close() end)
+  mark_seen()
   local buf = vim.api.nvim_create_buf(false, true)
   local live_at = {}
   local function render()
@@ -186,9 +194,25 @@ function M.open()
     relative = "editor", style = "minimal", border = "rounded",
     width = width, height = height,
     row = math.floor((rows - height) / 2) - 1, col = math.floor((cols - width) / 2),
-    title = (" 振り返り %s "):format(g.day), title_pos = "center",
+    title = "", title_pos = "center",
     footer = " c: Claude で日記にする   x: カーソル行のセッションを止める   q: 閉じる ", footer_pos = "center",
   })
+  local function set_title()
+    local t = g and (" 振り返り %s "):format(g.day) or " 振り返り "
+    if collecting then t = t .. "（今日の分を収集中…） " end
+    pcall(vim.api.nvim_win_set_config, win, { title = t, title_pos = "center" })
+  end
+  set_title()
+  if collecting then
+    M.collect(function()
+      collecting = false
+      if not vim.api.nvim_win_is_valid(win) then return end
+      g = M.state()
+      render()
+      set_title()
+      mark_seen()
+    end)
+  end
   -- 長い 1 行を窓の幅で折り返し、2 行目以降も字下げをそろえる
   vim.wo[win].wrap, vim.wo[win].linebreak, vim.wo[win].breakindent = true, true, true
   vim.wo[win].conceallevel = 2
