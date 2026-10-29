@@ -569,6 +569,9 @@ function M.pick()
   local actions = require("telescope.actions")
   local action_state = require("telescope.actions.state")
   local previewers = require("telescope.previewers")
+  -- 開いた元が Claude の端末なら覚えておく(C-q: 選んだ方へ飛んでから、元を止める)
+  local origin = vim.b.claude_task and vim.b.claude_task ~= ""
+    and { dir = norm(vim.b.claude_task), id = vim.b.claude_task_id or "", buf = vim.api.nvim_get_current_buf() } or nil
 
   -- 一覧は「ストリーミング」で受ける(new_oneshot_job)。ピッカーが即開き、行は届き次第流れ込む。
   -- 以前は ct({"list"})=systemlist で全出力(≈1.7s)を待つ間 nvim がブロックしていた。
@@ -615,7 +618,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open / C-q: open して元を exit / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
@@ -708,6 +711,31 @@ function M.pick()
             M.pick_sessions(sel.value.dir)
           end)
         end
+      end)
+      -- C-q: 選んだ会話へ飛び、開いた元(ここ)の Claude を exit&save で止める。元が Claude の端末の時だけ
+      _map({ "i", "n" }, "<C-q>", function()
+        local sel = action_state.get_selected_entry()
+        if not sel then return end
+        if not origin then
+          vim.notify("C-q は Claude の端末から開いた時だけ(元のセッションを止めて飛ぶ)", vim.log.levels.INFO)
+          return
+        end
+        if norm(sel.value.dir) == origin.dir and (sel.value.id or "") == origin.id then
+          vim.notify("選んだのは今のセッションです", vim.log.levels.INFO)
+          return
+        end
+        actions.close(bufnr)
+        M.open(sel.value.dir, { id = sel.value.id })
+        -- 止まったら元の端末バッファも消す(「[Process exited]」のまま残ると、次にそのフォルダを開いた時に死んだバッファへ飛ぶ)
+        vim.api.nvim_create_autocmd("TermClose", {
+          buffer = origin.buf, once = true,
+          callback = function()
+            vim.schedule(function() pcall(vim.api.nvim_buf_delete, origin.buf, { force = true }) end)
+          end,
+        })
+        M.kill(origin.dir, origin.id)
+        vim.notify(("止めています: %s%s"):format(vim.fn.fnamemodify(origin.dir, ":~"),
+          origin.id ~= "" and (" (" .. origin.id .. ")") or ""))
       end)
       _map({ "i", "n" }, "<C-x>", kill_action)
       _map({ "i", "n" }, "<C-d>", force_kill_action)
