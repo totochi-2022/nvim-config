@@ -135,25 +135,26 @@ local function live_sessions()
   return rows
 end
 
--- 候補の 1 行: 未処理 [ ] / 📝 頼んだ(Claude 待ち) / ✅ Claude が日記にした [x] → [[日記]] / ⏭ 見送り(打ち消し線)
+-- 候補の 1 行: 未処理 [ ] / 📝 頼んだ(Claude 待ち) / ✅ Claude が日記にした [x] → [[日記]] / ⏭ 見送り
+-- (打ち消し線 ~~…~~ は本文のパスの ~ と混ざって崩れるので使わない)
 local function check_line(text, l)
   local body = unmarked(text)
   if has(l, "✅") then
     local link = l:match(" ✅.-(%[%[.-%]%])")
     return ("- [x] %s%s"):format(body, link and (" → " .. link) or "")
   elseif has(l, "⏭") then
-    return ("- ~~%s~~"):format(body)
+    return ("- ⏭ %s　（見送り）"):format(body)
   elseif has(l, "📝") then
     return ("- 📝 %s　（日記に頼んだ・Claude 待ち）"):format(body)
   end
   return ("- [ ] %s"):format(body)
 end
 
--- ⚠ の 1 行: そのまま ⚠ / 🗑 戻して(Claude 待ち) / ⏭ Claude が戻した(打ち消し線)
+-- ⚠ の 1 行: そのまま ⚠ / 🗑 戻して(Claude 待ち) / ⏭ Claude が戻した
 local function conflict_line(text, l)
   local body = unmarked(text)
   if has(l, "⏭") then
-    return ("- ~~%s~~　（戻した）"):format(body)
+    return ("- ⏭ %s　（戻した）"):format(body)
   elseif has(l, "🗑") then
     return ("- 🗑 %s　（戻して・Claude 待ち）"):format(body)
   end
