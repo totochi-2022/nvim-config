@@ -227,6 +227,70 @@ local function cycle_mark(g, i)
   return true
 end
 
+-- 印とキーのヘルプ(振り返りの画面の上に重ねる。? / h で開き、q / Esc / ? / h で閉じる)
+local HELP = {
+  "# 振り返りのヘルプ",
+  "",
+  "## 日記にした方がいい項目",
+  "",
+  "| 表示 | 意味 | 付けるのは |",
+  "|---|---|---|",
+  "| [ ] | 未処理（件数に入る） | — |",
+  "| 📝 …（Claude 待ち） | 日記にしてほしい（件数に入る） | あなた（<Space>） |",
+  "| ⏭ …（見送り） | 日記にしない | あなた（<Space>） |",
+  "| [x] … → [[日記]] | 日記にした。もう変えられない | Claude だけ |",
+  "",
+  "<Space>: 未処理 → 📝 → ⏭ → 未処理（[x] の行は変わらない）",
+  "",
+  "## 日記に付けた ⚠",
+  "",
+  "その期間に日記に付いた ⚠（注意ラベル）の一覧。どれも付け済み。",
+  "",
+  "| 表示 | 意味 | 付けるのは |",
+  "|---|---|---|",
+  "| ⚠ … | そのまま残す（印なし。何もしなくてよい） | — |",
+  "| 🗑 …（Claude 待ち） | 外してほしい（件数に入る） | あなた（<Space>） |",
+  "| ⏭ …（戻した） | 日記から外した。もう変えられない | Claude だけ |",
+  "",
+  "<Space>: ⚠ ⇄ 🗑（⏭ の行は変わらない）",
+  "",
+  "## いつまで変えられるか",
+  "",
+  "- 変えられるのは、このレポートが出ている間（次の朝に新しいレポートができるまで）。",
+  "- d を 1 回も開かなかった日は、前のレポートと結合される（⚠ も集め直す）。",
+  "- 📝 / 🗑 を付けたまま朝になったものは、次のレポートに引き継ぐ。",
+  "- それより後に変えたい時は、Claude に頼む（日記の方も一緒に直す）。",
+  "",
+  "## キー",
+  "",
+  "- c: Claude を呼ぶ（📝 / 🗑 があれば聞き返さずに片付ける。無ければ一覧から選ぶ）",
+  "- <Space>: 印を切り替える",
+  "- x: 「動いたままのセッション」の行のセッションを止める",
+  "- ? / h: このヘルプ　　q / Esc: 閉じる",
+}
+
+local function show_help()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, HELP)
+  vim.bo[buf].modifiable = false
+  vim.bo[buf].filetype = "markdown"
+  vim.bo[buf].bufhidden = "wipe"
+  local width = math.min(vim.o.columns - 8, 90)
+  local height = math.min(vim.o.lines - 8, #HELP + 2)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor", style = "minimal", border = "rounded", zindex = 60,
+    width = width, height = height,
+    row = math.floor((vim.o.lines - height) / 2) - 1, col = math.floor((vim.o.columns - width) / 2),
+    title = " 振り返りのヘルプ ", title_pos = "center",
+    footer = " q / Esc / ? / h: 閉じる ", footer_pos = "center",
+  })
+  vim.wo[win].wrap, vim.wo[win].linebreak, vim.wo[win].conceallevel = true, true, 2
+  pcall(function() require("render-markdown").buf_enable() end)
+  for _, k in ipairs({ "q", "<Esc>", "?", "h" }) do
+    vim.keymap.set("n", k, function() pcall(vim.api.nvim_win_close, win, true) end, { buffer = buf, nowait = true })
+  end
+end
+
 -- サマリーを浮動ウィンドウで見る(Claude は起こさない)。c で Claude、q / Esc で閉じる
 function M.open()
   local g = M.state()
@@ -260,7 +324,7 @@ function M.open()
     width = width, height = height,
     row = math.floor((rows - height) / 2) - 1, col = math.floor((cols - width) / 2),
     title = "", title_pos = "center",
-    footer = " c: Claude で日記にする   <Space>: 日記に/見送り（⚠ は戻して）   x: セッションを止める   q: 閉じる ", footer_pos = "center",
+    footer = " c: Claude で日記にする   <Space>: 日記に/見送り（⚠ は戻して）   x: セッションを止める   ?: ヘルプ   q: 閉じる ", footer_pos = "center",
   })
   local function set_title()
     local t = g and (" 振り返り %s "):format(g.day) or " 振り返り "
@@ -285,6 +349,8 @@ function M.open()
   pcall(function() require("render-markdown").buf_enable() end)
   local function close() pcall(vim.api.nvim_win_close, win, true) end
   vim.keymap.set("n", "q", close, { buffer = buf, desc = "振り返り: 閉じる" })
+  vim.keymap.set("n", "?", show_help, { buffer = buf, nowait = true, desc = "振り返り: ヘルプ" })
+  vim.keymap.set("n", "h", show_help, { buffer = buf, nowait = true, desc = "振り返り: ヘルプ" })
   vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "c", function() close(); M.claude() end, { buffer = buf, desc = "振り返り: Claude で日記にする" })
   -- <Space>: チェックリストの行の印を回す(cycle_mark)。レポートに書いて描き直す。c で Claude を呼ぶと 📝 / 🗑 を片付ける
