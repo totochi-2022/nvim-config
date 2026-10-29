@@ -7,8 +7,30 @@ local M = {}
 
 local DIARY_DIR = vim.fn.expand("~/.config/nvim/data/howm")
 
--- 最新レポート → { lines, n = 未処理の件数, conflicts = 食い違いの件数, day = "MM-DD" }。無ければ nil
--- 未処理 = 「日記にした方がいい項目」の見出し(### N.)のうち ✅ 日記済み / ⏭ 見送り の印が無いもの
+local CONFLICTS = "## 日記と食い違っているもの"
+
+-- 印は行の末尾に足す。誰が付けたかで分ける(2 回目に見た時、頼んだだけか Claude が済ませたかが分かるように):
+--   あなた(この画面の <Space>): 📝 日記に(候補を日記にして) / ⏭ 見送り / 🗑 戻して(⚠ を外して)
+--   Claude(/diary-gap):         ✅ 日記済み [[日記]] / ⏭ 見送り / ⏭ 戻した
+-- 「日記と食い違っているもの」は付け済みの ⚠ の一覧なので、印が無ければ「そのまま」(数えない)
+local function has(l, m) return l:find(" " .. m, 1, true) ~= nil end
+
+-- 済んだか(Claude を待つものが無い)
+local function done(l)
+  return has(l, "✅") or has(l, "⏭")
+end
+
+-- 印を外した本文(印から行末まで落とす)。印は複数バイトなので文字クラスにせず 1 つずつ
+local function unmarked(l)
+  for _, m in ipairs({ "✅", "⏭", "📝", "🗑" }) do
+    l = l:gsub(" " .. m .. ".*$", "")
+  end
+  return l
+end
+
+-- 最新レポート → { lines, n = 未処理の候補の数, conflicts = 戻す待ちの ⚠ の数, day = "MM-DD" }。無ければ nil
+-- 未処理の候補 = 「日記にした方がいい項目」の見出し(### N.)のうち ✅ / ⏭ の無いもの(📝 は Claude 待ちなので数える)
+-- 戻す待ち = 「日記と食い違っているもの」の行(- …)のうち 🗑 が付いて、まだ ⏭ 戻した になっていないもの
 function M.state()
   local path = vim.fn.systemlist({ "diary-gap", "--latest" })[1]
   if vim.v.shell_error ~= 0 or not path then
@@ -19,9 +41,9 @@ function M.state()
   for _, l in ipairs(lines) do
     if l:match("^## ") then
       sec = l
-    elseif l:match("^### %d+%.") and not l:find("✅", 1, true) and not l:find("⏭", 1, true) then
+    elseif l:match("^### %d+%.") and not done(l) then
       n = n + 1
-    elseif sec == "## 日記と食い違っているもの" and l:match("^%- ") then
+    elseif sec == CONFLICTS and l:match("^%- ") and has(l, "🗑") and not done(l) then
       conflicts = conflicts + 1
     end
   end
@@ -35,7 +57,8 @@ function M.label()
   if not g then
     return "󰃭 振り返り"
   end
-  return g.n > 0 and ("󰃭 振り返り %d件 (%s)"):format(g.n, g.day) or ("󰃭 振り返り 済 (%s)"):format(g.day)
+  local n = g.n + g.conflicts
+  return n > 0 and ("󰃭 振り返り %d件 (%s)"):format(n, g.day) or ("󰃭 振り返り 済 (%s)"):format(g.day)
 end
 
 -- 収集(diary-gap)をこの場で始める。毎朝 6 時のタイマーが動かなかった時の保険(d / :DiaryGap で今日の分が無い時)。
@@ -93,8 +116,8 @@ function M.claude()
   require("claude_tasks").open_prompt(DIARY_DIR, "/diary-gap")
 end
 
--- 表示用の行に組み直す: タイトル → サマリー(プロジェクトごとに見出し＋本文) → 日記にした方がいい項目のチェックリスト
--- (✅ 日記済み = [x]、⏭ 見送り = 打ち消し線、未処理 = [ ]) → 食い違いの件数 → キーの説明
+-- 表示用の行に組み直す: タイトル → サマリー(プロジェクトごとに見出し＋本文) → 日記にした方がいい項目と
+-- 日記と食い違っているもの(付け済みの ⚠)の一覧。印は下の check_line / conflict_line で表示に置き換える
 -- 動いたまま(止めていない)のセッション: claude-tasks list のうち停止中(off)以外。
 -- 列: mark / 表示名 / dir / id / 状態 / 最終利用(epoch)。最後に会話した時刻の古い順(開きっぱなしが上)
 local ct = vim.fn.exepath("claude-tasks")
@@ -112,13 +135,39 @@ local function live_sessions()
   return rows
 end
 
--- 返り値: 表示する行, 動いたままのセッションの {行番号 = セッション}(x で止める対象)
+-- 候補の 1 行: 未処理 [ ] / 📝 頼んだ(Claude 待ち) / ✅ Claude が日記にした [x] → [[日記]] / ⏭ 見送り(打ち消し線)
+local function check_line(text, l)
+  local body = unmarked(text)
+  if has(l, "✅") then
+    local link = l:match(" ✅.-(%[%[.-%]%])")
+    return ("- [x] %s%s"):format(body, link and (" → " .. link) or "")
+  elseif has(l, "⏭") then
+    return ("- ~~%s~~"):format(body)
+  elseif has(l, "📝") then
+    return ("- 📝 %s　（日記に頼んだ・Claude 待ち）"):format(body)
+  end
+  return ("- [ ] %s"):format(body)
+end
+
+-- ⚠ の 1 行: そのまま ⚠ / 🗑 戻して(Claude 待ち) / ⏭ Claude が戻した(打ち消し線)
+local function conflict_line(text, l)
+  local body = unmarked(text)
+  if has(l, "⏭") then
+    return ("- ~~%s~~　（戻した）"):format(body)
+  elseif has(l, "🗑") then
+    return ("- 🗑 %s　（戻して・Claude 待ち）"):format(body)
+  end
+  return ("- ⚠ %s"):format(body)
+end
+
+-- 返り値: 表示する行, 動いたままのセッションの {行番号 = セッション}(x で止める対象),
+-- チェックリストの {表示の行番号 = レポートの行番号}(<Space> で印を付ける対象)
 local function view_lines(g)
-  local out, sec, live_at = {}, "", {}
+  local out, sec, live_at, item_at = {}, "", {}, {}
   if not g then  -- レポートがまだ 1 本も無い(収集中)
     out = { "# 振り返り（収集中…）", "", "できたらこの画面に出します（数分）。" }
   end
-  for _, l in ipairs(g and g.lines or {}) do
+  for i, l in ipairs(g and g.lines or {}) do
     if l:match("^# ") then
       out[#out + 1] = l
     elseif l:match("^## ") then
@@ -127,6 +176,8 @@ local function view_lines(g)
         vim.list_extend(out, { "", "## サマリー" })
       elseif sec == "## 日記にした方がいい項目" then
         vim.list_extend(out, { "", ("## 日記にした方がいい項目（未処理 %d 件）"):format(g.n), "" })
+      elseif sec == CONFLICTS then
+        vim.list_extend(out, { "", ("## 日記に付けた ⚠（戻す待ち %d 件。印が無ければそのまま）"):format(g.conflicts), "" })
       end
     elseif sec == "## サマリー" then
       -- "- **プロジェクト**: 本文" → 見出しと本文に分ける
@@ -137,16 +188,14 @@ local function view_lines(g)
         out[#out + 1] = l
       end
     elseif sec == "## 日記にした方がいい項目" then
-      local num, title = l:match("^### (%d+)%. (.*)$")
-      if num then
-        if title:find("✅", 1, true) then
-          out[#out + 1] = ("- [x] %s. %s"):format(num, title)
-        elseif title:find("⏭", 1, true) then
-          out[#out + 1] = ("- ~~%s. %s~~"):format(num, title)
-        else
-          out[#out + 1] = ("- [ ] %s. %s"):format(num, title)
-        end
+      local text = l:match("^### (%d+%. .*)$")
+      if text then
+        out[#out + 1] = check_line(text, l)
+        item_at[#out] = i
       end
+    elseif sec == CONFLICTS and l:match("^%- ") then
+      out[#out + 1] = conflict_line(l:sub(3), l)
+      item_at[#out] = i
     end
   end
   local live = live_sessions()
@@ -157,10 +206,24 @@ local function view_lines(g)
       live_at[#out] = r
     end
   end
-  if g and g.conflicts > 0 then
-    vim.list_extend(out, { "", ("> 日記と食い違っているもの: %d 件（c で Claude に聞く）"):format(g.conflicts) })
+  return out, live_at, item_at
+end
+
+-- レポートの i 行目の印を回す(あなたの印だけ。Claude が済ませた行は触らない → false):
+--   候補: 未処理 → 📝 日記に → ⏭ 見送り → 未処理 / ⚠: そのまま ⇄ 🗑 戻して
+local function cycle_mark(g, i)
+  local l = g.lines[i]
+  local base = unmarked(l)
+  if l:match("^### ") then
+    if has(l, "✅") then return false end
+    l = has(l, "📝") and (base .. " ⏭ 見送り") or has(l, "⏭") and base or (base .. " 📝 日記に")
+  else
+    if has(l, "⏭") then return false end
+    l = has(l, "🗑") and base or (base .. " 🗑 戻して")
   end
-  return out, live_at
+  g.lines[i] = l
+  vim.fn.writefile(g.lines, g.path)
+  return true
 end
 
 -- サマリーを浮動ウィンドウで見る(Claude は起こさない)。c で Claude、q / Esc で閉じる
@@ -176,10 +239,10 @@ function M.open()
   end
   mark_seen()
   local buf = vim.api.nvim_create_buf(false, true)
-  local live_at = {}
+  local live_at, item_at = {}, {}
   local function render()
     local lines
-    lines, live_at = view_lines(g)
+    lines, live_at, item_at = view_lines(g)
     vim.bo[buf].modifiable = true
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.bo[buf].modifiable = false
@@ -188,14 +251,15 @@ function M.open()
   vim.bo[buf].filetype = "markdown"
   vim.bo[buf].bufhidden = "wipe"
   local cols, rows = vim.o.columns, vim.o.lines
-  local width = math.min(100, cols - 6)
-  local height = math.min(rows - 6, 40)
+  -- 内容が多いので画面いっぱいに開く(起動画面は隠れてよい)。枠の分と、下のコマンド行の分だけ空ける
+  local width = cols - 4
+  local height = rows - 5
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor", style = "minimal", border = "rounded",
     width = width, height = height,
     row = math.floor((rows - height) / 2) - 1, col = math.floor((cols - width) / 2),
     title = "", title_pos = "center",
-    footer = " c: Claude で日記にする   x: カーソル行のセッションを止める   q: 閉じる ", footer_pos = "center",
+    footer = " c: Claude で日記にする   <Space>: 日記に/見送り（⚠ は戻して）   x: セッションを止める   q: 閉じる ", footer_pos = "center",
   })
   local function set_title()
     local t = g and (" 振り返り %s "):format(g.day) or " 振り返り "
@@ -222,6 +286,22 @@ function M.open()
   vim.keymap.set("n", "q", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "c", function() close(); M.claude() end, { buffer = buf, desc = "振り返り: Claude で日記にする" })
+  -- <Space>: チェックリストの行の印を回す(cycle_mark)。レポートに書いて描き直す。c で Claude を呼ぶと 📝 / 🗑 を片付ける
+  vim.keymap.set("n", "<Space>", function()
+    local i = item_at[vim.api.nvim_win_get_cursor(win)[1]]
+    if not (g and i) then
+      vim.notify("候補の行で <Space>: 日記に → 見送り → 未処理。⚠ の行で <Space>: 戻して ⇄ そのまま", vim.log.levels.INFO)
+      return
+    end
+    if not cycle_mark(g, i) then
+      vim.notify("Claude が済ませた行です（印は変えません）", vim.log.levels.INFO)
+      return
+    end
+    g = M.state()
+    local cur = vim.api.nvim_win_get_cursor(win)
+    render()
+    pcall(vim.api.nvim_win_set_cursor, win, cur)
+  end, { buffer = buf, nowait = true, desc = "振り返り: 日記に/見送り/戻して を切り替える" })
   -- x: 「動いたままのセッション」の行のセッションを止める(claude-tasks exit = SIGTERM。止めた後に取り込みも)。
   -- 止まったら一覧を描き直す
   vim.keymap.set("n", "x", function()
