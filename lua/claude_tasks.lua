@@ -95,7 +95,8 @@ local function find_task_buf(dir, id)
 end
 
 -- 既にこの (dir,id) の attach バッファ/ウィンドウがあればそこへ移動。
-local function focus_existing(dir, id)
+-- shown_only: 窓に出ている時だけ(隠れたバッファは false。先に別の WT タブで表示中かを見るため)
+local function focus_existing(dir, id, shown_only)
   local b = find_task_buf(dir, id)
   if not b then
     return false
@@ -106,6 +107,9 @@ local function focus_existing(dir, id)
       pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
       return true
     end
+  end
+  if shown_only then
+    return false
   end
   vim.api.nvim_set_current_buf(b)
   pcall(function() vim.wo.winbar = "%{%v:lua.require'claude_status'.winbar()%}" end)
@@ -231,6 +235,63 @@ local function open_toggleterm(dir)
   vim.cmd("startinsert")
 end
 
+-- ほかの nvim(WT の別タブ)がこの (dir,id) の端末を今のタブページで表示していれば、そのタブへ飛ぶ。
+-- タブはタイトルの "#<pid>" で探す(M.setup の titlestring と wt-tab)。同じ会話を表示している nvim が複数あれば
+-- 一番最近操作された方(g:claude_last_active)。飛べたら true
+local function focus_other_tab(dir, id)
+  if vim.fn.executable("wt-tab") ~= 1 then
+    return false
+  end
+  local runtime = vim.env.XDG_RUNTIME_DIR or "/run/user/1000"
+  local probe = ("luaeval('require(\"claude_tasks\").shown_at(_A[1], _A[2])', [%s, %s])")
+    :format(vim.fn.string(dir), vim.fn.string(id or ""))
+  local best, best_at = nil, 0
+  for _, name in ipairs(vim.fn.readdir(runtime, function(n) return n:match("^nvim%.%d+%.0$") and 1 or 0 end)) do
+    local sock = runtime:gsub("/$", "") .. "/" .. name
+    -- 自分は除く(servername は "/run/user/1000//nvim…" と / が重なることがある。自分に聞くと待ちで固まる)
+    if sock ~= (vim.v.servername:gsub("//+", "/")) then
+      local out = vim.fn.system({ "timeout", "2", "nvim", "--server", sock, "--remote-expr", probe })
+      local at = tonumber(vim.trim(out)) or 0
+      if vim.v.shell_error == 0 and at > best_at then
+        best, best_at = sock, at
+      end
+    end
+  end
+  if not best then
+    return false
+  end
+  local pid = best:match("nvim%.(%d+)%.0$")
+  vim.fn.system({ "wt-tab", "focus", pid })
+  if vim.v.shell_error ~= 0 then
+    return false -- その nvim は WT 以外(web 等)・タイトルが付いていない
+  end
+  vim.fn.system({ "nvim", "--server", best, "--remote-expr",
+    ("luaeval('require(\"claude_tasks\").focus_shown(_A[1], _A[2])', [%s, %s])")
+      :format(vim.fn.string(dir), vim.fn.string(id or "")) })
+  vim.notify(("別のタブで開いています → そちらへ (#%s)"):format(pid))
+  return true
+end
+
+-- (focus_other_tab から呼ばれる側)この (dir,id) の端末を今のタブページの窓で表示していれば
+-- 「最後に操作された時刻 + 1」、無ければ 0
+function M.shown_at(dir, id)
+  for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local b = vim.api.nvim_win_get_buf(w)
+    if vim.b[b].claude_task == dir and (vim.b[b].claude_task_id or "") == (id or "") then
+      return (vim.g.claude_last_active or 0) + 1
+    end
+  end
+  return 0
+end
+
+-- (focus_other_tab から呼ばれる側)その窓に入って端末の入力に戻す
+function M.focus_shown(dir, id)
+  if focus_existing(dir, id, true) then
+    vim.cmd("startinsert")
+  end
+  return ""
+end
+
 -- 開いた端末に入る。
 local function enter_term()
   vim.cmd("startinsert")
@@ -271,9 +332,20 @@ function M.open(dir, opts)
     return
   end
 
-  if mode ~= "left" and focus_existing(dir, id) then
-    enter_term()
-    return
+  -- 今の nvim の窓に出ていればそこ → 別の WT タブの nvim が表示していればそのタブ → 隠れたバッファ → 新しく開く
+  -- (隠れたバッファより別タブを先にするのは、同じ会話を 2 か所で開いたままにしないため)
+  if mode ~= "left" then
+    if focus_existing(dir, id, true) then
+      enter_term()
+      return
+    end
+    if not opts.here and focus_other_tab(dir, id) then  -- here: 別のタブにあっても今の nvim で開く(ClaudePick の C-o)
+      return
+    end
+    if focus_existing(dir, id) then
+      enter_term()
+      return
+    end
   end
 
   clean_stale_sock(dir, id)
@@ -287,6 +359,15 @@ function M.open(dir, opts)
   vim.fn.jobstart(build_cmd(dir, id), { term = true, cwd = dir })
   setup_term_buf(vim.api.nvim_get_current_buf(), dir, id)
   enter_term()
+end
+
+-- WT の新しいタブ(今の窓)に nvim を立ててそこで開く(ClaudePick の C-t)。別のタブにあっても新しいタブで開く
+function M.open_new_tab(dir, id)
+  if vim.fn.executable("wt-tab") ~= 1 or not vim.env.WT_SESSION then
+    vim.notify("Windows Terminal の中でだけ使えます(wt-tab)", vim.log.levels.WARN)
+    return
+  end
+  vim.fn.jobstart({ "wt-tab", "new", norm(dir), id or "" }, { detach = true })
 end
 
 -- 会話モード(fork): 同フォルダに fork セッションを新規起動(現会話を引き継いで独立)。
@@ -618,7 +699,7 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open / C-q: open して元を exit / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: open(別タブにあればそこへ) / C-o: ここで open / C-t: 新しい WT タブで / C-q: open して元を exit / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
     finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
@@ -641,6 +722,22 @@ function M.pick()
         end
       end
       _map({ "i", "n" }, "<C-v>", open_with("left"))
+      -- C-o: 別の WT タブで開いていても、そちらへ飛ばずにこの nvim で開く
+      _map({ "i", "n" }, "<C-o>", function()
+        local sel = action_state.get_selected_entry()
+        if sel then
+          actions.close(bufnr)
+          M.open(sel.value.dir, { id = sel.value.id, here = true })
+        end
+      end)
+      -- C-t: WT の新しいタブで開く(Telescope 既定の C-t = 新しいタブ と同じ意味)
+      _map({ "i", "n" }, "<C-t>", function()
+        local sel = action_state.get_selected_entry()
+        if sel then
+          actions.close(bufnr)
+          M.open_new_tab(sel.value.dir, sel.value.id)
+        end
+      end)
       -- C-f: 会話モード(fork)を選択 dir に新規起動(現会話を引き継いで独立。ccpick と統一)
       _map({ "i", "n" }, "<C-f>", function()
         local sel = action_state.get_selected_entry()
@@ -746,6 +843,13 @@ function M.pick()
 end
 
 function M.setup()
+  -- WT のタブのタイトルに自分の印 "#<pid>"(ソケット nvim.<pid>.0 の番号)を出す。
+  -- ほかの nvim が「この会話は別のタブで開いている」と分かった時に、wt-tab でこのタブを探して前に出すため
+  local pid = (vim.v.servername or ""):match("nvim%.(%d+)%.0$")
+  if vim.env.WT_SESSION and pid then
+    vim.o.title = true
+    vim.o.titlestring = "nvim %{fnamemodify(getcwd(), ':~')} #" .. pid
+  end
   -- 最後に操作された時刻。同じ Claude 端末を複数の nvim(WT のタブ等)が表示している時、
   -- Board(session-board)はこれが一番新しい nvim に「開いて」を送る(見ていない nvim に送らない)
   vim.g.claude_last_active = os.time()
