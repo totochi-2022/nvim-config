@@ -715,6 +715,7 @@ keymap('n', '<LocalLeader>t', '<cmd>Translate<CR>', { noremap = true, desc = '�
 keymap('', 'ga', '<plug>(EasyAlign)', { remap = true, desc = 'テキスト整列' })
 
 keymap('n', '<F8>j', ':<C-u>OpenJunkfile<CR>', { noremap = true, desc = 'Junkファイルを開く' })
+keymap('n', '<F8>d', '<cmd>DiaryGap<CR>', { noremap = true, desc = '振り返り(diary-gap)を開く(起動画面の d と同じ)' })
 
 -- howm（telekasten）: ,, をプレフィックスにして ,,<key> で各コマンドに直行
 -- ,, 単体は割り当てず純粋なプレフィックスにする（which-keyのポップアップが出る）

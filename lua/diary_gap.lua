@@ -177,7 +177,7 @@ local function view_lines(g)
         vim.list_extend(out, { "", "## サマリー" })
       elseif sec == "## 日記にした方がいい項目" then
         vim.list_extend(out, { "", ("## 日記にした方がいい項目（未処理 %d 件）"):format(g.n), "" })
-      elseif sec:match("^## Claude Code の更新") then
+      elseif sec:match("^## Claude Code の更新") or sec == "## あとで確認" then
         vim.list_extend(out, { "", sec, "" })
       elseif sec == CONFLICTS then
         vim.list_extend(out, { "", ("## 日記に付けた ⚠（戻す待ち %d 件。印が無ければそのまま）"):format(g.conflicts), "" })
@@ -198,10 +198,27 @@ local function view_lines(g)
       end
     elseif sec:match("^## Claude Code の更新") and l:match("%S") then
       out[#out + 1] = l  -- 毎朝の claude update の分(★ = 使っている機能に関係する)
+    elseif sec == "## あとで確認" and l:match("%S") then
+      out[#out + 1] = l  -- later の確認の結果(✅ OK / ❌ NG / ❓ 不明 / 📌 備忘)
     elseif sec == CONFLICTS and l:match("^%- ") then
       out[#out + 1] = conflict_line(l:sub(3), l)
       item_at[#out] = i
     end
+  end
+  -- 朝のレポートの後に確かめた later の結果(Claude を開いた時のやり直し等)。次のレポートに出るまでここで見せる
+  local fresh = vim.fn.executable("later") == 1 and vim.fn.systemlist({ "later", "report", "--new" }) or {}
+  if vim.v.shell_error == 0 and #fresh > 2 then
+    vim.list_extend(out, { "", "## あとで確認（次のレポート待ち）" })
+    vim.list_extend(out, vim.list_slice(fresh, 2))
+  end
+  -- later が動いていない印: 今朝 6 時に確かめるはずだったのに待ったままのもの(動かないと何も出ないので、ここで気づけるように)
+  local overdue = vim.fn.executable("later") == 1 and vim.fn.systemlist({ "later", "overdue" }) or {}
+  if vim.v.shell_error == 0 and #overdue > 0 then
+    vim.list_extend(out, { "", ("## ⚠ later が動いていないかも（期限を過ぎて未確認 %d）"):format(#overdue), "" })
+    for _, l in ipairs(overdue) do
+      out[#out + 1] = "- " .. l
+    end
+    out[#out + 1] = "  （diary-gap の失敗は `journalctl --user -u diary-gap` で。手で確かめるなら `later check`）"
   end
   local live = live_sessions()
   if #live > 0 then
@@ -257,6 +274,13 @@ local HELP = {
   "| ⏭ …（戻した） | 日記から外した。もう変えられない | Claude だけ |",
   "",
   "<Space>: ⚠ ⇄ 🗑（⏭ の行は変わらない）",
+  "",
+  "## あとで確認",
+  "",
+  "`later add` で仕込んだ確認の結果（毎朝 6 時に確かめる）。",
+  "✅ OK / ❌ NG / ❓ 判定できず / 📌 備忘（期限が来ただけ）/ ⚠ 実行できていない（期限が来たのに。次の収集でもう一度）。待っているものは端末で `later list`。",
+  "朝のレポートの後に確かめた分（Claude を開いた時のやり直し）は「あとで確認（次のレポート待ち）」に出る。",
+  "期限を過ぎても確かめられていないものがあると「⚠ later が動いていないかも」の節が出る。",
   "",
   "## いつまで変えられるか",
   "",
