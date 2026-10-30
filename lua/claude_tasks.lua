@@ -699,11 +699,28 @@ function M.pick()
   })
 
   pickers.new({}, {
-    prompt_title = "Claude Tasks  (Enter: open(別タブにあればそこへ) / C-o: ここで open / C-t: 新しい WT タブで / C-q: open して元を exit / C-s: id一覧 / C-n: 新規フォルダ / C-f: 会話fork / C-v: split / C-x: exit&save / C-d: force-kill / C-a: exit all)",
+    prompt_title = "Claude Tasks  (Enter: 開く(別タブにあればそこへ) / ? (挿入中は C-/): キーの説明)",
     finder = finder,
     sorter = conf.generic_sorter({}),
     previewer = previewer,
     attach_mappings = function(bufnr, _map)
+      -- ? (挿入中は C-/) のキー一覧に、関数名ではなくこの説明を出す(telescope の map の desc)
+      local DESC = {
+        ["<C-o>"] = "ここで開く(別タブにあっても)",
+        ["<C-t>"] = "新しい WT タブで開く",
+        ["<C-q>"] = "開いて、元(ここ)の Claude を止める",
+        ["<C-s>"] = "このフォルダの会話を id で選ぶ",
+        ["<C-n>"] = "一覧に無いフォルダで新規",
+        ["<C-f>"] = "会話を fork して新規",
+        ["<C-v>"] = "左に縦分割で開く",
+        ["<C-x>"] = "止める(保存・resume できる)",
+        ["<C-d>"] = "強制終了",
+        ["<C-a>"] = "起動中を全部止める",
+      }
+      local map0 = _map
+      _map = function(mode, key, fn)
+        map0(mode, key, fn, { desc = DESC[key] })
+      end
       actions.select_default:replace(function()
         actions.close(bufnr)
         local sel = action_state.get_selected_entry()

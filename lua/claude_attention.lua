@@ -141,13 +141,21 @@ end
 -- 表示中ならそのウィンドウへ、隠れていれば現ウィンドウに、無ければ作って attach。
 function M.next_switch()
   -- 飛び先は claude-tasks に集約(母集団=live非working / 未対応待ち優先→last_visit古い順LRU)。
-  local out = vim.fn.systemlist({ ct_cmd, "next-jump" })
-  local dir = out and out[1]
-  if not dir or dir == "" then
+  -- 先頭が今いる会話なら 2 番目へ(押したら必ずどこかへ動く)
+  local here = vim.b.claude_task and norm(vim.b.claude_task)
+  local dir
+  for _, d in ipairs(vim.fn.systemlist({ ct_cmd, "jump-order" })) do
+    if d ~= "" and norm(d) ~= here then
+      dir = d
+      break
+    end
+  end
+  if not dir then
     vim.notify("巡回対象のセッションはありません", vim.log.levels.INFO)
     return
   end
-  require("claude_tasks").open(dir) -- mode=current(既定): 表示中は移動/無ければ現ウィンドウに出す
+  -- open の既定: この nvim の窓に出ていればそこ → 別の WT タブで表示中ならそのタブ → 無ければ現ウィンドウに出す
+  require("claude_tasks").open(dir)
   vim.fn.jobstart({ ct_cmd, "visit-mark", dir }) -- last_visit=now(WinEnterでも更新されるが確実に)
   M.refresh()
 end
