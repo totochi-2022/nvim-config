@@ -63,7 +63,7 @@
 | キー | 動作 |
 |------|------|
 | `ma` / `mA`（n/x） | URLを開く / Web検索（open-browser） |
-| `<F8>j` | Junkファイルを開く |
+| `<F8>j` | Junkファイルを下に開く（git の中なら `.junk/`・管理対象外） |
 | `<F8>d` | 振り返り（diary-gap）を開く（起動画面の `d` と同じ） |
 | `,,v` | プレビュー（md/typst/svg/csv/stl/dxf） |
 

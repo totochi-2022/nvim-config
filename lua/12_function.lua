@@ -81,19 +81,36 @@ end
 
 ---- VimL Function
 --- OpenJunkfile{{{
-vim.cmd [[
-function! s:open_junkfile()
-  let l:junk_dir = g:dir_setting['junk'] . strftime('/%y/%m')
-  if !isdirectory(l:junk_dir)
-    call mkdir(l:junk_dir, 'p')
-  endif
-  let l:filename = input('junk code: ', l:junk_dir.strftime('/%y%m%d-%H%M.'))
-  if l:filename != ''
-    execute 'edit ' . l:filename
-  endif
-endfunction
-command! OpenJunkfile call s:open_junkfile()
-]]
+-- git の中なら <リポジトリ>/.junk/ に作る(.git/info/exclude に足して管理対象外。Claude から相対パスで読める)。
+-- 起点は Claude の画面ならそのフォルダ(b.claude_task)、ほかは開いているファイルのフォルダ。
+-- git の外なら従来どおり data/junk/年/月/。開くのは今の窓の下に分けた窓。
+vim.api.nvim_create_user_command('OpenJunkfile', function()
+  local base = vim.b.claude_task
+  if not base or base == '' then
+    base = vim.fn.expand('%:p:h')
+    if base == '' or vim.fn.isdirectory(base) == 0 then base = vim.fn.getcwd() end
+  end
+  local root = vim.fn.systemlist({ 'git', '-C', base, 'rev-parse', '--show-toplevel' })[1]
+  local dir
+  if vim.v.shell_error == 0 and root and root ~= '' then
+    dir = root .. '/.junk'
+    local ex = vim.fn.systemlist({ 'git', '-C', root, 'rev-parse', '--path-format=absolute', '--git-path', 'info/exclude' })[1]
+    if vim.v.shell_error == 0 and ex then
+      local lines = vim.fn.filereadable(ex) == 1 and vim.fn.readfile(ex) or {}
+      if not vim.tbl_contains(lines, '/.junk/') then
+        vim.fn.mkdir(vim.fn.fnamemodify(ex, ':h'), 'p')
+        table.insert(lines, '/.junk/')
+        vim.fn.writefile(lines, ex)
+      end
+    end
+  else
+    dir = vim.g.dir_setting['junk'] .. os.date('/%y/%m')
+  end
+  vim.fn.mkdir(dir, 'p')
+  local name = vim.fn.input('junk: ', dir .. os.date('/%y%m%d-%H%M.md'), 'file')
+  if name == '' then return end
+  vim.cmd('belowright split ' .. vim.fn.fnameescape(name))
+end, {})
 --}}}
 --- VmodeToggle (Lua版){{{
 local function vmode_toggle()
