@@ -294,6 +294,7 @@ local HELP = {
   "- c: Claude を呼ぶ（📝 / 🗑 があれば聞き返さずに片付ける。無ければ一覧から選ぶ）",
   "- <Space>: 印を切り替える",
   "- x: 「動いたままのセッション」の行のセッションを止める",
+  "- v: レポートの md を Vivify で開く（表示だけ）",
   "- ? / h: このヘルプ　　q / Esc: 閉じる",
 }
 
@@ -352,7 +353,7 @@ function M.open()
     width = width, height = height,
     row = math.floor((rows - height) / 2) - 1, col = math.floor((cols - width) / 2),
     title = "", title_pos = "center",
-    footer = " c: Claude で日記にする   <Space>: 日記に/見送り（⚠ は戻して）   x: セッションを止める   ?: ヘルプ   q: 閉じる ", footer_pos = "center",
+    footer = " c: Claude で日記にする   <Space>: 日記に/見送り（⚠ は戻して）   x: セッションを止める   v: Vivify   ?: ヘルプ   q: 閉じる ", footer_pos = "center",
   })
   local function set_title()
     local t = g and (" 振り返り %s "):format(g.day) or " 振り返り "
@@ -381,6 +382,11 @@ function M.open()
   vim.keymap.set("n", "h", show_help, { buffer = buf, nowait = true, desc = "振り返り: ヘルプ" })
   vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "振り返り: 閉じる" })
   vim.keymap.set("n", "c", function() close(); M.claude() end, { buffer = buf, desc = "振り返り: Claude で日記にする" })
+  -- v: レポートの md をそのまま Vivify で開く(表示だけ。画面の切り替えは端末で)
+  vim.keymap.set("n", "v", function()
+    if not g then return vim.notify("レポートがまだありません", vim.log.levels.INFO) end
+    vim.fn.jobstart({ "mdpreview", g.path }, { detach = true })
+  end, { buffer = buf, nowait = true, desc = "振り返り: レポートを Vivify で開く" })
   -- <Space>: チェックリストの行の印を回す(cycle_mark)。レポートに書いて描き直す。c で Claude を呼ぶと 📝 / 🗑 を片付ける
   vim.keymap.set("n", "<Space>", function()
     local i = item_at[vim.api.nvim_win_get_cursor(win)[1]]
