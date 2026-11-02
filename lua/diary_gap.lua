@@ -100,6 +100,11 @@ function M.due(g)
   if os.time() < run_at then
     return false
   end
+  -- 今朝の収集が済んでいれば(会話が無くレポートを作らなかった日も)収集し直さない。最新のレポートがマージ済みの最新
+  local ok = vim.uv.fs_stat(vim.fn.expand("~/.local/share/diary-gap/last-ok"))
+  if ok and ok.mtime.sec >= run_at then
+    return false
+  end
   if not g then
     return true
   end
@@ -286,6 +291,7 @@ local HELP = {
   "",
   "- 変えられるのは、このレポートが出ている間（次の朝に新しいレポートができるまで）。",
   "- d を 1 回も開かなかった日は、前のレポートと結合される（⚠ も集め直す）。",
+  "- 会話の無かった日（休み）は、前のレポートの未処理の候補と later の結果を今日付けにマージする（引き継ぐものが無ければ作らない）。",
   "- 📝 / 🗑 を付けたまま朝になったものは、次のレポートに引き継ぐ。",
   "- それより後に変えたい時は、Claude に頼む（日記の方も一緒に直す）。",
   "",
