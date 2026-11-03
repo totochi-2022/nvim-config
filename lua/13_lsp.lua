@@ -9,6 +9,9 @@ require("mason").setup({
     install_root_dir = is_windows
         and vim.fn.expand('$LOCALAPPDATA/nvim-data/mason')
         or nil,
+    -- mason/bin を PATH の後ろに足す（既定 prepend だと mise のツールより先に当たる。
+    -- 同名の tree-sitter 等は mise 管理の版を使い、mason にしか無い LSP はそのまま見つかる）
+    PATH = "append",
     providers = {
         "mason.providers.registry-api"
     },
