@@ -241,12 +241,13 @@ function! s:toggle_jump_mode()
   endif
 endfunction
 
-" 起動時にファイル内モードを設定
-augroup FileLocalJumpListInit
-  autocmd!
-  autocmd VimEnter * call s:toggle_jump_mode()
-augroup END
-
+" 起動時の初期化はしない。
+"   * この関数は「トグル」なので、16_toggle.lua(j = jump_mode)が設定した状態を
+"     ひっくり返してしまう。状態と <C-o>/<C-i> の割当は 16_toggle.lua が正本。
+"   * echo するので、起動時に走ると hit-enter プロンプトになる。
+"   * そもそも init.lua が設定を遅延ロードしていた間は VimEnter に間に合わず、
+"     この初期化は一度も動いていなかった(遅延をやめた 2026-11-03 に表面化した)。
+" 切り替えは <F8>j(トグルメニュー)か :ToggleJumpMode で行う。
 command! ToggleJumpMode call s:toggle_jump_mode()
 ]]
 --}}}
