@@ -254,3 +254,58 @@ end
 
 -- フック設定を起動時に実行
 setup_lsp_hover_border_hook()
+
+-- 外部(AI)の書き換えを undo 履歴に載せる{{{
+-- Claude 等がディスク上のファイルを書き換えると、従来はバッファが古いまま取り残され、
+-- 気づいた頃には undo で AI 前に戻れなかった。'undoreload'(02_option.lua)が
+-- 「リロード前の全文」を undo 1 ノードとして積むので、取り込みさえすれば
+-- 「前に見たときから今までの変更」がまとめて u 一発で戻せる。
+local ai_undo = vim.api.nvim_create_augroup("ai_undo", { clear = true })
+
+-- 外部優先。自分が未保存でもディスク(AI)の方を採る。
+-- 捨てた未保存の編集も undo に積まれるので u で戻せる(#2 AI → #1 未保存 → #0 元)。
+autocmd("FileChangedShell", {
+    group = ai_undo,
+    callback = function()
+        local r = vim.v.fcs_reason
+        if r == "changed" or r == "conflict" then
+            vim.v.fcs_choice = "reload"
+        elseif r == "deleted" then
+            vim.v.fcs_choice = "ask" -- 消えた時だけは黙って捨てない
+        else
+            vim.v.fcs_choice = "" -- mode/time だけの変化は何もしない
+        end
+    end,
+    desc = "外部で書き換わったファイルは AI 側(ディスク)を優先して取り込む",
+})
+
+-- 取り込みの引き金。Claude は nvim の端末の中にいるので FocusGained は発火しない。
+-- :checktime は autocmd の中から呼ぶと「副作用が無害な時まで延期」されて流れてしまうため、
+-- vim.schedule で autocmd の外に出す(:help :checktime)。
+autocmd({ "CursorHold", "CursorHoldI", "BufEnter", "WinEnter", "TermLeave", "FocusGained" }, {
+    group = ai_undo,
+    callback = function()
+        if vim.bo.buftype == "" and vim.fn.getcmdwintype() == "" then
+            vim.schedule(function() pcall(vim.cmd, "checktime") end)
+        end
+    end,
+    desc = "外部の書き換えをバッファに取り込む(updatetime=500 なので手を止めて 0.5 秒)",
+})
+
+-- 取り込んだ直後に undofile の土台を貼り替える。undofile は「書いた時の本文」と
+-- ハッシュが合わないと読まれない(File contents changed, cannot use undo info)ので、
+-- ここで書き直しておかないと nvim を開き直した時点で履歴が消える。
+-- 中身は変わっていないので :w ではなく :wundo!(ファイルの mtime を動かさない)。
+autocmd("FileChangedShellPost", {
+    group = ai_undo,
+    callback = function(a)
+        if not vim.bo[a.buf].undofile or vim.bo[a.buf].buftype ~= "" then return end
+        local name = vim.api.nvim_buf_get_name(a.buf)
+        if name == "" then return end
+        vim.api.nvim_buf_call(a.buf, function()
+            pcall(vim.cmd, "wundo! " .. vim.fn.fnameescape(vim.fn.undofile(name)))
+        end)
+    end,
+    desc = "取り込み後に undofile を書き直し、再起動後も AI 前に戻れるようにする",
+})
+--}}}

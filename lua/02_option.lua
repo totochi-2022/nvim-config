@@ -102,7 +102,12 @@ vim.opt.fileformats = {
 vim.opt.laststatus = 2
 
 -- runtimepathに行ディレクトリを追加
-vim.opt.runtimepath:append(os.getenv('VIM'))
+-- $VIM は nvim が内部で持つだけでプロセス環境には出ないことがあり、os.getenv は nil を返す。
+-- nil を append すると options.lua の中で落ち、このファイルの以降が丸ごと適用されなくなる
+local vimdir = os.getenv('VIM')
+if vimdir and vimdir ~= '' then
+    vim.opt.runtimepath:append(vimdir)
+end
 
 
 vim.opt.path:append('**')
@@ -202,6 +207,10 @@ vim.opt.autochdir = true
 
 vim.opt.undofile = true
 vim.opt.undolevels = 5000
+-- 外部(AI)の書き換えを取り込むとき、取り込み前の全文を undo 1 ノードとして積む。
+-- 既定(10000)は「行数がこれ未満のときだけ」なので、負値にして行数によらず必ず積む。
+-- 取り込みの引き金と undofile の貼り替えは 14_autocmd.lua
+vim.opt.undoreload = -1
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
