@@ -368,8 +368,9 @@ autocmd("BufReadPost", {
     desc = "閉じている間の外部編集を undo ノードとして復元する",
 })
 
--- init.lua が設定全体を vim.defer_fn で遅らせているため、コマンドラインで開いたファイル
--- (nvim foo.md) は BufReadPost が上の登録より先に終わっている。起動時に 1 回ぶん拾う
+-- 保険。この行が走る時点ですでに読み込まれているバッファを 1 回ぶん拾う。
+-- (init.lua で設定を遅延ロードすると、コマンドラインで渡したファイルの BufReadPost は
+--  上の登録より先に終わってしまう。いまは遅延していないので通常は空振りする)
 for _, b in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_loaded(b) then
         pcall(restore_from_shadow, b)
