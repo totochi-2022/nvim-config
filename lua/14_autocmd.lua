@@ -264,10 +264,14 @@ local ai_undo = vim.api.nvim_create_augroup("ai_undo", { clear = true })
 
 -- 外部優先。自分が未保存でもディスク(AI)の方を採る。
 -- 捨てた未保存の編集も undo に積まれるので u で戻せる(#2 AI → #1 未保存 → #0 元)。
+-- Post 側で v:fcs_reason が読めないので、Shell 側で控えておく(通知の文面を変えるため)
+local ai_undo_reason = {}
+
 autocmd("FileChangedShell", {
     group = ai_undo,
-    callback = function()
+    callback = function(a)
         local r = vim.v.fcs_reason
+        ai_undo_reason[a.buf] = r -- Post 側の通知文のために控える
         if r == "changed" or r == "conflict" then
             vim.v.fcs_choice = "reload"
         elseif r == "deleted" then
@@ -321,6 +325,15 @@ autocmd("FileChangedShellPost", {
             pcall(vim.cmd, "silent! wundo! " .. vim.fn.fnameescape(vim.fn.undofile(name)))
         end)
         save_shadow(a.buf)
+        -- 「置き換わったこと」を知らせる。hit-enter にならないよう vim.notify(noice のトースト)で出す
+        local r = ai_undo_reason[a.buf]
+        ai_undo_reason[a.buf] = nil
+        local tail = vim.fn.fnamemodify(name, ":t")
+        if r == "conflict" then
+            vim.notify(tail .. ": 外部の変更で置き換えました（未保存の編集は u で戻せます）", vim.log.levels.WARN)
+        else
+            vim.notify(tail .. ": 外部の変更を取り込みました（u で戻せます）", vim.log.levels.INFO)
+        end
     end,
     desc = "取り込み後に undofile を書き直し、再起動後も AI 前に戻れるようにする",
 })
@@ -363,6 +376,10 @@ local function restore_from_shadow(buf)
             vim.bo[buf].undolevels = ul
         end
         vim.bo[buf].modified = false
+        local tail = vim.fn.fnamemodify(name, ":t")
+        vim.schedule(function()
+            vim.notify(tail .. ": 閉じている間に外部で変更されていました（u で戻せます）", vim.log.levels.INFO)
+        end)
     end)
 end
 
