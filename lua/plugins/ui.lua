@@ -471,6 +471,9 @@ return {
     -- スクロールバー
     {
         'petertriho/nvim-scrollbar',
+        -- 2026-11-16 に main が v2 に替わり、setup() の書き方が変わる(予告メッセージが出ていた)。
+        -- v1 に固定して現状維持。移行するなら https://github.com/petertriho/nvim-scrollbar/issues/121
+        branch = 'v1',
         dependencies = {
             'kevinhwang91/nvim-hlslens',
             'lewis6991/gitsigns.nvim'
