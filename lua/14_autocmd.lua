@@ -292,6 +292,21 @@ autocmd({ "CursorHold", "CursorHoldI", "BufEnter", "WinEnter", "TermLeave", "Foc
     desc = "外部の書き換えをバッファに取り込む(updatetime=500 なので手を止めて 0.5 秒)",
 })
 
+-- undofile のハッシュ検査は「いまのバッファの本文」に対して行われる。土台が合えば読めるので、
+-- 下の open 時の復元に使う「最後に undofile と辻褄が合っていた本文」を影コピーとして取っておく。
+-- undofile と同じ流儀のパス。undofile 同様 nvim は消さないので、要らなくなったら自分で消す
+local shadow_dir = vim.fn.stdpath("state") .. "/undoshadow"
+local function shadow_path(name)
+    return shadow_dir .. "/" .. name:gsub("[/\\:]", "%%")
+end
+local function save_shadow(buf)
+    if not vim.bo[buf].undofile or vim.bo[buf].buftype ~= "" then return end
+    local name = vim.api.nvim_buf_get_name(buf)
+    if name == "" then return end
+    vim.fn.mkdir(shadow_dir, "p")
+    pcall(vim.fn.writefile, vim.api.nvim_buf_get_lines(buf, 0, -1, false), shadow_path(name))
+end
+
 -- 取り込んだ直後に undofile の土台を貼り替える。undofile は「書いた時の本文」と
 -- ハッシュが合わないと読まれない(File contents changed, cannot use undo info)ので、
 -- ここで書き直しておかないと nvim を開き直した時点で履歴が消える。
@@ -305,7 +320,50 @@ autocmd("FileChangedShellPost", {
         vim.api.nvim_buf_call(a.buf, function()
             pcall(vim.cmd, "wundo! " .. vim.fn.fnameescape(vim.fn.undofile(name)))
         end)
+        save_shadow(a.buf)
     end,
     desc = "取り込み後に undofile を書き直し、再起動後も AI 前に戻れるようにする",
+})
+
+autocmd("BufWritePost", {
+    group = ai_undo,
+    callback = function(a) save_shadow(a.buf) end,
+    desc = "保存した本文を影コピーに控える(open 時の復元用)",
+})
+
+-- nvim を閉じている間に AI が書き換えた場合。開いた時点でディスクは AI 版なので undofile の
+-- ハッシュが合わず、履歴が丸ごと読めない。そこで「いったん保存時の本文に戻す → :rundo →
+-- AI 版に戻す」で土台を合わせに行く。最後の差し替えが AI の編集ぶんの undo ノードになる。
+--   u 1回 → 自分が最後に保存した版 / もう 1 回 → 閉じる前の履歴
+-- 影コピーが古い等で :rundo が失敗したら、何もしなかった状態(履歴なし)に戻すだけ。
+autocmd("BufReadPost", {
+    group = ai_undo,
+    callback = function(a)
+        local buf = a.buf
+        if not vim.bo[buf].undofile or vim.bo[buf].buftype ~= "" then return end
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name == "" then return end
+        local uf, sp = vim.fn.undofile(name), shadow_path(name)
+        if vim.fn.filereadable(uf) ~= 1 or vim.fn.filereadable(sp) ~= 1 then return end
+        vim.api.nvim_buf_call(buf, function()
+            if vim.fn.undotree().seq_last > 0 then return end -- 普通に読めている
+            local now = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            local saved = vim.fn.readfile(sp)
+            if vim.deep_equal(now, saved) then return end -- 閉じている間に変わっていない
+            local ul = vim.bo[buf].undolevels
+            vim.bo[buf].undolevels = -1 -- 土台戻しは履歴に残さない
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, saved)
+            vim.bo[buf].undolevels = ul
+            if pcall(vim.cmd, "rundo " .. vim.fn.fnameescape(uf)) then
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, now) -- これが AI ぶんの undo ノード
+            else
+                vim.bo[buf].undolevels = -1
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, now)
+                vim.bo[buf].undolevels = ul
+            end
+            vim.bo[buf].modified = false
+        end)
+    end,
+    desc = "閉じている間の外部編集を undo ノードとして復元する",
 })
 --}}}
