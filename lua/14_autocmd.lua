@@ -318,7 +318,7 @@ autocmd("FileChangedShellPost", {
         local name = vim.api.nvim_buf_get_name(a.buf)
         if name == "" then return end
         vim.api.nvim_buf_call(a.buf, function()
-            pcall(vim.cmd, "wundo! " .. vim.fn.fnameescape(vim.fn.undofile(name)))
+            pcall(vim.cmd, "silent! wundo! " .. vim.fn.fnameescape(vim.fn.undofile(name)))
         end)
         save_shadow(a.buf)
     end,
@@ -351,7 +351,11 @@ local function restore_from_shadow(buf)
         vim.bo[buf].undolevels = -1 -- 土台戻しは履歴に残さない
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, saved)
         vim.bo[buf].undolevels = ul
-        if pcall(vim.cmd, "rundo " .. vim.fn.fnameescape(uf)) then
+        -- :rundo は成功すると "Finished reading undo file ..." を出し、他のメッセージと
+        -- 重なると hit-enter プロンプトになって起動のたびに Enter を要求される。
+        -- silent! で黙らせる代わりに、成否は pcall ではなく seq_last で見る
+        vim.cmd("silent! rundo " .. vim.fn.fnameescape(uf))
+        if vim.fn.undotree().seq_last > 0 then
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, now) -- これが AI ぶんの undo ノード
         else
             vim.bo[buf].undolevels = -1
