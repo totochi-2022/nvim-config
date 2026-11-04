@@ -245,15 +245,36 @@ local function focus_other_tab(dir, id)
   local runtime = vim.env.XDG_RUNTIME_DIR or "/run/user/1000"
   local probe = ("luaeval('require(\"claude_tasks\").shown_at(_A[1], _A[2])', [%s, %s])")
     :format(vim.fn.string(dir), vim.fn.string(id or ""))
+  -- 全部に一斉に聞き、0.5 秒で返事の無いものは飛ばす(返事をしない nvim が残っていても 1 つ 2 秒ずつ待たない。
+  -- 親を失った --embed は画面を待ったまま返事をしない。2026-11-04)
+  -- jobwait(ids, 500) は使わない: nvim 0.12.6 では 1 つ終わると残りを待たずに -1 を返す。vim.wait で全部そろうか 0.5 秒まで待つ
   local best, best_at = nil, 0
+  local outs, codes, jobs, left = {}, {}, {}, 0
   for _, name in ipairs(vim.fn.readdir(runtime, function(n) return n:match("^nvim%.%d+%.0$") and 1 or 0 end)) do
     local sock = runtime:gsub("/$", "") .. "/" .. name
     -- 自分は除く(servername は "/run/user/1000//nvim…" と / が重なることがある。自分に聞くと待ちで固まる)
     if sock ~= (vim.v.servername:gsub("//+", "/")) then
-      local out = vim.fn.system({ "timeout", "2", "nvim", "--server", sock, "--remote-expr", probe })
-      local at = tonumber(vim.trim(out)) or 0
-      if vim.v.shell_error == 0 and at > best_at then
-        best, best_at = sock, at
+      local j = vim.fn.jobstart({ "nvim", "--server", sock, "--remote-expr", probe }, {
+        stdout_buffered = true,
+        on_stdout = function(_, data) outs[sock] = table.concat(data, "") end,
+        on_exit = function(_, code) codes[sock] = code; left = left - 1 end,
+      })
+      if j > 0 then
+        jobs[#jobs + 1] = { id = j, sock = sock }
+        left = left + 1
+      end
+    end
+  end
+  if left > 0 then
+    vim.wait(500, function() return left <= 0 end, 10)
+  end
+  for _, x in ipairs(jobs) do
+    if codes[x.sock] == nil then
+      vim.fn.jobstop(x.id) -- 0.5 秒で返事が無い
+    elseif codes[x.sock] == 0 then
+      local at = tonumber(vim.trim(outs[x.sock] or "")) or 0
+      if at > best_at then
+        best, best_at = x.sock, at
       end
     end
   end
