@@ -18,6 +18,9 @@
 
 local M = {}
 
+-- この nvim(WT のタブ)にフォーカスがあるか。FocusGained/FocusLost で更新
+M.focused = false
+
 -- claude-tasks 解決(claude_tasks.lua と同じ理由で絶対パスフォールバック)
 local ct_cmd = vim.fn.exepath("claude-tasks")
 if ct_cmd == "" then
@@ -58,8 +61,10 @@ function M.refresh()
   local out = vim.fn.systemlist({ ct_cmd, "native-attn" })
   local cur = current_task_dir()
   cur = cur and norm(cur) or nil
-  -- 見ているペインは「見た」ことにする(idle の stop 抑制。次回 native-attn から消える)
-  if cur then
+  -- 見ているペインは「見た」ことにする(idle の stop 抑制。次回 native-attn から消える)。
+  -- この nvim にフォーカスがある時だけ(WT の裏のタブ・裏の窓で開いたままの会話を、見ていないのに既読にしないため)。
+  -- フォーカスは下の FocusGained/FocusLost で覚える。手前に来た時は FocusGained の visit-mark で既読になる
+  if cur and M.focused then
     vim.fn.jobstart({ ct_cmd, "visit-mark", cur })
   end
 
@@ -207,6 +212,14 @@ function M.setup()
       end)
     )
   end
+
+  -- この nvim にフォーカスがあるか(M.refresh が既読にするかの判断。起動直後は分からないので無し扱い)
+  vim.api.nvim_create_autocmd({ "FocusGained", "FocusLost" }, {
+    callback = function(ev)
+      M.focused = ev.event == "FocusGained"
+    end,
+    desc = "フォーカスの有無を覚える(裏のタブで既読にしない)",
+  })
 
   -- claude ペインに入ったら(BufEnter/WinEnter/TermEnter/FocusGained)その待ちを消す。
   -- 考え中(working)は消さない(離れたら ⏳ を出し続けたいので)。
