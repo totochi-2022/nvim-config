@@ -20,7 +20,11 @@
 local M = {}
 
 -- claude は絶対パスで解決（spawn 元によって PATH が異なる場合に備える）
-local claude_cmd = vim.fn.exepath("claude")
+-- claude-rc(claude_plugin/scripts)= Remote Control の名前をフォルダ名にして起動する入口(試し中)。無ければ claude
+local claude_cmd = vim.fn.exepath("claude-rc")
+if claude_cmd == "" then
+  claude_cmd = vim.fn.exepath("claude")
+end
 if claude_cmd == "" then
   claude_cmd = "claude"
 end
