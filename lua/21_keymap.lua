@@ -1076,11 +1076,16 @@ end
 -- ターミナルモードで +レジスタ(クリップボード)を貼り付け。
 -- cmdline は <C-v>=<C-r>+ で貼れるが、t モードには経路が無く Claude 等の
 -- TUI に貼れなかった。bracketed paste で囲み、改行を「送信」と誤認させない。
+-- クリップボードに文字が無い（画像など）時は Ctrl+V(0x16) をそのまま送る。
+-- Claude Code は Ctrl+V で画像を [Image #1] として貼るので、横取りすると貼れない（2026-11-10）。
 local function term_paste()
     local txt = vim.fn.getreg('+')
     local job = vim.b.terminal_job_id
-    if txt ~= '' and job then
+    if not job then return end
+    if txt ~= '' then
         vim.api.nvim_chan_send(job, '\27[200~' .. txt .. '\27[201~')
+    else
+        vim.api.nvim_chan_send(job, '\22')
     end
 end
 keymap('t', '<C-v>', term_paste, { desc = 'ターミナルにクリップボードを貼り付け' })
